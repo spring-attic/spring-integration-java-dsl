@@ -50,8 +50,8 @@ ext {
 	jmsApiVersion = '1.1-rev-1'
 	mailVersion = '1.4.7'
 	slf4jVersion = '1.7.7'
-	springIntegrationVersion = '4.0.4.RELEASE'
-	springBootVersion = '1.1.8.RELEASE'
+	springIntegrationVersion = '4.0.5.RELEASE'
+	springBootVersion = '1.1.9.RELEASE'
 
 	linkHomepage = 'https://github.com/spring-projects/spring-integration-extensions'
 	linkCi = 'https://build.spring.io/browse/INTEXT'

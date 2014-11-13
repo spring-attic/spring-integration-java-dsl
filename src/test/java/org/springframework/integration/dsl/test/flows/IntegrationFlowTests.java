@@ -60,7 +60,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -1286,7 +1285,8 @@ public class IntegrationFlowTests {
 			return name + "-channel";
 		}
 
-		public String routeByHeader(@Header("targetChannel") String name) {
+		@SuppressWarnings("deprecation")
+		public String routeByHeader(@org.springframework.integration.annotation.Header("targetChannel") String name) {
 			return name + "-channel";
 		}
 

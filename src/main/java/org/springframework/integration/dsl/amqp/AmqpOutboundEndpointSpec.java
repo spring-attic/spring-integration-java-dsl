@@ -63,6 +63,7 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 		return this;
 	}
 
+	@SuppressWarnings("deprecation")
 	public AmqpOutboundEndpointSpec routingKeyExpression(String routingKeyExpression) {
 		endpoint.setRoutingKeyExpression(routingKeyExpression);
 		return this;
@@ -78,6 +79,7 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 		return this;
 	}
 
+	@SuppressWarnings("deprecation")
 	public AmqpOutboundEndpointSpec exchangeNameExpression(String exchangeNameExpression) {
 		endpoint.setExchangeNameExpression(exchangeNameExpression);
 		return this;
@@ -88,6 +90,7 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 		return this;
 	}
 
+	@SuppressWarnings("deprecation")
 	public AmqpOutboundEndpointSpec confirmCorrelationExpression(String confirmCorrelationExpression) {
 		endpoint.setConfirmCorrelationExpression(confirmCorrelationExpression);
 		return this;

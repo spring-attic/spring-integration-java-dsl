@@ -116,7 +116,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		return mputFilter(new RegexPatternFileListFilter(regex));
 	}
 
-
+	@SuppressWarnings("deprecation")
 	public S renameExpression(String expression) {
 		this.target.setRenameExpression(expression);
 		return _this();

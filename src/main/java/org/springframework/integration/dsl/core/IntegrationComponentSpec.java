@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
- * The common Builder abstraction.
+ * The common Builder abstraction. The {@link #get()} method returns the final component.
  *
  * @author Artem Bilan
  */
@@ -45,6 +45,9 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 		return id;
 	}
 
+	/**
+	 * @return the configured component.
+	 */
 	public final T get() {
 		if (this.target == null) {
 			this.target = this.doGet();

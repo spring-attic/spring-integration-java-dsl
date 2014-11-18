@@ -17,16 +17,19 @@
 package org.springframework.integration.dsl.core;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.tuple.Tuple2;
 import org.springframework.integration.dsl.support.tuple.Tuples;
+import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link IntegrationComponentSpec} for endpoints.
+ *
  * @author Artem Bilan
-
  */
 public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends BeanNameAware, H>
 		extends IntegrationComponentSpec<S, Tuple2<F, H>> {
@@ -44,21 +47,47 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		}
 	}
 
+	@Override
 	public S id(String id) {
 		this.target.getT1().setBeanName(id);
 		return super.id(id);
 	}
 
+	/**
+	 * @param phase the phase.
+	 * @return the endpoint spec.
+	 * @see SmartLifecycle
+	 */
 	public abstract S phase(int phase);
 
+	/**
+	 * @param autoStartup the autoStartup.
+	 * @return the endpoint spec
+	 * @see SmartLifecycle
+	 */
 	public abstract S autoStartup(boolean autoStartup);
 
+	/**
+	 * @param pollerMetadata the pollerMetadata
+	 * @return the endpoint spec.
+	 * @see AbstractPollingEndpoint
+	 */
 	public abstract S poller(PollerMetadata pollerMetadata);
 
+	/**
+	 * @param pollers the pollers
+	 * @return the endpoint spec.
+	 * @see AbstractPollingEndpoint
+	 */
 	public S poller(Function<PollerFactory, PollerSpec> pollers) {
 		return poller(pollers.apply(new PollerFactory()));
 	}
 
+	/**
+	 * @param pollerMetadataSpec the pollerMetadataSpec
+	 * @return the endpoint spec.
+	 * @see AbstractPollingEndpoint
+	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
 		return this.poller(pollerMetadataSpec.get());
 	}

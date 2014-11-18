@@ -27,6 +27,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link ConsumerEndpointSpec} implementation for the {@link MessageFilter}.
+ *
  * @author Artem Bilan
  */
 public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpointSpec, MessageFilter>
@@ -38,21 +40,42 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 		super(messageFilter);
 	}
 
+	/**
+	 * @param throwExceptionOnRejection the throwExceptionOnRejection.
+	 * @return the endpoint spec.
+	 * @see MessageFilter#setThrowExceptionOnRejection(boolean)
+	 */
 	public FilterEndpointSpec throwExceptionOnRejection(boolean throwExceptionOnRejection) {
 		this.target.getT2().setThrowExceptionOnRejection(throwExceptionOnRejection);
 		return _this();
 	}
 
+	/**
+	 * @param discardChannel the discardChannel.
+	 * @return the endpoint spec.
+	 * @see MessageFilter#setDiscardChannel(MessageChannel)
+	 */
 	public FilterEndpointSpec discardChannel(MessageChannel discardChannel) {
 		this.target.getT2().setDiscardChannel(discardChannel);
 		return _this();
 	}
 
+	/**
+	 * @param discardChannelName the discardChannelName.
+	 * @return the endpoint spec.
+	 * @see MessageFilter#setDiscardChannelName(String)
+	 */
 	public FilterEndpointSpec discardChannel(String discardChannelName) {
 		this.target.getT2().setDiscardChannelName(discardChannelName);
 		return _this();
 	}
 
+	/**
+	 * Configure a subflow to run for discarded messages instead of a
+	 * {@link #discardChannel(MessageChannel)}.
+	 * @param discardFlow the discard flow.
+	 * @return the endpoint spec.
+	 */
 	public FilterEndpointSpec discardFlow(IntegrationFlow discardFlow) {
 		Assert.notNull(discardFlow);
 		DirectChannel channel = new DirectChannel();
@@ -62,6 +85,11 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 		return discardChannel(channel);
 	}
 
+	/**
+	 * @param discardWithinAdvice the discardWithinAdvice.
+	 * @return the endpoint spec.
+	 * @see MessageFilter#setDiscardWithinAdvice(boolean)
+	 */
 	public FilterEndpointSpec discardWithinAdvice(boolean discardWithinAdvice) {
 		this.target.getT2().setDiscardWithinAdvice(discardWithinAdvice);
 		return _this();

@@ -20,6 +20,8 @@ import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 
 /**
+ * A {@link ConsumerEndpointSpec} for a {@link AbstractMessageSplitter} implementations.
+ *
  * @author Artem Bilan
  */
 public final class SplitterEndpointSpec<S extends AbstractMessageSplitter>
@@ -29,6 +31,11 @@ public final class SplitterEndpointSpec<S extends AbstractMessageSplitter>
 		super(splitter);
 	}
 
+	/**
+	 * @param applySequence the applySequence.
+	 * @return the endpoint spec.
+	 * @see AbstractMessageSplitter#setApplySequence(boolean)
+	 */
 	public SplitterEndpointSpec<S> applySequence(boolean applySequence) {
 		this.target.getT2().setApplySequence(applySequence);
 		return _this();

@@ -29,6 +29,8 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageHandler;
 
 /**
+ * A {@link EndpointSpec} for consumer endpoints.
+ *
  * @author Artem Bilan
  */
 public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>, H extends MessageHandler>
@@ -47,26 +49,40 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		}
 	}
 
+	@Override
 	public S phase(int phase) {
 		this.target.getT1().setPhase(phase);
 		return _this();
 	}
 
+	@Override
 	public S autoStartup(boolean autoStartup) {
 		this.target.getT1().setAutoStartup(autoStartup);
 		return _this();
 	}
 
+	@Override
 	public S poller(PollerMetadata pollerMetadata) {
 		this.target.getT1().setPollerMetadata(pollerMetadata);
 		return _this();
 	}
 
+	/**
+	 * Configure a list of {@link Advice} objects to be applied, in nested order, to the endpoint's handler.
+	 * The advice objects are applied only to the handler and not the downstream flow.
+	 * @param advice the advice chain.
+	 * @return the endpoint spec.
+	 */
 	public S advice(Advice... advice) {
 		this.adviceChain.addAll(Arrays.asList(advice));
 		return _this();
 	}
 
+	/**
+	 * @param requiresReply the requiresReply.
+	 * @return the endpoint spec.
+	 * @see AbstractReplyProducingMessageHandler#setRequiresReply(boolean)
+	 */
 	public S requiresReply(boolean requiresReply) {
 		H handler = this.target.getT2();
 		if (handler instanceof AbstractReplyProducingMessageHandler) {
@@ -78,6 +94,11 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		return _this();
 	}
 
+	/**
+	 * @param sendTimeout the send timeout.
+	 * @return the endpoint spec.
+	 * @see AbstractReplyProducingMessageHandler#setSendTimeout(long)
+	 */
 	public S sendTimeout(long sendTimeout) {
 		H handler = this.target.getT2();
 		if (handler instanceof AbstractReplyProducingMessageHandler) {
@@ -89,6 +110,11 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		return _this();
 	}
 
+	/**
+	 * @param order the order.
+	 * @return the endpoint spec.
+	 * @see AbstractMessageHandler#setOrder(int)
+	 */
 	public S order(int order) {
 		H handler = this.target.getT2();
 		if (handler instanceof AbstractMessageHandler) {

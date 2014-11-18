@@ -20,6 +20,7 @@ import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.router.AbstractMessageRouter;
 
 /**
+ * A {@link MessageHandlerSpec} for {@link AbstractMessageRouter}s.
  * @author Artem Bilan
  */
 public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends AbstractMessageRouter>
@@ -29,11 +30,21 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 		this.target = router;
 	}
 
+	/**
+	 * @param ignoreSendFailures the ignoreSendFailures.
+	 * @return the router spec.
+	 * @see AbstractMessageRouter#setIgnoreSendFailures(boolean)
+	 */
 	public S ignoreSendFailures(boolean ignoreSendFailures) {
 		this.target.setIgnoreSendFailures(ignoreSendFailures);
 		return _this();
 	}
 
+	/**
+	 * @param applySequence the applySequence.
+	 * @return the router spec.
+	 * @see AbstractMessageRouter#setApplySequence(boolean)
+	 */
 	public S applySequence(boolean applySequence) {
 		this.target.setApplySequence(applySequence);
 		return _this();

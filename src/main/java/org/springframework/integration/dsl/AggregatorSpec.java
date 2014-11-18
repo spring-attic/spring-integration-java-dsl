@@ -23,6 +23,8 @@ import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 
 /**
+ * A {@link CorrelationHandlerSpec} for an {@link AggregatingMessageHandler}.
+ *
  * @author Artem Bilan
  */
 public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, AggregatingMessageHandler> {
@@ -41,15 +43,32 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 				: new MethodInvokingMessageGroupProcessor(target));
 	}
 
+	/**
+	 * An expression to determine the output message from the released group. Defaults to a message
+	 * with a payload that is a collection of payloads from the input messages.
+	 * @param expression the expression.
+	 * @return the aggregator spec.
+	 */
 	public AggregatorSpec outputExpression(String expression) {
 		return this.outputProcessor(new ExpressionEvaluatingMessageGroupProcessor(expression));
 	}
 
+	/**
+	 * A processor to determine the output message from the released group. Defaults to a message
+	 * with a payload that is a collection of payloads from the input messages.
+	 * @param outputProcessor the processor.
+	 * @return the aggregator spec.
+	 */
 	public AggregatorSpec outputProcessor(MessageGroupProcessor outputProcessor) {
 		this.outputProcessor = outputProcessor;
 		return _this();
 	}
 
+	/**
+	 * @param expireGroupsUponCompletion the expireGroupsUponCompletion.
+	 * @return the aggregator spec.
+	 * @see AggregatingMessageHandler#setExpireGroupsUponCompletion(boolean)
+	 */
 	public AggregatorSpec expireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
 		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
 		return _this();

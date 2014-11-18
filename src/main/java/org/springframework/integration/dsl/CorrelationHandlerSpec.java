@@ -35,6 +35,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.StringUtils;
 
 /**
+ * A {@link MessageHandlerSpec} for an {@link AbstractCorrelatingMessageHandler}.
+ *
  * @author Artem Bilan
  */
 public abstract class
@@ -59,46 +61,98 @@ public abstract class
 
 	private ReleaseStrategy releaseStrategy;
 
+	/**
+	 * @param messageStore the message group store.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setMessageStore(MessageGroupStore)
+	 */
 	public S messageStore(MessageGroupStore messageStore) {
 		this.messageStore = messageStore;
 		return _this();
 	}
 
+	/**
+	 * @param sendPartialResultOnExpiry the sendPartialResultOnExpiry.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setSendPartialResultOnExpiry(boolean)
+	 */
 	public S sendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
 		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
 		return _this();
 	}
 
+	/**
+	 * @param minimumTimeoutForEmptyGroups the minimumTimeoutForEmptyGroups
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setMinimumTimeoutForEmptyGroups(long)
+	 */
 	public S minimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
 		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
 		return _this();
 	}
 
+	/**
+	 * Configure the handler with a group timeout expression that evaluates to
+	 * this constant value.
+	 * @param groupTimeout the group timeout in milliseconds.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
+	 * @see ValueExpression
+	 */
 	public S groupTimeout(long groupTimeout) {
 		this.groupTimeoutExpression = new ValueExpression<Long>(groupTimeout);
 		return _this();
 	}
 
+	/**
+	 * @param groupTimeoutExpression the group timeout expression string.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
+	 */
 	public S groupTimeoutExpression(String groupTimeoutExpression) {
 		this.groupTimeoutExpression = PARSER.parseExpression(groupTimeoutExpression);
 		return _this();
 	}
 
+	/**
+	 * Configure the handler with a function that will be invoked to resolve the group timeout,
+	 * based on the message group.
+	 * Usually used with a JDK8 lambda:
+	 * <p>{@code .groupTimeout(g -> g.size() * 2000L)}.
+	 * @param groupTimeoutFunction a function invoked to resolve the group timeout in milliseconds.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
+	 */
 	public S groupTimeout(Function<MessageGroup, Long> groupTimeoutFunction) {
 		this.groupTimeoutExpression = new FunctionExpression<MessageGroup>(groupTimeoutFunction);
 		return _this();
 	}
 
+	/**
+	 * @param taskScheduler the task scheduler.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setTaskScheduler(TaskScheduler)
+	 */
 	public S taskScheduler(TaskScheduler taskScheduler) {
 		this.taskScheduler = taskScheduler;
 		return _this();
 	}
 
+	/**
+	 * @param discardChannel the discard channel.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setDiscardChannel(MessageChannel)
+	 */
 	public S discardChannel(MessageChannel discardChannel) {
 		this.discardChannel = discardChannel;
 		return _this();
 	}
 
+	/**
+	 * @param discardChannelName the discard channel.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setDiscardChannelName(String)
+	 */
 	public S discardChannel(String discardChannelName) {
 		this.discardChannelName = discardChannelName;
 		return _this();
@@ -114,10 +168,26 @@ public abstract class
 		}
 	}
 
+	/**
+	 * Configure the handler with an {@link ExpressionEvaluatingCorrelationStrategy} for the
+	 * given expression.
+	 * @param correlationExpression the correlation expression.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
+	 */
 	public S correlationExpression(String correlationExpression) {
 		return correlationStrategy(new ExpressionEvaluatingCorrelationStrategy(correlationExpression));
 	}
 
+	/**
+	 * Configure the handler with an
+	 * {@link org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy}
+	 * for the target object and method name.
+	 * @param target the target object.
+	 * @param methodName the method name.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
+	 */
 	public S correlationStrategy(Object target, String methodName) {
 		try {
 			return correlationStrategy(new CorrelationStrategyFactoryBean(target, methodName).getObject());
@@ -127,15 +197,36 @@ public abstract class
 		}
 	}
 
+	/**
+	 * @param correlationStrategy the correlation strategy.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
+	 */
 	public S correlationStrategy(CorrelationStrategy correlationStrategy) {
 		this.correlationStrategy = correlationStrategy;
 		return _this();
 	}
 
+	/**
+	 * Configure the handler with an {@link ExpressionEvaluatingReleaseStrategy} for the
+	 * given expression.
+	 * @param releaseExpression the correlation expression.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
+	 */
 	public S releaseExpression(String releaseExpression) {
 		return releaseStrategy(new ExpressionEvaluatingReleaseStrategy(releaseExpression));
 	}
 
+	/**
+	 * Configure the handler with an
+	 * {@link org.springframework.integration.aggregator.MethodInvokingReleaseStrategy}
+	 * for the target object and method name.
+	 * @param target the target object.
+	 * @param methodName the method name.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
+	 */
 	public S releaseStrategy(Object target, String methodName) {
 		try {
 			return releaseStrategy(new ReleaseStrategyFactoryBean(target, methodName).getObject());
@@ -145,6 +236,11 @@ public abstract class
 		}
 	}
 
+	/**
+	 * @param releaseStrategy the release strategy.
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
+	 */
 	public S releaseStrategy(ReleaseStrategy releaseStrategy) {
 		this.releaseStrategy = releaseStrategy;
 		return _this();

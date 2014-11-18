@@ -36,8 +36,18 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	AggregatorSpec() {
 	}
 
+	/**
+	 * Configure the handler with {@link org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy}
+	 * and {@link org.springframework.integration.aggregator.MethodInvokingReleaseStrategy} using the target
+	 * object which should have methods annotated appropriately for each function.
+	 * Also set the output processor.
+	 * @param target the target object.
+	 * @param methodName The method name for the output processor (or 'null' in which case, the
+	 * target object must have an {@link org.springframework.integration.annotation.Aggregator} annotation).
+	 * @return the handler spec.
+	 */
 	public AggregatorSpec processor(Object target, String methodName) {
-		super.processor(target, methodName);
+		super.processor(target);
 		return this.outputProcessor(methodName != null
 				? new MethodInvokingMessageGroupProcessor(target, methodName)
 				: new MethodInvokingMessageGroupProcessor(target));

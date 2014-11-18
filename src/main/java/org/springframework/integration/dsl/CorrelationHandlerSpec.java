@@ -158,10 +158,19 @@ public abstract class
 		return _this();
 	}
 
-	public S processor(Object target, String methodName) {
+	/**
+	 * Configure the handler with {@link org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy}
+	 * and {@link org.springframework.integration.aggregator.MethodInvokingReleaseStrategy} using the target
+	 * object which should have methods annotated appropriately for each function.
+	 * @param target the target object,
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
+	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
+	 */
+	public S processor(Object target) {
 		try {
-			return correlationStrategy(new CorrelationStrategyFactoryBean(target, methodName).getObject())
-					.releaseStrategy(new ReleaseStrategyFactoryBean(target, methodName).getObject());
+			return correlationStrategy(new CorrelationStrategyFactoryBean(target).getObject())
+					.releaseStrategy(new ReleaseStrategyFactoryBean(target).getObject());
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

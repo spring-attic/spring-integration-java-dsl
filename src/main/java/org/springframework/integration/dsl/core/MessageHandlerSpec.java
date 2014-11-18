@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.core;
 import org.springframework.messaging.MessageHandler;
 
 /**
+ * An {@link IntegrationComponentSpec} for {@link MessageHandler}s.
  * @author Artem Bilan
  */
 public abstract class MessageHandlerSpec<S extends MessageHandlerSpec<S, H>, H extends MessageHandler>

@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * The {@link AbstractRouterSpec} for an {@link AbstractMappingMessageRouter}.
  * @author Artem Bilan
  */
 public final class RouterSpec<R extends AbstractMappingMessageRouter> extends AbstractRouterSpec<RouterSpec<R>, R>
@@ -50,11 +51,22 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 		super(router);
 	}
 
+	/**
+	 * @param resolutionRequired the resolutionRequired.
+	 * @return the router spec.
+	 * @see AbstractMappingMessageRouter#setResolutionRequired(boolean)
+	 */
 	public RouterSpec<R> resolutionRequired(boolean resolutionRequired) {
 		this.target.setResolutionRequired(resolutionRequired);
 		return _this();
 	}
 
+	/**
+	 * Cannot be invoked if {@link #subFlowMapping(String, IntegrationFlow)} is used.
+	 * @param prefix the prefix.
+	 * @return the router spec.
+	 * @see AbstractMappingMessageRouter#setPrefix(String)
+	 */
 	public RouterSpec<R> prefix(String prefix) {
 		Assert.state(this.subFlows.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.prefix = prefix;
@@ -62,6 +74,12 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 		return _this();
 	}
 
+	/**
+	 * Cannot be invoked if {@link #subFlowMapping(String, IntegrationFlow)} is used.
+	 * @param suffix the suffix to set.
+	 * @return the router spec.
+	 * @see AbstractMappingMessageRouter#setSuffix(String)
+	 */
 	public RouterSpec<R> suffix(String suffix) {
 		Assert.state(this.subFlows.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.suffix = suffix;
@@ -69,6 +87,12 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 		return _this();
 	}
 
+	/**
+	 * @param key the key.
+	 * @param channelName the channelName.
+	 * @return the router spec.
+	 * @see AbstractMappingMessageRouter#setChannelMapping(String, String)
+	 */
 	public RouterSpec<R> channelMapping(String key, String channelName) {
 		Assert.hasText(key);
 		Assert.hasText(channelName);
@@ -76,6 +100,13 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 		return _this();
 	}
 
+	/**
+	 * Add a subflow as an alternative to a {@link #channelMapping(String, String)}. {@link #prefix(String)} and
+	 * {@link #suffix(String)} cannot be used when subflow mappings are used.
+	 * @param key the key.
+	 * @param subFlow the subFlow.
+	 * @return the router spec.
+	 */
 	public RouterSpec<R> subFlowMapping(String key, IntegrationFlow subFlow) {
 		Assert.hasText(key);
 		Assert.notNull(subFlow);

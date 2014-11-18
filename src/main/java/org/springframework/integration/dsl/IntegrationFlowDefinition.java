@@ -269,6 +269,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
+	 * @param <S> the source type - 'transform from'.
+	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor
@@ -282,6 +284,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * for the specific {@code payloadType} to convert at runtime.
 	 * @param payloadType the {@link Class} for expected payload type.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
+	 * @param <P> the payload type - 'transform from'.
+	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor
@@ -295,6 +299,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <S> the source type - 'transform from'.
+	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor
@@ -312,6 +318,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param payloadType the {@link Class} for expected payload type.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the payload type - 'transform from'.
+	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor

@@ -27,6 +27,8 @@ import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroupStore;
 
 /**
+ * A {@link ConsumerEndpointSpec} for a {@link DelayerEndpointSpec}.
+ *
  * @author Artem Bilan
  */
 public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpointSpec, DelayHandler> {
@@ -38,22 +40,41 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 		this.target.getT2().setDelayedAdviceChain(this.delayedAdvice);
 	}
 
+	/**
+	 * @param defaultDelay the defaultDelay.
+	 * @return the endpoint spec.
+	 * @see DelayHandler#setDefaultDelay(long)
+	 */
 	public DelayerEndpointSpec defaultDelay(long defaultDelay) {
 		this.target.getT2().setDefaultDelay(defaultDelay);
 		return _this();
 	}
 
-
+	/**
+	 * @param ignoreExpressionFailures the ignoreExpressionFailures.
+	 * @return the endpoint spec.
+	 * @see DelayHandler#setIgnoreExpressionFailures(boolean)
+	 */
 	public DelayerEndpointSpec ignoreExpressionFailures(boolean ignoreExpressionFailures) {
 		this.target.getT2().setIgnoreExpressionFailures(ignoreExpressionFailures);
 		return _this();
 	}
 
+	/**
+	 * @param messageStore the message store.
+	 * @return the endpoint spec.
+	 */
 	public DelayerEndpointSpec messageStore(MessageGroupStore messageStore) {
 		this.target.getT2().setMessageStore(messageStore);
 		return _this();
 	}
 
+	/**
+	 * Configure a list of {@link Advice} objects that will be applied, in nested order,
+	 * when delayed messages are sent.
+	 * @param advice the advice chain.
+	 * @return the endpoint spec.
+	 */
 	public DelayerEndpointSpec delayedAdvice(Advice... advice) {
 		this.delayedAdvice.addAll(Arrays.asList(advice));
 		return _this();

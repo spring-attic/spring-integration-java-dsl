@@ -20,6 +20,8 @@ import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.messaging.MessageChannel;
 
 /**
+ * A {@link ConsumerEndpointSpec} for a mid-flow {@link GatewayEndpointSpec}.
+ *
  * @author Artem Bilan
  */
 public final class GatewayEndpointSpec extends ConsumerEndpointSpec<GatewayEndpointSpec, GatewayMessageHandler> {

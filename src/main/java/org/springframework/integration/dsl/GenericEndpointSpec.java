@@ -20,6 +20,8 @@ import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.messaging.MessageHandler;
 
 /**
+ * A {@link ConsumerEndpointSpec} for a {@link GenericEndpointSpec}.
+ *
  * @author Artem Bilan
  */
 public final class GenericEndpointSpec<H extends MessageHandler>

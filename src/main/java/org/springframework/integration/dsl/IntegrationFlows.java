@@ -43,10 +43,11 @@ import org.springframework.util.Assert;
 public final class IntegrationFlows {
 
 	/**
+	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlowBuilder} chain.
+	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * @param messageChannelName the name of existing {@link MessageChannel} bean.
 	 * The new {@link DirectChannel} bean will be created on context startup
 	 * if there is no bean with this name.
-	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(String messageChannelName) {
@@ -54,12 +55,15 @@ public final class IntegrationFlows {
 	}
 
 	/**
+	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlowBuilder} chain.
+	 * Typically for the {@link org.springframework.integration.channel.FixedSubscriberChannel} together
+	 * with {@code fixedSubscriber = true}.
+	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * @param messageChannelName the name for {@link DirectChannel} or
 	 * {@link org.springframework.integration.channel.FixedSubscriberChannel}
 	 * to be created on context startup, not reference.
 	 * The {@link MessageChannel} depends on the {@code fixedSubscriber} boolean argument.
 	 * @param fixedSubscriber the boolean flag to determine if result {@link MessageChannel} should
-	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * be {@link DirectChannel}, if {@code false} or
 	 * {@link org.springframework.integration.channel.FixedSubscriberChannel}, if {@code true}.
 	 * @return new {@link IntegrationFlowBuilder}.

@@ -158,10 +158,10 @@ public abstract class
 		return _this();
 	}
 
-	public S processor(Object target, String methodName) {
+	public S processor(Object target) {
 		try {
-			return correlationStrategy(new CorrelationStrategyFactoryBean(target, methodName).getObject())
-					.releaseStrategy(new ReleaseStrategyFactoryBean(target, methodName).getObject());
+			return correlationStrategy(new CorrelationStrategyFactoryBean(target).getObject())
+					.releaseStrategy(new ReleaseStrategyFactoryBean(target).getObject());
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

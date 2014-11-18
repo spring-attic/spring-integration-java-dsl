@@ -83,8 +83,15 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * The {@code Builder} pattern implementation for the EIP-method chain.
+ * Provides variety of methods to populate Spring Integration components
+ * to the {@link IntegrationFlow} for the future registration in the
+ * application context.
+ *
  * @author Artem Bilan
  * @author Gary Russell
+ *
+ * @see org.springframework.integration.dsl.config.IntegrationFlowBeanPostProcessor
  */
 public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinition<B>> {
 
@@ -118,28 +125,75 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return _this();
 	}
 
+	/**
+	 * Populate the {@link org.springframework.integration.channel.FixedSubscriberChannel} instance
+	 * to the current {@link IntegrationFlow} chain position.
+	 * The 'bean name' will be generated on the bean registration phase.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B fixedSubscriberChannel() {
 		return fixedSubscriberChannel(null);
 	}
 
+	/**
+	 * Populate the {@link org.springframework.integration.channel.FixedSubscriberChannel} instance
+	 * to the current {@link IntegrationFlow} chain position.
+	 * The provided {@code messageChannelName} is used for the bean registration.
+	 * @param messageChannelName the bean name to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B fixedSubscriberChannel(String messageChannelName) {
 		return channel(new FixedSubscriberChannelPrototype(messageChannelName));
 	}
 
+	/**
+	 * Populate the {@link MessageChannelReference} instance
+	 * to the current {@link IntegrationFlow} chain position.
+	 * The provided {@code messageChannelName} is used for the bean registration
+	 * ({@link org.springframework.integration.channel.DirectChannel}), if there is such a bean
+	 * in the application context. Otherwise the existing {@link MessageChannel} bean is used
+	 * to wire integration endpoints.
+	 * @param messageChannelName the bean name to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B channel(String messageChannelName) {
 		return channel(new MessageChannelReference(messageChannelName));
 	}
 
+	/**
+	 * Populate the {@link MessageChannel} instance
+	 * to the current {@link IntegrationFlow} chain position using the {@link Channels}
+	 * factory fluent API.
+	 * @param channels the {@link Function} to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B channel(Function<Channels, MessageChannelSpec<?, ?>> channels) {
 		Assert.notNull(channels);
 		return channel(channels.apply(new Channels()));
 	}
 
+	/**
+	 * Populate the {@link MessageChannel} instance
+	 * to the current {@link IntegrationFlow} chain position using the {@link MessageChannelSpec}
+	 * fluent API.
+	 * @param messageChannelSpec the {@link MessageChannelSpec} to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see org.springframework.integration.dsl.channel.MessageChannels
+	 */
 	public B channel(MessageChannelSpec<?, ?> messageChannelSpec) {
 		Assert.notNull(messageChannelSpec);
 		return channel(messageChannelSpec.get());
 	}
 
+	/**
+	 * Populate the provided {@link MessageChannel} instance
+	 * to the current {@link IntegrationFlow} chain position.
+	 * The {@code messageChannel} can be an existing bean, or fresh instance.
+	 * The {@link org.springframework.integration.dsl.config.IntegrationFlowBeanPostProcessor}
+	 * will populate it as a bean with generated name.
+	 * @param messageChannel the {@link MessageChannel} to populate.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B channel(MessageChannel messageChannel) {
 		Assert.notNull(messageChannel);
 		if (this.currentMessageChannel != null) {
@@ -149,10 +203,26 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return registerOutputChannelIfCan(this.currentMessageChannel);
 	}
 
+	/**
+	 * The {@link org.springframework.integration.channel.PublishSubscribeChannel} {@link #channel}
+	 * method specific implementation to allow to use 'subflow' subscriber ability.
+	 * @param publishSubscribeChannelConfigurer the {@link Consumer} to specify
+	 * {@link PublishSubscribeSpec} options including 'subflow' definition.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B publishSubscribeChannel(Consumer<PublishSubscribeSpec> publishSubscribeChannelConfigurer) {
 		return publishSubscribeChannel(null, publishSubscribeChannelConfigurer);
 	}
 
+	/**
+	 * The {@link org.springframework.integration.channel.PublishSubscribeChannel} {@link #channel}
+	 * method specific implementation to allow to use 'subflow' subscriber ability.
+	 * Use provided {@link Executor} for target subscribers.
+	 * @param executor the {@link Executor} to use.
+	 * @param publishSubscribeChannelConfigurer the {@link Consumer} to specify
+	 * {@link PublishSubscribeSpec} options including 'subflow' definition.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B publishSubscribeChannel(Executor executor,
 			Consumer<PublishSubscribeSpec> publishSubscribeChannelConfigurer) {
 		Assert.notNull(publishSubscribeChannelConfigurer);
@@ -161,33 +231,92 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return addComponents(spec.getComponentsToRegister()).channel(spec);
 	}
 
+	/**
+	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
+	 * to the current {@link IntegrationFlow} chain position.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see ExpressionCommandMessageProcessor
+	 */
 	public B controlBus() {
 		return controlBus(null);
 	}
 
+	/**
+	 * Populate the {@code Control Bus} EI Pattern specific {@link MessageHandler} implementation
+	 * to the current {@link IntegrationFlow} chain position.
+	 * @param endpointConfigurer the {@link Consumer} to accept integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see ExpressionCommandMessageProcessor
+	 * @see GenericEndpointSpec
+	 */
 	public B controlBus(Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 		return this.handle(new ServiceActivatingHandler(new ExpressionCommandMessageProcessor(
 				new ControlBusMethodFilter())), endpointConfigurer);
 	}
 
+	/**
+	 * Populate the {@code Transformer} EI Pattern specific {@link MessageHandler} implementation
+	 * for the SpEL {@link Expression}.
+	 * @param expression the {@code Transformer} {@link Expression}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see ExpressionEvaluatingTransformer
+	 */
 	public B transform(String expression) {
 		Assert.hasText(expression);
 		return this.transform(new ExpressionEvaluatingTransformer(PARSER.parseExpression(expression)));
 	}
 
+	/**
+	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}.
+	 * @param genericTransformer the {@link GenericTransformer} to populate.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see MethodInvokingTransformer
+	 * @see LambdaMessageProcessor
+	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer) {
 		return this.transform(null, genericTransformer);
 	}
 
+	/**
+	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
+	 * for the specific {@code payloadType} to convert at runtime.
+	 * @param payloadType the {@link Class} for expected payload type.
+	 * @param genericTransformer the {@link GenericTransformer} to populate.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see MethodInvokingTransformer
+	 * @see LambdaMessageProcessor
+	 */
 	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer) {
 		return this.transform(payloadType, genericTransformer, null);
 	}
 
+	/**
+	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param genericTransformer the {@link GenericTransformer} to populate.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see MethodInvokingTransformer
+	 * @see LambdaMessageProcessor
+	 * @see GenericEndpointSpec
+	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		return this.transform(null, genericTransformer, endpointConfigurer);
 	}
 
+	/**
+	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
+	 * for the specific {@code payloadType} to convert at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param payloadType the {@link Class} for expected payload type.
+	 * @param genericTransformer the {@link GenericTransformer} to populate.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see MethodInvokingTransformer
+	 * @see LambdaMessageProcessor
+	 * @see GenericEndpointSpec
+	 */
 	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		Assert.notNull(genericTransformer);

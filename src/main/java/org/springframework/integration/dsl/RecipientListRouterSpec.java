@@ -27,6 +27,8 @@ import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link AbstractRouterSpec} for a {@link RecipientListRouter}.
+ *
  * @author Artem Bilan
  */
 public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRouterSpec, RecipientListRouter>
@@ -38,18 +40,36 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 		super(new DslRecipientListRouter());
 	}
 
+	/**
+	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * @param channelName the channel name.
+	 * @param expression the expression.
+	 * @return the router spec.
+	 */
 	public RecipientListRouterSpec recipient(String channelName, String expression) {
 		Assert.hasText(channelName);
 		((DslRecipientListRouter) this.target).add(channelName, expression);
 		return _this();
 	}
 
+	/**
+	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * @param channelName the channel name.
+	 * @param selector the selector.
+	 * @return the router spec.
+	 */
 	public RecipientListRouterSpec recipient(String channelName, MessageSelector selector) {
 		Assert.hasText(channelName);
 		((DslRecipientListRouter) this.target).add(channelName, selector);
 		return _this();
 	}
 
+	/**
+	 * Adds a subflow that will be invoked if the selector's accept methods returns 'true'.
+	 * @param selector the selector.
+	 * @param subFlow the subflow.
+	 * @return the router spec.
+	 */
 	public RecipientListRouterSpec recipientFlow(MessageSelector selector, IntegrationFlow subFlow) {
 		Assert.notNull(subFlow);
 		DirectChannel channel = populateSubFlow(subFlow);
@@ -57,6 +77,12 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 		return _this();
 	}
 
+	/**
+	 * Adds a subflow that will be invoked if the expression evaluates to 'true'.
+	 * @param expression the expression.
+	 * @param subFlow the subflow.
+	 * @return the router spec.
+	 */
 	public RecipientListRouterSpec recipientFlow(String expression, IntegrationFlow subFlow) {
 		Assert.notNull(subFlow);
 		DirectChannel channel = populateSubFlow(subFlow);

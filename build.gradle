@@ -165,6 +165,7 @@ task api(type: Javadoc) {
 	options.author = true
 	options.header = rootProject.description
 	options.overview = 'src/api/overview.html'
+	options.stylesheetFile = file("src/api/stylesheet.css")
 
 	source = sourceSets.main.allJava
 	classpath = project.sourceSets.main.compileClasspath

@@ -19,8 +19,6 @@ package org.springframework.integration.dsl.sftp;
 import java.io.File;
 import java.util.Comparator;
 
-import com.jcraft.jsch.ChannelSftp;
-
 import org.springframework.integration.dsl.file.RemoteFileInboundChannelAdapterSpec;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
@@ -28,7 +26,11 @@ import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFil
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 
+import com.jcraft.jsch.ChannelSftp;
+
 /**
+ * A {@link RemoteFileInboundChannelAdapterSpec} for a {@link SftpInboundFileSynchronizingMessageSource}.
+ *
  * @author Artem Bilan
  */
 public class SftpInboundChannelAdapterSpec
@@ -40,11 +42,21 @@ public class SftpInboundChannelAdapterSpec
 		this.target = new SftpInboundFileSynchronizingMessageSource(this.synchronizer, comparator);
 	}
 
+	/**
+	 * @param pattern the Ant style pattern filter to use.
+	 * @see SftpSimplePatternFileListFilter
+	 * @see #filter(org.springframework.integration.file.filters.FileListFilter)
+	 */
 	@Override
 	public SftpInboundChannelAdapterSpec patternFilter(String pattern) {
 		return filter(new SftpSimplePatternFileListFilter(pattern));
 	}
 
+	/**
+	 * @param regex the RegExp pattern to use.
+	 * @see SftpRegexPatternFileListFilter
+	 * @see #filter(org.springframework.integration.file.filters.FileListFilter)
+	 */
 	@Override
 	public SftpInboundChannelAdapterSpec regexFilter(String regex) {
 		return filter(new SftpRegexPatternFileListFilter(regex));

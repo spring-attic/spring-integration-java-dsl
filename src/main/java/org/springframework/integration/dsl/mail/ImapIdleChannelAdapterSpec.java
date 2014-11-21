@@ -39,6 +39,8 @@ import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 
 /**
+ * A {@link MessageProducerSpec} for a {@link ImapIdleChannelAdapter}.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  */
@@ -53,73 +55,151 @@ public class ImapIdleChannelAdapterSpec
 		this.receiver = receiver;
 	}
 
+	/**
+	 * Configure a SpEL expression to select messages. The root object for the expression
+	 * evaluation is a {@link javax.mail.internet.MimeMessage} which should return a boolean
+	 * result (true means select the message).
+	 * @param selectorExpression the selectorExpression.
+	 * @return the spec.
+	 */
 	public ImapIdleChannelAdapterSpec selectorExpression(String selectorExpression) {
 		this.receiver.setSelectorExpression(PARSER.parseExpression(selectorExpression));
 		return this;
 	}
 
+	/**
+	 * Configure a {@link Function} to select messages. The argument for the function
+	 * is a {@link javax.mail.internet.MimeMessage}; {@code apply} returns a boolean
+	 * result (true means select the message).
+	 * @param selectorFunction the selectorFunction.
+	 * @return the spec.
+	 * @see FunctionExpression
+	 */
 	public ImapIdleChannelAdapterSpec selector(Function<MimeMessage, Boolean> selectorFunction) {
 		this.receiver.setSelectorExpression(new FunctionExpression<MimeMessage>(selectorFunction));
 		return this;
 	}
 
+	/**
+	 * @param session the session.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setSession(Session)
+	 */
 	public ImapIdleChannelAdapterSpec session(Session session) {
 		this.receiver.setSession(session);
 		return this;
 	}
 
+	/**
+	 * @param javaMailProperties the javaMailProperties.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setJavaMailProperties(Properties)
+	 */
 	public ImapIdleChannelAdapterSpec javaMailProperties(Properties javaMailProperties) {
 		this.receiver.setJavaMailProperties(javaMailProperties);
 		return this;
 	}
 
+	/**
+	 * Configure the {@code javaMailProperties} by invoking a {@link Consumer} callback which
+	 * is invoked with a {@link PropertiesBuilder}.
+	 * @param configurer the configurer.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setJavaMailProperties(Properties)
+	 */
 	public ImapIdleChannelAdapterSpec javaMailProperties(Consumer<PropertiesBuilder> configurer) {
 		PropertiesBuilder properties = new PropertiesBuilder();
 		configurer.accept(properties);
 		return javaMailProperties(properties.get());
 	}
 
+	/**
+	 * @param javaMailAuthenticator the javaMailAuthenticator.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setJavaMailAuthenticator(Authenticator)
+	 */
 	public ImapIdleChannelAdapterSpec javaMailAuthenticator(Authenticator javaMailAuthenticator) {
 		this.receiver.setJavaMailAuthenticator(javaMailAuthenticator);
 		return this;
 	}
 
+	/**
+	 * @param maxFetchSize the maxFetchSize.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setMaxFetchSize(int)
+	 */
 	public ImapIdleChannelAdapterSpec maxFetchSize(int maxFetchSize) {
 		this.receiver.setMaxFetchSize(maxFetchSize);
 		return this;
 	}
 
+	/**
+	 * @param shouldDeleteMessages the shouldDeleteMessages.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setShouldDeleteMessages(boolean)
+	 */
 	public ImapIdleChannelAdapterSpec shouldDeleteMessages(boolean shouldDeleteMessages) {
 		this.receiver.setShouldDeleteMessages(shouldDeleteMessages);
 		return this;
 	}
 
+	/**
+	 * @param searchTermStrategy the searchTermStrategy.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setSearchTermStrategy(SearchTermStrategy)
+	 */
 	public ImapIdleChannelAdapterSpec searchTermStrategy(SearchTermStrategy searchTermStrategy) {
 		this.receiver.setSearchTermStrategy(searchTermStrategy);
 		return this;
 	}
 
+	/**
+	 * @param shouldMarkMessagesAsRead the shouldMarkMessagesAsRead.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setShouldMarkMessagesAsRead(Boolean)
+	 */
 	public ImapIdleChannelAdapterSpec shouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
 		this.receiver.setShouldMarkMessagesAsRead(shouldMarkMessagesAsRead);
 		return this;
 	}
 
-	public ImapIdleChannelAdapterSpec
-	transactionSynchronizationFactory(TransactionSynchronizationFactory transactionSynchronizationFactory) {
+	/**
+	 * Configure a {@link TransactionSynchronizationFactory}. Usually used to synchronize message
+	 * deletion with some external transaction manager.
+	 * @param transactionSynchronizationFactory the transactionSynchronizationFactory.
+	 * @return the spec.
+	 */
+	public ImapIdleChannelAdapterSpec transactionSynchronizationFactory(
+			TransactionSynchronizationFactory transactionSynchronizationFactory) {
 		this.target.setTransactionSynchronizationFactory(transactionSynchronizationFactory);
 		return this;
 	}
 
+	/**
+	 * Configure a chain of {@link Advice} objects for message delivery.
+	 * @param adviceChain the advice chain.
+	 * @return the spec.
+	 */
 	public ImapIdleChannelAdapterSpec adviceChain(Advice... adviceChain) {
 		this.target.setAdviceChain(Arrays.asList(adviceChain));
 		return this;
 	}
 
+	/**
+	 * @param sendingTaskExecutor the sendingTaskExecutor.
+	 * @return the spec.
+	 * @see ImapIdleChannelAdapter#setSendingTaskExecutor(Executor)
+	 */
 	public ImapIdleChannelAdapterSpec sendingTaskExecutor(Executor sendingTaskExecutor) {
 		this.target.setSendingTaskExecutor(sendingTaskExecutor);
 		return this;
 	}
 
+	/**
+	 * @param shouldReconnectAutomatically the shouldReconnectAutomatically.
+	 * @return the spec.
+	 * @see ImapIdleChannelAdapter#setShouldReconnectAutomatically(boolean)
+	 */
 	public ImapIdleChannelAdapterSpec shouldReconnectAutomatically(boolean shouldReconnectAutomatically) {
 		this.target.setShouldReconnectAutomatically(shouldReconnectAutomatically);
 		return this;

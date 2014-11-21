@@ -38,11 +38,22 @@ public abstract class
 		return _this();
 	}
 
+	/**
+	 * @param destinationResolver the {@link DestinationResolver} to use.
+	 * @return the spec
+	 * @see JmsDestinationAccessor#setDestinationResolver
+	 */
 	public S destinationResolver(DestinationResolver destinationResolver) {
 		this.target.setDestinationResolver(destinationResolver);
 		return _this();
 	}
 
+	/**
+	 *
+	 * @param pubSubDomain the {@code pubSubDomain} flag.
+	 * @return the spec
+	 * @see JmsDestinationAccessor#setPubSubDomain(boolean)
+	 */
 	public S pubSubDomain(boolean pubSubDomain) {
 		target.setPubSubDomain(pubSubDomain);
 		return _this();
@@ -50,19 +61,30 @@ public abstract class
 
 	/**
 	 * @param sessionAcknowledgeMode the acknowledgement mode constant
-	 * @return the current {@link org.springframework.integration.dsl.channel.MessageChannelSpec}
+	 * @return the spec
 	 * @see javax.jms.Session#AUTO_ACKNOWLEDGE etc.
+	 * @see JmsDestinationAccessor#setSessionAcknowledgeMode
 	 */
 	public S sessionAcknowledgeMode(int sessionAcknowledgeMode) {
 		this.target.setSessionAcknowledgeMode(sessionAcknowledgeMode);
 		return _this();
 	}
 
+	/**
+	 * @param constantName the name of the {@link javax.jms.Session} acknowledge mode constant.
+	 * @return the spec.
+	 * @see JmsDestinationAccessor#setSessionAcknowledgeModeName
+	 */
 	public S sessionAcknowledgeModeName(String constantName) {
 		target.setSessionAcknowledgeModeName(constantName);
 		return _this();
 	}
 
+	/**
+	 * @param sessionTransacted the transaction mode.
+	 * @return the spec.
+	 * @see JmsDestinationAccessor#setSessionTransacted
+	 */
 	public S sessionTransacted(boolean sessionTransacted) {
 		this.target.setSessionTransacted(sessionTransacted);
 		return _this();

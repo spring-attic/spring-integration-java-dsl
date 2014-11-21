@@ -19,6 +19,8 @@ package org.springframework.integration.dsl.core;
 import org.springframework.integration.core.MessageSource;
 
 /**
+ * An {@link IntegrationComponentSpec} for {@link MessageSource}s.
+ *
  * @author Artem Bilan
  */
 public abstract class MessageSourceSpec<S extends MessageSourceSpec<S, H>, H extends MessageSource<?>>

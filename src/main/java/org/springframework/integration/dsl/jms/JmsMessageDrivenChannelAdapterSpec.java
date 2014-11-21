@@ -27,6 +27,8 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageProducerSpec} for {@link JmsMessageDrivenChannelAdapter}s.
+ *
  * @author Artem Bilan
  */
 public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChannelAdapterSpec<S>>
@@ -37,16 +39,31 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		this.target.getListener().setExpectReply(false);
 	}
 
+	/**
+	 * @param messageConverter the messageConverter.
+	 * @return the spec.
+	 * @see ChannelPublishingJmsMessageListener#setMessageConverter(MessageConverter)
+	 */
 	public S jmsMessageConverter(MessageConverter messageConverter) {
 		this.target.getListener().setMessageConverter(messageConverter);
 		return _this();
 	}
 
+	/**
+	 * @param headerMapper the headerMapper.
+	 * @return the spec.
+	 * @see ChannelPublishingJmsMessageListener#setHeaderMapper(JmsHeaderMapper)
+	 */
 	public S setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.target.getListener().setHeaderMapper(headerMapper);
 		return _this();
 	}
 
+	/**
+	 * @param extractRequestPayload the extractRequestPayload.
+	 * @return the spec.
+	 * @see ChannelPublishingJmsMessageListener#setExtractRequestPayload(boolean)
+	 */
 	public S extractPayload(boolean extractRequestPayload) {
 		this.target.getListener().setExtractRequestPayload(extractRequestPayload);
 		return _this();
@@ -65,16 +82,32 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 			this.spec.get().setAutoStartup(false);
 		}
 
+		/**
+		 * @param destination the destination.
+		 * @return the spec.
+		 * @see JmsListenerContainerSpec#destination(Destination)
+		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<C> destination(Destination destination) {
 			spec.destination(destination);
 			return _this();
 		}
 
+		/**
+		 * @param destinationName the destinationName.
+		 * @return the spec.
+		 * @see JmsListenerContainerSpec#destination(String)
+		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<C> destination(String destinationName) {
 			spec.destination(destinationName);
 			return _this();
 		}
 
+		/**
+		 * Configure a listener container by invoking the {@link Consumer} callback, with a
+		 * {@link JmsListenerContainerSpec} argument.
+		 * @param configurer the configurer.
+		 * @return the spec.
+		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<C> configureListenerContainer(
 				Consumer<JmsListenerContainerSpec<C>> configurer) {
 			Assert.notNull(configurer);

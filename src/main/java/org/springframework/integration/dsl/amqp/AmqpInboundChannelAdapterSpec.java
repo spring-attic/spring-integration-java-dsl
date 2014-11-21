@@ -32,6 +32,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ErrorHandler;
 
 /**
+ * A {@link MessageProducerSpec} for {@link AmqpInboundChannelAdapter}s.
+ *
  * @author Artem Bilan
  */
 public class AmqpInboundChannelAdapterSpec
@@ -47,121 +49,247 @@ public class AmqpInboundChannelAdapterSpec
 		this.target.setHeaderMapper(headerMapper);
 	}
 
+	/**
+	 * @param acknowledgeMode the acknowledgeMode.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setAcknowledgeMode(AcknowledgeMode)
+	 */
 	public AmqpInboundChannelAdapterSpec acknowledgeMode(AcknowledgeMode acknowledgeMode) {
 		this.listenerContainer.setAcknowledgeMode(acknowledgeMode);
 		return this;
 	}
 
+	/**
+	 * @param queueName a vararg list of queue names to add.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#addQueueNames(String...)
+	 */
 	public AmqpInboundChannelAdapterSpec addQueueNames(String... queueName) {
 		this.listenerContainer.addQueueNames(queueName);
 		return this;
 	}
 
+	/**
+	 * @param queues a vararg list of queues to add.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#addQueueNames(String...)
+	 */
 	public AmqpInboundChannelAdapterSpec addQueues(Queue... queues) {
 		this.listenerContainer.addQueues(queues);
 		return this;
 	}
 
+	/**
+	 * @param errorHandler the errorHandler.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setErrorHandler(ErrorHandler)
+	 */
 	public AmqpInboundChannelAdapterSpec errorHandler(ErrorHandler errorHandler) {
 		this.listenerContainer.setErrorHandler(errorHandler);
 		return this;
 	}
 
+	/**
+	 * @param transactional true for transactional channels.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setChannelTransacted(boolean)
+	 */
 	public AmqpInboundChannelAdapterSpec channelTransacted(boolean transactional) {
 		this.listenerContainer.setChannelTransacted(transactional);
 		return this;
 	}
 
+	/**
+	 * @param adviceChain the adviceChain.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setAdviceChain(Advice[])
+	 */
 	public AmqpInboundChannelAdapterSpec adviceChain(Advice... adviceChain) {
 		this.listenerContainer.setAdviceChain(adviceChain);
 		return this;
 	}
 
+	/**
+	 * @param recoveryInterval the recoveryInterval
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setRecoveryInterval(long)
+	 */
 	public AmqpInboundChannelAdapterSpec recoveryInterval(long recoveryInterval) {
 		this.listenerContainer.setRecoveryInterval(recoveryInterval);
 		return this;
 	}
 
+	/**
+	 * @param concurrentConsumers the concurrentConsumers
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setConcurrentConsumers(int)
+	 */
 	public AmqpInboundChannelAdapterSpec concurrentConsumers(int concurrentConsumers) {
 		this.listenerContainer.setConcurrentConsumers(concurrentConsumers);
 		return this;
 	}
 
+	/**
+	 * @param maxConcurrentConsumers the maxConcurrentConsumers.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setMaxConcurrentConsumers(int)
+	 */
 	public AmqpInboundChannelAdapterSpec maxConcurrentConsumers(int maxConcurrentConsumers) {
 		this.listenerContainer.setMaxConcurrentConsumers(maxConcurrentConsumers);
 		return this;
 	}
 
+	/**
+	 * @param exclusive true for exclusive.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setExclusive(boolean)
+	 */
 	public AmqpInboundChannelAdapterSpec exclusive(boolean exclusive) {
 		this.listenerContainer.setExclusive(exclusive);
 		return this;
 	}
 
+	/**
+	 * @param startConsumerMinInterval the startConsumerMinInterval
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setStartConsumerMinInterval(long)
+	 */
 	public AmqpInboundChannelAdapterSpec startConsumerMinInterval(long startConsumerMinInterval) {
 		this.listenerContainer.setStartConsumerMinInterval(startConsumerMinInterval);
 		return this;
 	}
 
+	/**
+	 * @param stopConsumerMinInterval the stopConsumerMinInterval.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setStopConsumerMinInterval(long)
+	 */
 	public AmqpInboundChannelAdapterSpec stopConsumerMinInterval(long stopConsumerMinInterval) {
 		this.listenerContainer.setStopConsumerMinInterval(stopConsumerMinInterval);
 		return this;
 	}
 
+	/**
+	 * @param consecutiveActiveTrigger the consecutiveActiveTrigger.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setConsecutiveActiveTrigger(int)
+	 */
 	public AmqpInboundChannelAdapterSpec consecutiveActiveTrigger(int consecutiveActiveTrigger) {
 		this.listenerContainer.setConsecutiveActiveTrigger(consecutiveActiveTrigger);
 		return this;
 	}
 
+	/**
+	 * @param consecutiveIdleTrigger the consecutiveIdleTrigger.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setConsecutiveIdleTrigger(int)
+	 */
 	public AmqpInboundChannelAdapterSpec consecutiveIdleTrigger(int consecutiveIdleTrigger) {
 		this.listenerContainer.setConsecutiveIdleTrigger(consecutiveIdleTrigger);
 		return this;
 	}
 
+	/**
+	 * @param receiveTimeout the receiveTimeout
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setReceiveTimeout(long)
+	 */
 	public AmqpInboundChannelAdapterSpec receiveTimeout(long receiveTimeout) {
 		this.listenerContainer.setReceiveTimeout(receiveTimeout);
 		return this;
 	}
 
+	/**
+	 * @param shutdownTimeout the shutdownTimeout.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setShutdownTimeout(long)
+	 */
 	public AmqpInboundChannelAdapterSpec shutdownTimeout(long shutdownTimeout) {
 		this.listenerContainer.setShutdownTimeout(shutdownTimeout);
 		return this;
 	}
 
+	/**
+	 * Configure an {@link java.util.concurrent.Executor} used to invoke the
+	 * message listener.
+	 * @param taskExecutor the taskExecutor.
+	 * @return the spec.
+	 */
 	public AmqpInboundChannelAdapterSpec taskExecutor(Executor taskExecutor) {
 		this.listenerContainer.setTaskExecutor(taskExecutor);
 		return this;
 	}
 
+	/**
+	 * @param prefetchCount the prefetchCount.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setPrefetchCount(int)
+	 */
 	public AmqpInboundChannelAdapterSpec prefetchCount(int prefetchCount) {
 		this.listenerContainer.setPrefetchCount(prefetchCount);
 		return this;
 	}
 
+	/**
+	 * @param txSize the txSize.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setTxSize(int)
+	 */
 	public AmqpInboundChannelAdapterSpec txSize(int txSize) {
 		this.listenerContainer.setTxSize(txSize);
 		return this;
 	}
 
+	/**
+	 * Configure a {@link PlatformTransactionManager}; used to synchronize the rabbit transaction
+	 * with some other transaction(s).
+	 * @param transactionManager the transactionManager.
+	 * @return the spec.
+	 */
 	public AmqpInboundChannelAdapterSpec transactionManager(PlatformTransactionManager transactionManager) {
 		this.listenerContainer.setTransactionManager(transactionManager);
 		return this;
 	}
 
+	/**
+	 * @param defaultRequeueRejected the defaultRequeueRejected.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setDefaultRequeueRejected(boolean)
+	 */
 	public AmqpInboundChannelAdapterSpec defaultRequeueRejected(boolean defaultRequeueRejected) {
 		this.listenerContainer.setDefaultRequeueRejected(defaultRequeueRejected);
 		return this;
 	}
 
+	/**
+	 * Configure the adapter's {@link MessageConverter}; defaults to {@link
+	 * org.springframework.amqp.support.converter.SimpleMessageConverter}.
+	 * @param messageConverter the messageConverter.
+	 * @return the spec.
+	 * @see AmqpInboundChannelAdapter#setMessageConverter(MessageConverter)
+	 */
 	public AmqpInboundChannelAdapterSpec messageConverter(MessageConverter messageConverter) {
 		this.target.setMessageConverter(messageConverter);
 		return this;
 	}
 
+	/**
+	 * Configure the adapter's {@link AmqpHeaderMapper}; defaults to
+	 * {@link DefaultAmqpHeaderMapper}.
+	 * @param headerMapper the headerMapper.
+	 * @return the spec.
+	 */
 	public AmqpInboundChannelAdapterSpec headerMapper(AmqpHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return this;
 	}
 
+	/**
+	 * Only applies if the default header mapper is used.
+	 * @param headers the headers.
+	 * @return the spec.
+	 * @see DefaultAmqpHeaderMapper#setRequestHeaderNames(String[])
+	 */
 	public AmqpInboundChannelAdapterSpec mappedRequestHeaders(String... headers) {
 		this.headerMapper.setRequestHeaderNames(headers);
 		return this;

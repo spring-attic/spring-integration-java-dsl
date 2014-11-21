@@ -336,23 +336,90 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				.handle(new MessageTransformingHandler(transformer), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link MessageFilter} with {@link MessageSelector} for the provided SpEL expression.
+	 * @param expression the SpEL expression.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B filter(String expression) {
 		Assert.hasText(expression);
 		return this.filter(new ExpressionEvaluatingSelector(PARSER.parseExpression(expression)));
 	}
 
-	public <S> B filter(GenericSelector<S> genericSelector) {
+	/**
+	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
+	 * for the provided {@link GenericSelector}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .filter("World"::equals)
+	 * }
+	 * </pre>
+	 * @param genericSelector the {@link GenericSelector} to use.
+	 * @param <P> the source payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public <P> B filter(GenericSelector<P> genericSelector) {
 		return this.filter(null, genericSelector);
 	}
 
+	/**
+	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
+	 * for the provided {@link GenericSelector}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .filter(Date.class, p -> p.after(new Date()))
+	 * }
+	 * </pre>
+	 * @param payloadType the {@link Class} for desired {@code payload} type.
+	 * @param genericSelector the {@link GenericSelector} to use.
+	 * @param <P> the source payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 */
 	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector) {
 		return this.filter(payloadType, genericSelector, null);
 	}
 
+	/**
+	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
+	 * for the provided {@link GenericSelector}.
+	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .filter("World"::equals, e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param genericSelector the {@link GenericSelector} to use.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the source payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see FilterEndpointSpec
+	 */
 	public <P> B filter(GenericSelector<P> genericSelector, Consumer<FilterEndpointSpec> endpointConfigurer) {
 		return filter(null, genericSelector, endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
+	 * for the provided {@link GenericSelector}.
+	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .filter(Date.class, p -> p.after(new Date()), e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param payloadType the {@link Class} for desired {@code payload} type.
+	 * @param genericSelector the {@link GenericSelector} to use.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the source payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 * @see FilterEndpointSpec
+	 */
 	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector,
 			Consumer<FilterEndpointSpec> endpointConfigurer) {
 		Assert.notNull(genericSelector);
@@ -363,46 +430,197 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return this.register(new FilterEndpointSpec(new MessageFilter(selector)), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
+	 * {@link MessageHandler} implementation from {@link Adapters} factory.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .handleWithAdapter(a ->
+	 *         a.jmsGateway(this.jmsConnectionFactory)
+	 *          .replyContainer()
+	 *          .requestDestination("fooQueue"))
+	 * }
+	 * </pre>
+	 * @param adapters the {@link Function} to select and configure protocol specific
+	 * {@link MessageHandler}.
+	 * @param <H> the target {@link MessageHandler} type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see MessageHandlerSpec
+	 */
 	public <H extends MessageHandler> B handleWithAdapter(Function<Adapters, MessageHandlerSpec<?, H>> adapters) {
 		return handleWithAdapter(adapters, null);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
+	 * {@link MessageHandler} implementation from {@link Adapters} factory.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .handleWithAdapter(a ->
+	 *         a.jmsGateway(this.jmsConnectionFactory)
+	 *          .replyContainer()
+	 *          .requestDestination("fooQueue"),
+	 *       e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param adapters the {@link Function} to select and configure protocol specific
+	 * {@link MessageHandler}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <H> the target {@link MessageHandler} type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see MessageHandlerSpec
+	 * @see GenericEndpointSpec
+	 */
 	public <H extends MessageHandler> B handleWithAdapter(Function<Adapters, MessageHandlerSpec<?, H>> adapters,
 			Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
 		return handle(adapters.apply(new Adapters()), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
+	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * <pre class="code">
+	 * {@code
+	 *  .handle(Amqp.outboundAdapter(this.amqpTemplate).routingKeyExpression("headers.routingKey"))
+	 * }
+	 * </pre>
+	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
+	 * {@link MessageHandler}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B handle(MessageHandlerSpec<?, ? extends MessageHandler> messageHandlerSpec) {
 		return handle(messageHandlerSpec, null);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the provided
+	 * {@link MessageHandler} implementation.
+	 * Can be used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .handle(m -> System.out.println(m.getPayload())
+	 * }
+	 * </pre>
+	 * @param messageHandler the {@link MessageHandler} to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B handle(MessageHandler messageHandler) {
 		return this.handle(messageHandler, null);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
+	 * to invoke the {@code method} for provided {@code bean} at runtime.
+	 * @param beanName the bean name to use.
+	 * @param methodName the method to invoke.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B handle(String beanName, String methodName) {
 		return this.handle(beanName, methodName, null);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
+	 * to invoke the {@code method} for provided {@code bean} at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param beanName the bean name to use.
+	 * @param methodName the method to invoke.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B handle(String beanName, String methodName,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 		return this.handle(new ServiceActivatingHandler(new BeanNameMessageProcessor<Object>(beanName, methodName)),
 				endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
+	 * to invoke the provided {@link GenericHandler} at runtime.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .<Integer>handle((p, h) -> p / 2)
+	 * }
+	 * </pre>
+	 * @param handler the handler to invoke.
+	 * @param <P> the payload type to expect.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 */
 	public <P> B handle(GenericHandler<P> handler) {
 		return handle(null, handler);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
+	 * to invoke the provided {@link GenericHandler} at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .<Integer>handle((p, h) -> p / 2, e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param handler the handler to invoke.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the payload type to expect.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 * @see GenericEndpointSpec
+	 */
 	public <P> B handle(GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 		return this.handle(null, handler, endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
+	 * to invoke the provided {@link GenericHandler} at runtime.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .handle(Integer.class, (p, h) -> p / 2)
+	 * }
+	 * </pre>
+	 * @param payloadType the expected payload type.
+	 * The accepted payload can be converted to this one at runtime
+	 * @param handler the handler to invoke.
+	 * @param <P> the payload type to expect.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 */
 	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler) {
 		return this.handle(payloadType, handler, null);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
+	 * to invoke the provided {@link GenericHandler} at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .handle(Integer.class, (p, h) -> p / 2, e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param payloadType the expected payload type.
+	 * The accepted payload can be converted to this one at runtime
+	 * @param handler the handler to invoke.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the payload type to expect.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 */
 	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 		ServiceActivatingHandler serviceActivatingHandler = null;
@@ -415,6 +633,23 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return this.handle(serviceActivatingHandler, endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
+	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .handle(Amqp.outboundAdapter(this.amqpTemplate).routingKeyExpression("headers.routingKey"),
+	 *       e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param messageHandlerSpec the {@link MessageHandlerSpec} to configure protocol specific
+	 * {@link MessageHandler}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <H> the {@link MessageHandler} type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public <H extends MessageHandler> B handle(MessageHandlerSpec<?, H> messageHandlerSpec,
 			Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
 		Assert.notNull(messageHandlerSpec);
@@ -424,37 +659,129 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return handle(messageHandlerSpec.get(), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link ServiceActivatingHandler} for the provided
+	 * {@link MessageHandler} implementation.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Can be used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .handle(m -> System.out.println(m.getPayload(), e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param messageHandler the {@link MessageHandler} to use.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <H> the {@link MessageHandler} type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public <H extends MessageHandler> B handle(H messageHandler, Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
 		Assert.notNull(messageHandler);
 		return this.register(new GenericEndpointSpec<H>(messageHandler), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link BridgeHandler} to the current integration flow position.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .bridge(s -> s.poller(Pollers.fixedDelay(100))
+	 *                   .autoStartup(false)
+	 *                   .id("priorityChannelBridge"))
+	 * }
+	 * </pre>
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see GenericEndpointSpec
+	 */
 	public B bridge(Consumer<GenericEndpointSpec<BridgeHandler>> endpointConfigurer) {
 		return this.register(new GenericEndpointSpec<BridgeHandler>(new BridgeHandler()), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link DelayHandler} to the current integration flow position
+	 * with default options.
+	 * @param groupId the {@code groupId} for delayed messages in the
+	 * {@link org.springframework.integration.store.MessageGroupStore}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B delay(String groupId) {
 		return this.delay(groupId, (String) null);
 	}
 
+	/**
+	 * Populate a {@link DelayHandler} to the current integration flow position
+	 * with provided options.
+	 * @param groupId the {@code groupId} for delayed messages in the
+	 * {@link org.springframework.integration.store.MessageGroupStore}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see DelayerEndpointSpec
+	 */
 	public B delay(String groupId, Consumer<DelayerEndpointSpec> endpointConfigurer) {
 		return this.delay(groupId, (String) null, endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link DelayHandler} to the current integration flow position
+	 * with provided {@code delayExpression}.
+	 * @param groupId the {@code groupId} for delayed messages in the
+	 * {@link org.springframework.integration.store.MessageGroupStore}.
+	 * @param expression the delay SpEL expression.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B delay(String groupId, String expression) {
 		return this.delay(groupId, expression, null);
 	}
 
+	/**
+	 * Populate a {@link DelayHandler} to the current integration flow position
+	 * with provided {@code delayFunction}.
+	 * @param groupId the {@code groupId} for delayed messages in the
+	 * {@link org.springframework.integration.store.MessageGroupStore}.
+	 * @param function the delay {@link Function}.
+	 * @param <P> the expected payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see FunctionExpression
+	 */
 	public <P> B delay(String groupId, Function<Message<P>, Object> function) {
 		return this.delay(groupId, function, null);
 	}
 
+	/**
+	 * Populate a {@link DelayHandler} to the current integration flow position
+	 * with provided {@code delayFunction}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * * <pre class="code">
+	 * {@code
+	 *  .<Foo>delay("delayer", m -> m.getPayload().getDate(),
+	 *            c -> c.advice(this.delayedAdvice).messageStore(this.messageStore()))
+	 * }
+	 * </pre>
+	 * @param groupId the {@code groupId} for delayed messages in the
+	 * {@link org.springframework.integration.store.MessageGroupStore}.
+	 * @param function the delay {@link Function}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the expected payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see FunctionExpression
+	 * @see DelayerEndpointSpec
+	 */
 	public <P> B delay(String groupId, Function<Message<P>, Object> function,
 			Consumer<DelayerEndpointSpec> endpointConfigurer) {
 		Assert.notNull(function);
 		return this.delay(groupId, new FunctionExpression<Message<P>>(function), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link DelayHandler} to the current integration flow position
+	 * with provided {@code delayExpression}.
+	 * @param groupId the {@code groupId} for delayed messages in the
+	 * {@link org.springframework.integration.store.MessageGroupStore}.
+	 * @param expression the delay SpEL expression.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see DelayerEndpointSpec
+	 */
 	public B delay(String groupId, String expression, Consumer<DelayerEndpointSpec> endpointConfigurer) {
 		return delay(groupId,
 				StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null,
@@ -469,10 +796,46 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return this.register(new DelayerEndpointSpec(delayHandler), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link ContentEnricher} to the current integration flow position
+	 * with provided options.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .enrich(e -> e.requestChannel("enrichChannel")
+	 *                  .requestPayload(Message::getPayload)
+	 *                  .shouldClonePayload(false)
+	 *                  .<Map<String, String>>headerFunction("foo", m -> m.getPayload().get("name")))
+	 * }
+	 * </pre>
+	 * @param enricherConfigurer the {@link Consumer} to provide {@link ContentEnricher} options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see EnricherSpec
+	 */
 	public B enrich(Consumer<EnricherSpec> enricherConfigurer) {
 		return this.enrich(enricherConfigurer, null);
 	}
 
+	/**
+	 * Populate a {@link ContentEnricher} to the current integration flow position
+	 * with provided options.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is use as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .enrich(e -> e.requestChannel("enrichChannel")
+	 *                  .requestPayload(Message::getPayload)
+	 *                  .shouldClonePayload(false)
+	 *                  .<Map<String, String>>headerFunction("foo", m -> m.getPayload().get("name")),
+	 *           e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param enricherConfigurer the {@link Consumer} to provide {@link ContentEnricher} options.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see EnricherSpec
+	 * @see GenericEndpointSpec
+	 */
 	public B enrich(Consumer<EnricherSpec> enricherConfigurer,
 			Consumer<GenericEndpointSpec<ContentEnricher>> endpointConfigurer) {
 		Assert.notNull(enricherConfigurer);
@@ -481,10 +844,46 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return this.handle(enricherSpec.get(), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link MessageTransformingHandler} for
+	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
+	 * using header values from provided {@link MapBuilder}.
+	 * Can be used together with {@code Namespace Factory}:
+	 * <pre class="code">
+	 * {@code
+	 *  .enrichHeaders(Mail.headers()
+	 *                    .subjectFunction(m -> "foo")
+	 *                    .from("foo@bar")
+	 *                    .toFunction(m -> new String[] {"bar@baz"}))
+	 * }
+	 * </pre>
+	 * @param headers the {@link MapBuilder} to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B enrichHeaders(MapBuilder<?, String, Object> headers) {
 		return enrichHeaders(headers, null);
 	}
 
+	/**
+	 * Populate a {@link MessageTransformingHandler} for
+	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
+	 * using header values from provided {@link MapBuilder}.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Can be used together with {@code Namespace Factory}:
+	 * <pre class="code">
+	 * {@code
+	 *  .enrichHeaders(Mail.headers()
+	 *                    .subjectFunction(m -> "foo")
+	 *                    .from("foo@bar")
+	 *                    .toFunction(m -> new String[] {"bar@baz"}),
+	 *                 e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param headers the {@link MapBuilder} to use.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see GenericEndpointSpec
+	 */
 	public B enrichHeaders(MapBuilder<?, String, Object> headers,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		return enrichHeaders(headers.get(), endpointConfigurer);
@@ -496,12 +895,22 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * {@code values} can apply an {@link org.springframework.expression.Expression}
 	 * to be evaluated against a request {@link org.springframework.messaging.Message}.
 	 * @param headers the Map of headers to enrich.
-	 * @return this.
+	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B enrichHeaders(Map<String, Object> headers) {
 		return enrichHeaders(headers, null);
 	}
 
+	/**
+	 * Accept a {@link Map} of values to be used for the
+	 * {@link org.springframework.messaging.Message} header enrichment.
+	 * {@code values} can apply an {@link org.springframework.expression.Expression}
+	 * to be evaluated against a request {@link org.springframework.messaging.Message}.
+	 * @param headers the Map of headers to enrich.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see GenericEndpointSpec
+	 */
 	public B enrichHeaders(final Map<String, Object> headers,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		return enrichHeaders(new Consumer<HeaderEnricherSpec>() {
@@ -514,10 +923,46 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		}, endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link MessageTransformingHandler} for
+	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
+	 * as the result of provided {@link Consumer}.
+	 * Typically is be used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.sitest")
+	 *                       .header("directory", new File(tmpDir, "fileWritingFlow")))
+	 * }
+	 * </pre>
+	 * @param headerEnricherConfigurer the {@link Consumer} to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see HeaderEnricherSpec
+	 */
 	public B enrichHeaders(Consumer<HeaderEnricherSpec> headerEnricherConfigurer) {
 		return this.enrichHeaders(headerEnricherConfigurer, null);
 	}
 
+	/**
+	 * Populate a {@link MessageTransformingHandler} for
+	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
+	 * as the result of provided {@link Consumer}.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .enrichHeaders(
+	 *		s -> s.header("one", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne"))
+	 *            .header("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"))
+	 *            .headerChannelsToString(),
+	 *            c -> c.autoStartup(false).id("xpathHeaderEnricher"))
+	 * }
+	 * </pre>
+	 * @param headerEnricherConfigurer the {@link Consumer} to use.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see HeaderEnricherSpec
+	 * @see GenericEndpointSpec
+	 */
 	public B enrichHeaders(Consumer<HeaderEnricherSpec> headerEnricherConfigurer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		Assert.notNull(headerEnricherConfigurer);
@@ -526,38 +971,151 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return transform(headerEnricherSpec.get(), endpointConfigurer);
 	}
 
+	/**
+	 * Populate the {@link DefaultMessageSplitter} with default options
+	 * to the current integration flow position.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B split() {
 		return this.split((Consumer<SplitterEndpointSpec<DefaultMessageSplitter>>) null);
 	}
 
+	/**
+	 * Populate the {@link DefaultMessageSplitter} with provided options
+	 * to the current integration flow position.
+	 * Typically is be used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .split(s -> s.applySequence(false).get().getT2().setDelimiters(","))
+	 * }
+	 * </pre>
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
+	 * and for {@link DefaultMessageSplitter}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see SplitterEndpointSpec
+	 */
 	public B split(Consumer<SplitterEndpointSpec<DefaultMessageSplitter>> endpointConfigurer) {
 		return this.split(new DefaultMessageSplitter(), endpointConfigurer);
 	}
 
+	/**
+	 * Populate the {@link ExpressionEvaluatingSplitter} with provided
+	 * SpEL expression.
+	 * @param expression the splitter SpEL expression.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
+	 * and for {@link ExpressionEvaluatingSplitter}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see SplitterEndpointSpec
+	 */
 	public B split(String expression,
 			Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>> endpointConfigurer) {
 		return this.split(new ExpressionEvaluatingSplitter(PARSER.parseExpression(expression)), endpointConfigurer);
 	}
 
+	/**
+	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
+	 * {@code method} of the {@code bean} at runtime.
+	 * @param beanName the bean name to use.
+	 * @param methodName the method to invoke at runtime.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
 	public B split(String beanName, String methodName) {
 		return this.split(beanName, methodName, null);
 	}
 
+	/**
+	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
+	 * {@code method} of the {@code bean} at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param beanName the bean name to use.
+	 * @param methodName the method to invoke at runtime.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
+	 * and for {@link MethodInvokingSplitter}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see SplitterEndpointSpec
+	 */
 	public B split(String beanName, String methodName,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 		return this.split(new MethodInvokingSplitter(new BeanNameMessageProcessor<Object>(beanName, methodName)),
 				endpointConfigurer);
 	}
 
+	/**
+	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
+	 * {@link Function} at runtime.
+	 * Typically is be used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .split(String.class, p ->
+	 *        jdbcTemplate.execute("SELECT * from FOO",
+	 *            (PreparedStatement ps) ->
+	 *                 new ResultSetIterator<Foo>(ps.executeQuery(),
+	 *                     (rs, rowNum) ->
+	*                           new Foo(rs.getInt(1), rs.getString(2)))))
+	 * }
+	 * </pre>
+	 * @param payloadType the expected payload type. Used at runtime to convert received payload type to.
+	 * @param splitter the splitter {@link Function}.
+	 * @param <P> the payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 */
 	public <P> B split(Class<P> payloadType, Function<P, ?> splitter) {
 		return split(payloadType, splitter, null);
 	}
 
+	/**
+	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
+	 * {@link Function} at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is be used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .<String>split(p ->
+	 *        jdbcTemplate.execute("SELECT * from FOO",
+	 *            (PreparedStatement ps) ->
+	 *                 new ResultSetIterator<Foo>(ps.executeQuery(),
+	 *                     (rs, rowNum) ->
+	 *                           new Foo(rs.getInt(1), rs.getString(2))))
+	 *       , e -> e.applySequence(false))
+	 * }
+	 * </pre>
+	 * @param splitter the splitter {@link Function}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 * @see SplitterEndpointSpec
+	 */
 	public <P> B split(Function<P, ?> splitter,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 		return split(null, splitter, endpointConfigurer);
 	}
 
+	/**
+	 * Populate the {@link MethodInvokingSplitter} to evaluate the provided
+	 * {@link Function} at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically is be used as Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .split(String.class, p ->
+	 *        jdbcTemplate.execute("SELECT * from FOO",
+	 *            (PreparedStatement ps) ->
+	 *                 new ResultSetIterator<Foo>(ps.executeQuery(),
+	 *                     (rs, rowNum) ->
+	 *                           new Foo(rs.getInt(1), rs.getString(2))))
+	 *       , e -> e.applySequence(false))
+	 * }
+	 * </pre>
+	 * @param payloadType the expected payload type. Used at runtime to convert received payload type to.
+	 * @param splitter the splitter {@link Function}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the payload type.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see LambdaMessageProcessor
+	 * @see SplitterEndpointSpec
+	 */
 	public <P> B split(Class<P> payloadType, Function<P, ?> splitter,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 		MethodInvokingSplitter split = isLambda(splitter)
@@ -566,6 +1124,15 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return this.split(split, endpointConfigurer);
 	}
 
+	/**
+	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
+	 * flow position.
+	 * @param splitter the {@link AbstractMessageSplitter} to populate.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <S> the {@link AbstractMessageSplitter}
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see SplitterEndpointSpec
+	 */
 	public <S extends AbstractMessageSplitter> B split(S splitter,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
 		Assert.notNull(splitter);
@@ -573,7 +1140,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Provides the {@link HeaderFilter} to the current {@link StandardIntegrationFlow}.
+	 * Provide the {@link HeaderFilter} to the current {@link StandardIntegrationFlow}.
 	 * @param headersToRemove the array of headers (or patterns)
 	 * to remove from {@link org.springframework.messaging.MessageHeaders}.
 	 * @return this {@link IntegrationFlowDefinition}.
@@ -583,10 +1150,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Provides the {@link HeaderFilter} to the current {@link StandardIntegrationFlow}.
+	 * Provide the {@link HeaderFilter} to the current {@link StandardIntegrationFlow}.
 	 * @param headersToRemove the comma separated headers (or patterns) to remove from
 	 * {@link org.springframework.messaging.MessageHeaders}.
-	 * @param patternMatch    the {@code boolean} flag to indicate if {@code headersToRemove}
+	 * @param patternMatch the {@code boolean} flag to indicate if {@code headersToRemove}
 	 * should be interpreted as patterns or direct header names.
 	 * @return this {@link IntegrationFlowDefinition}.
 	 */
@@ -596,6 +1163,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return this.headerFilter(headerFilter, null);
 	}
 
+	/**
+	 * Populate the provided {@link MessageTransformingHandler} for the provided
+	 * {@link HeaderFilter}.
+	 * @param headerFilter the {@link HeaderFilter} to use.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see GenericEndpointSpec
+	 */
 	public B headerFilter(HeaderFilter headerFilter,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		return this.transform(headerFilter, endpointConfigurer);
@@ -645,8 +1220,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return aggregate((Consumer<GenericEndpointSpec<AggregatingMessageHandler>>) null);
 	}
 
-	public B
-	aggregate(Consumer<GenericEndpointSpec<AggregatingMessageHandler>> endpointConfigurer) {
+	public B aggregate(Consumer<GenericEndpointSpec<AggregatingMessageHandler>> endpointConfigurer) {
 		return handle(new AggregatorSpec().get(), endpointConfigurer);
 	}
 

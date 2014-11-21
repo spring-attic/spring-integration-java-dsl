@@ -81,8 +81,8 @@ public class JdbcTests {
 							jdbcTemplate.execute("SELECT * from FOO",
 									(PreparedStatement ps) ->
 											new ResultSetIterator<Foo>(ps.executeQuery(),
-													(rs1, rowNum) ->
-															new Foo(rs1.getInt(1), rs1.getString(2))))
+													(rs, rowNum) ->
+															new Foo(rs.getInt(1), rs.getString(2))))
 							, e -> e.applySequence(false))
 							.channel(c -> c.queue("splitResultsChannel"));
 		}

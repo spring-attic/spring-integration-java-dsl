@@ -28,6 +28,8 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 
 /**
+ * A {@link MessageChannelSpec} for an {@link AbstractJmsChannel}.
+ *
  * @author Artem Bilan
  */
 public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSpec<S>>
@@ -52,61 +54,132 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 		return super.id(id);
 	}
 
+	/**
+	 * Configure the destination name that backs this channel.
+	 * @param destination the destination.
+	 * @return the current {@link MessageChannelSpec}.
+	 */
 	public S destination(String destination) {
 		this.jmsChannelFactoryBean.setDestinationName(destination);
 		return _this();
 	}
 
+	/**
+	 * @param destinationResolver the destinationResolver.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setDestinationResolver(DestinationResolver)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setDestinationResolver(DestinationResolver)
+	 */
 	public S destinationResolver(DestinationResolver destinationResolver) {
 		this.jmsChannelFactoryBean.setDestinationResolver(destinationResolver);
 		return _this();
 	}
 
+	/**
+	 * Configure the destination that backs this channel.
+	 * @param destination the destination.
+	 * @return the current {@link MessageChannelSpec}.
+	 */
 	public S destination(Destination destination) {
 		this.jmsChannelFactoryBean.setDestination(destination);
 		return _this();
 	}
 
+	/**
+	 * Configure a message selector in the
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer} (when
+	 * message driven) or the {@link org.springframework.jms.core.JmsTemplate} (when
+	 * polled).
+	 * @param messageSelector the messageSelector.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setMessageSelector(String)
+	 * @see org.springframework.jms.core.JmsTemplate#receiveSelectedAndConvert(String)
+	 */
 	public S messageSelector(String messageSelector) {
 		this.jmsChannelFactoryBean.setMessageSelector(messageSelector);
 		return _this();
 	}
 
+	/**
+	 * Configure the {@link MessageConverter} used for both sending and
+	 * receiving.
+	 * @param messageConverter the messageConverter.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setMessageConverter(MessageConverter)
+	 */
 	public S jmsMessageConverter(MessageConverter messageConverter) {
 		this.jmsChannelFactoryBean.setMessageConverter(messageConverter);
 		return _this();
 	}
 
+	/**
+	 * @param deliveryPersistent the deliveryPersistent.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setDeliveryPersistent(boolean)
+	 */
 	public S deliveryPersistent(boolean deliveryPersistent) {
 		this.jmsChannelFactoryBean.setDeliveryPersistent(deliveryPersistent);
 		return _this();
 	}
 
+	/**
+	 * @param explicitQosEnabled the explicitQosEnabled.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setExplicitQosEnabled(boolean)
+	 */
 	public S explicitQosEnabled(boolean explicitQosEnabled) {
 		this.jmsChannelFactoryBean.setExplicitQosEnabled(explicitQosEnabled);
 		return _this();
 	}
 
+	/**
+	 * @param messageIdEnabled the messageIdEnabled.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setMessageIdEnabled(boolean)
+	 */
 	public S messageIdEnabled(boolean messageIdEnabled) {
 		this.jmsChannelFactoryBean.setMessageIdEnabled(messageIdEnabled);
 		return _this();
 	}
 
+	/**
+	 * @param messageTimestampEnabled the messageTimestampEnabled.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setMessageTimestampEnabled(boolean)
+	 */
 	public S messageTimestampEnabled(boolean messageTimestampEnabled) {
 		this.jmsChannelFactoryBean.setMessageTimestampEnabled(messageTimestampEnabled);
 		return _this();
 	}
 
+	/**
+	 * Default priority. May be overridden at run time with a message
+	 * priority header.
+	 * @param priority the priority.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setPriority(int)
+	 */
 	public S priority(int priority) {
 		this.jmsChannelFactoryBean.setPriority(priority);
 		return _this();
 	}
 
+	/**
+	 * @param timeToLive the timeToLive.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setTimeToLive(long)
+	 */
 	public S timeToLive(long timeToLive) {
 		this.jmsChannelFactoryBean.setTimeToLive(timeToLive);
 		return _this();
 	}
 
+	/**
+	 * @param receiveTimeout the receiveTimeout.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @see org.springframework.jms.core.JmsTemplate#setReceiveTimeout(long)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setReceiveTimeout(long)
+	 */
 	public S receiveTimeout(long receiveTimeout) {
 		this.jmsChannelFactoryBean.setReceiveTimeout(receiveTimeout);
 		return _this();
@@ -114,7 +187,7 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 
 	/**
 	 * @param sessionAcknowledgeMode the acknowledgement mode constant
-	 * @return the current {@link MessageChannelSpec}
+	 * @return the current {@link MessageChannelSpec}.
 	 * @see javax.jms.Session#AUTO_ACKNOWLEDGE etc.
 	 */
 	public S sessionAcknowledgeMode(int sessionAcknowledgeMode) {
@@ -122,6 +195,14 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 		return _this();
 	}
 
+	/**
+	 * Configure transactional sessions for both the
+	 * {@link org.springframework.jms.core.JmsTemplate} (sends and polled receives) and
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}
+	 * (message-driven receives).
+	 * @param sessionTransacted the sessionTransacted.
+	 * @return the current {@link MessageChannelSpec}.
+	 */
 	public S sessionTransacted(boolean sessionTransacted) {
 		this.jmsChannelFactoryBean.setSessionTransacted(sessionTransacted);
 		return _this();

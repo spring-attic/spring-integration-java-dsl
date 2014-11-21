@@ -16,8 +16,11 @@
 
 package org.springframework.integration.dsl.test.amqp;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,12 +29,14 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.amqp.Amqp;
@@ -45,11 +50,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class AmqpTests {
+
+	@Autowired
+	private ConnectionFactory rabbitConnectionFactory;
 
 	@Autowired
 	private AmqpTemplate amqpTemplate;
@@ -90,6 +99,20 @@ public class AmqpTests {
 
 		assertNotNull(receive);
 		assertEquals("HELLO THROUGH THE AMQP", receive.getPayload());
+	}
+
+	@Test
+	public void test41() {
+		try {
+			IntegrationFlowBuilder flow = IntegrationFlows.from(Amqp.channel("test41", this.rabbitConnectionFactory)
+					.autoStartup(false)
+					.templateChannelTransacted(true));
+			assertTrue(TestUtils.getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional",
+					Boolean.class));
+		}
+		catch (UnsupportedOperationException e) {
+			assertThat(e.getMessage(), containsString("Requires Spring Integration 4.1 or higher."));
+		}
 	}
 
 	@Configuration

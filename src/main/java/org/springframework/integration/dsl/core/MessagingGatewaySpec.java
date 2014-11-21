@@ -22,6 +22,8 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.messaging.MessageChannel;
 
 /**
+ * An {@link IntegrationComponentSpec} for {@link MessagingGatewaySupport}s.
+ *
  * @author Artem Bilan
  */
 public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>, G extends MessagingGatewaySupport>
@@ -31,51 +33,97 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 		this.target = gateway;
 	}
 
+	@Override
 	public S id(String id) {
 		this.target.setBeanName(id);
 		return super.id(id);
 	}
 
+	/**
+	 * @param phase the phase.
+	 * @return the spec.
+	 * @see org.springframework.context.SmartLifecycle
+	 */
 	public S phase(int phase) {
 		this.target.setPhase(phase);
 		return _this();
 	}
 
+	/**
+	 * @param autoStartup the autoStartup.
+	 * @return the spec.
+	 * @see org.springframework.context.SmartLifecycle
+	 */
 	public S autoStartup(boolean autoStartup) {
 		this.target.setAutoStartup(autoStartup);
 		return _this();
 	}
 
+	/**
+	 * @param replyChannel the replyChannel.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setReplyChannel(MessageChannel)
+	 */
 	public S replyChannel(MessageChannel replyChannel) {
 		this.target.setReplyChannel(replyChannel);
 		return _this();
 	}
 
+	/**
+	 * @param requestChannel the requestChannel.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setRequestChannel(MessageChannel)
+	 */
 	public S requestChannel(MessageChannel requestChannel) {
 		target.setRequestChannel(requestChannel);
 		return _this();
 	}
 
+	/**
+	 * @param errorChannel the errorChannel.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setErrorChannel(MessageChannel)
+	 */
 	public S errorChannel(MessageChannel errorChannel) {
 		target.setErrorChannel(errorChannel);
 		return _this();
 	}
 
+	/**
+	 * @param requestTimeout the requestTimeout.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setRequestTimeout(long)
+	 */
 	public S requestTimeout(long requestTimeout) {
 		target.setRequestTimeout(requestTimeout);
 		return _this();
 	}
 
+	/**
+	 * @param replyTimeout the replyTimeout.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setReplyTimeout(long)
+	 */
 	public S replyTimeout(long replyTimeout) {
 		target.setReplyTimeout(replyTimeout);
 		return _this();
 	}
 
+	/**
+	 * @param requestMapper the requestMapper.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setRequestMapper(InboundMessageMapper)
+	 */
 	public S requestMapper(InboundMessageMapper<?> requestMapper) {
 		target.setRequestMapper(requestMapper);
 		return _this();
 	}
 
+	/**
+	 * @param replyMapper the replyMapper.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setReplyMapper(OutboundMessageMapper)
+	 */
 	public S replyMapper(OutboundMessageMapper<?> replyMapper) {
 		target.setReplyMapper(replyMapper);
 		return _this();

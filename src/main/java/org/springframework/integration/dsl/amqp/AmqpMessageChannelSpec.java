@@ -32,6 +32,9 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.ErrorHandler;
 
 /**
+ * An {@link AmqpPollableMessageChannelSpec} for a message-driven
+ * {@link org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel}.
+ *
  * @author Artem Bilan
  */
 public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends AmqpPollableMessageChannelSpec<S> {
@@ -42,81 +45,163 @@ public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends
 		super(new AmqpChannelFactoryBean(true), connectionFactory);
 	}
 
+	/**
+	 * @param maxSubscribers the maxSubscribers.
+	 * @return the spec.
+	 * @see org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel#setMaxSubscribers(int)
+	 */
 	public S maxSubscribers(int maxSubscribers) {
 		this.amqpChannelFactoryBean.setMaxSubscribers(maxSubscribers);
 		return _this();
 	}
 
+	/**
+	 * @param acknowledgeMode the acknowledgeMode.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setAcknowledgeMode(AcknowledgeMode)
+	 */
 	public S acknowledgeMode(AcknowledgeMode acknowledgeMode) {
 		this.amqpChannelFactoryBean.setAcknowledgeMode(acknowledgeMode);
 		return _this();
 	}
 
+	/**
+	 * @param advice the advice.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setAdviceChain(Advice[])
+	 */
 	public S advice(Advice... advice) {
 		this.adviceChain.addAll(Arrays.asList(advice));
 		return _this();
 	}
 
+	/**
+	 * @param autoStartup the autoStartup.
+	 * @return the spec.
+	 * @see org.springframework.context.SmartLifecycle
+	 */
 	public S autoStartup(boolean autoStartup) {
 		this.amqpChannelFactoryBean.setAutoStartup(autoStartup);
 		return _this();
 	}
 
+	/**
+	 * @param concurrentConsumers the concurrentConsumers
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setConcurrentConsumers(int)
+	 */
 	public S concurrentConsumers(int concurrentConsumers) {
 		this.amqpChannelFactoryBean.setConcurrentConsumers(concurrentConsumers);
 		return _this();
 	}
 
+	/**
+	 * @param errorHandler the errorHandler.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setErrorHandler(ErrorHandler)
+	 */
 	public S errorHandler(ErrorHandler errorHandler) {
 		this.amqpChannelFactoryBean.setErrorHandler(errorHandler);
 		return _this();
 	}
 
+	/**
+	 * @param exposeListenerChannel the exposeListenerChannel.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setExposeListenerChannel(boolean)
+	 */
 	public S exposeListenerChannel(boolean exposeListenerChannel) {
 		this.amqpChannelFactoryBean.setExposeListenerChannel(exposeListenerChannel);
 		return _this();
 	}
 
+	/**
+	 * @param phase the phase.
+	 * @return the spec.
+	 * @see org.springframework.context.SmartLifecycle
+	 */
 	public S phase(int phase) {
 		this.amqpChannelFactoryBean.setPhase(phase);
 		return _this();
 	}
 
+	/**
+	 * @param prefetchCount the prefetchCount.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setPrefetchCount(int)
+	 */
 	public S prefetchCount(int prefetchCount) {
 		this.amqpChannelFactoryBean.setPrefetchCount(prefetchCount);
 		return _this();
 	}
 
+	/**
+	 * @param receiveTimeout the receiveTimeout
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setReceiveTimeout(long)
+	 */
 	public S receiveTimeout(long receiveTimeout) {
 		this.amqpChannelFactoryBean.setReceiveTimeout(receiveTimeout);
 		return _this();
 	}
 
+	/**
+	 * @param recoveryInterval the recoveryInterval
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setRecoveryInterval(long)
+	 */
 	public S recoveryInterval(long recoveryInterval) {
 		this.amqpChannelFactoryBean.setRecoveryInterval(recoveryInterval);
 		return _this();
 	}
 
+	/**
+	 * @param shutdownTimeout the shutdownTimeout.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setShutdownTimeout(long)
+	 */
 	public S shutdownTimeout(long shutdownTimeout) {
 		this.amqpChannelFactoryBean.setShutdownTimeout(shutdownTimeout);
 		return _this();
 	}
 
+	/**
+	 * Configure an {@link Executor} used to invoke the message listener.
+	 * @param taskExecutor the taskExecutor.
+	 * @return the spec.
+	 */
 	public S taskExecutor(Executor taskExecutor) {
 		this.amqpChannelFactoryBean.setTaskExecutor(taskExecutor);
 		return _this();
 	}
 
+	/**
+	 * Configure a {@link TransactionAttribute} to be used with the
+	 * {@link #transactionManager(PlatformTransactionManager)}.
+	 * @param transactionAttribute the transactionAttribute.
+	 * @return the spec.
+	 */
 	public S transactionAttribute(TransactionAttribute transactionAttribute) {
 		this.amqpChannelFactoryBean.setTransactionAttribute(transactionAttribute);
 		return _this();
 	}
 
+	/**
+	 * Configure a {@link PlatformTransactionManager}; used to synchronize the rabbit transaction
+	 * with some other transaction(s).
+	 * @param transactionManager the transactionManager.
+	 * @return the spec.
+	 */
 	public S transactionManager(PlatformTransactionManager transactionManager) {
 		this.amqpChannelFactoryBean.setTransactionManager(transactionManager);
 		return _this();
 	}
 
+	/**
+	 * @param txSize the txSize.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setTxSize(int)
+	 */
 	public S txSize(int txSize) {
 		this.amqpChannelFactoryBean.setTxSize(txSize);
 		return _this();

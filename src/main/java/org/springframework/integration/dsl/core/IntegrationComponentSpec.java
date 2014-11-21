@@ -36,6 +36,11 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	protected String id;
 
+	/**
+	 * Configure the component identifier.
+	 * @param id the id.
+	 * @return the spec.
+	 */
 	protected S id(String id) {
 		this.id = id;
 		return _this();

@@ -30,6 +30,8 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
 import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageSourceSpec} for an {@link AbstractInboundFileSynchronizingMessageSource}.
+ *
  * @author Artem Bilan
  */
 public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFileInboundChannelAdapterSpec<F, S, MS>,
@@ -44,46 +46,95 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 		this.synchronizer = synchronizer;
 	}
 
+	/**
+	 * Configure whether the local directory should be created by the adapter.
+	 * @param autoCreateLocalDirectory the autoCreateLocalDirectory
+	 * @return the spec.
+	 */
 	public S autoCreateLocalDirectory(boolean autoCreateLocalDirectory) {
 		this.target.setAutoCreateLocalDirectory(autoCreateLocalDirectory);
 		return _this();
 	}
 
+	/**
+	 * Configure the local directory to copy files to.
+	 * @param localDirectory the localDirectory.
+	 * @return the spec.
+	 */
 	public S localDirectory(File localDirectory) {
 		this.target.setLocalDirectory(localDirectory);
 		return _this();
 	}
 
+	/**
+	 * @param localFileListFilter the localFileListFilter.
+	 * @return the spec.
+	 * @see AbstractInboundFileSynchronizingMessageSource#setLocalFilter(FileListFilter)
+	 */
 	public S localFilter(FileListFilter<File> localFileListFilter) {
 		this.target.setLocalFilter(localFileListFilter);
 		return _this();
 	}
 
+	/**
+	 * Configure the file name path separator used by the remote system. Defaults to '/'.
+	 * @param remoteFileSeparator the remoteFileSeparator.
+	 * @return the spec.
+	 */
 	public S remoteFileSeparator(String remoteFileSeparator) {
 		this.synchronizer.setRemoteFileSeparator(remoteFileSeparator);
 		return _this();
 	}
 
+	/**
+	 * Configure a SpEL expression to generate the local file name; the root object for
+	 * the evaluation is the remote file name.
+	 * @param localFilenameExpression the localFilenameExpression.
+	 * @return the spec.
+	 */
 	public S localFilenameExpression(String localFilenameExpression) {
 		this.synchronizer.setLocalFilenameGeneratorExpression(PARSER.parseExpression(localFilenameExpression));
 		return _this();
 	}
 
+	/**
+	 * Configure a {@link Function} to be invoked to generate the local file name;
+	 * argument passed to the {@code apply} method is the remote file name.
+	 * @param localFilenameFunction the localFilenameFunction.
+	 * @return the spec.
+	 */
 	public S localFilename(Function<String, String> localFilenameFunction) {
 		this.synchronizer.setLocalFilenameGeneratorExpression(new FunctionExpression<String>(localFilenameFunction));
 		return _this();
 	}
 
+	/**
+	 * Configure a suffix to temporarily apply to the local filename; when copied the
+	 * file is renamed to its final name. Default: '.writing'.
+	 * @param temporaryFileSuffix the temporaryFileSuffix.
+	 * @return the spec.
+	 */
 	public S temporaryFileSuffix(String temporaryFileSuffix) {
 		this.synchronizer.setTemporaryFileSuffix(temporaryFileSuffix);
 		return _this();
 	}
 
+	/**
+	 * @param remoteDirectory the remoteDirectory.
+	 * @return the spec.
+	 * @see AbstractInboundFileSynchronizer#setRemoteDirectory(String)
+	 */
 	public S remoteDirectory(String remoteDirectory) {
 		this.synchronizer.setRemoteDirectory(remoteDirectory);
 		return _this();
 	}
 
+	/**
+	 * Configure a {@link FileListFilter} to be applied to the remote files before
+	 * copying them.
+	 * @param filter the filter.
+	 * @return the spec.
+	 */
 	public S filter(FileListFilter<F> filter) {
 		Assert.isNull(this.filter,
 				"The 'filter' (" + this.filter + ") is already configured for the: " + this);
@@ -92,8 +143,20 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 		return _this();
 	}
 
+	/**
+	 * Configure a simple pattern filter (e.g. '*.txt').
+	 * @param pattern the pattern.
+	 * @return the spec.
+	 * @see #filter(FileListFilter)
+	 */
 	public abstract S patternFilter(String pattern);
 
+	/**
+	 * Configure a regex pattern filter (e.g. '[0-9].*.txt').
+	 * @param regex the regex.
+	 * @return the spec.
+	 * @see #filter(FileListFilter)
+	 */
 	public abstract S regexFilter(String regex);
 
 	public S deleteRemoteFiles(boolean deleteRemoteFiles) {

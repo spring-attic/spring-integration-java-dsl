@@ -29,6 +29,8 @@ import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 
 /**
+ * A {@link RemoteFileInboundChannelAdapterSpec} for FTP.
+ *
  * @author Artem Bilan
  */
 public class FtpInboundChannelAdapterSpec
@@ -40,11 +42,19 @@ public class FtpInboundChannelAdapterSpec
 		this.target = new FtpInboundFileSynchronizingMessageSource(this.synchronizer, comparator);
 	}
 
+	/**
+	 * @see FtpSimplePatternFileListFilter
+	 * @see #filter(org.springframework.integration.file.filters.FileListFilter)
+	 */
 	@Override
 	public FtpInboundChannelAdapterSpec patternFilter(String pattern) {
 		return filter(new FtpSimplePatternFileListFilter(pattern));
 	}
 
+	/**
+	 * @see FtpRegexPatternFileListFilter
+	 * @see #filter(org.springframework.integration.file.filters.FileListFilter)
+	 */
 	@Override
 	public FtpInboundChannelAdapterSpec regexFilter(String regex) {
 		return filter(new FtpRegexPatternFileListFilter(regex));

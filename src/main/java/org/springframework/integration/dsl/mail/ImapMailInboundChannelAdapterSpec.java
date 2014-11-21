@@ -19,8 +19,9 @@ import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
 
 /**
- * @author Gary Russell
+ * A {@link MailInboundChannelAdapterSpec} for IMAP.
  *
+ * @author Gary Russell
  */
 public class ImapMailInboundChannelAdapterSpec
 		extends MailInboundChannelAdapterSpec<ImapMailInboundChannelAdapterSpec, ImapMailReceiver> {
@@ -33,11 +34,21 @@ public class ImapMailInboundChannelAdapterSpec
 		this.receiver = new ImapMailReceiver(url);
 	}
 
+	/**
+	 * @param searchTermStrategy the searchTermStrategy.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setSearchTermStrategy(SearchTermStrategy)
+	 */
 	public ImapMailInboundChannelAdapterSpec searchTermStrategy(SearchTermStrategy searchTermStrategy) {
 		this.receiver.setSearchTermStrategy(searchTermStrategy);
 		return this;
 	}
 
+	/**
+	 * @param shouldMarkMessagesAsRead the shouldMarkMessagesAsRead.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setShouldMarkMessagesAsRead(Boolean)
+	 */
 	public ImapMailInboundChannelAdapterSpec shouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
 		this.receiver.setShouldMarkMessagesAsRead(shouldMarkMessagesAsRead);
 		return this;

@@ -29,6 +29,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageProducerSpec} for file tailing adapters.
+ *
  * @author Artem Bilan
  */
 public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTailingMessageProducerSupport> {
@@ -50,36 +52,72 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 		return _this();
 	}
 
+	/**
+	 * @param nativeOptions the nativeOptions.
+	 * @return the spec.
+	 * @see org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer#setOptions(String)
+	 */
 	public TailAdapterSpec nativeOptions(String nativeOptions) {
 		this.factoryBean.setNativeOptions(nativeOptions);
 		return _this();
 	}
 
+	/**
+	 * Configure a task exceutor. Defaults to a {@link
+	 * org.springframework.core.task.SimpleAsyncTaskExecutor}.
+	 * @param taskExecutor the taskExecutor.
+	 * @return the spec.
+	 */
 	public TailAdapterSpec taskExecutor(TaskExecutor taskExecutor) {
 		this.factoryBean.setTaskExecutor(taskExecutor);
 		return _this();
 	}
 
+	/**
+	 * Set a task scheduler - defaults to the integration 'taskScheduler'.
+	 * @param taskScheduler the taskScheduler.
+	 * @return the spec.
+	 */
 	public TailAdapterSpec taskScheduler(TaskScheduler taskScheduler) {
 		this.factoryBean.setTaskScheduler(taskScheduler);
 		return _this();
 	}
 
+	/**
+	 * @param delay the delay.
+	 * @return the spec.
+	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setPollingDelay(long)
+	 */
 	public TailAdapterSpec delay(long delay) {
 		this.factoryBean.setDelay(delay);
 		return _this();
 	}
 
+	/**
+	 * @param fileDelay the fileDelay.
+	 * @return the spec.
+	 * @see FileTailingMessageProducerSupport#setTailAttemptsDelay(long)
+	 */
 	public TailAdapterSpec fileDelay(long fileDelay) {
 		this.factoryBean.setFileDelay(fileDelay);
 		return _this();
 	}
 
+	/**
+	 * @param end the end.
+	 * @return the spec.
+	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setEnd(boolean)
+	 */
 	public TailAdapterSpec end(boolean end) {
 		this.factoryBean.setEnd(end);
 		return _this();
 	}
 
+	/**
+	 * @param reopen the reopen.
+	 * @return the spec.
+	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setReopen(boolean)
+	 */
 	public TailAdapterSpec reopen(boolean reopen) {
 		this.factoryBean.setReopen(reopen);
 		return _this();

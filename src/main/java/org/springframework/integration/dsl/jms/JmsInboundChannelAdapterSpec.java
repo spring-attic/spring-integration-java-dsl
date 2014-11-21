@@ -27,6 +27,8 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageSourceSpec} for a {@link JmsDestinationPollingSource}.
+ *
  * @author Artem Bilan
  */
 public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec<S>>
@@ -42,21 +44,42 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 		this.target = new JmsDestinationPollingSource(this.jmsTemplateSpec.connectionFactory(connectionFactory).get());
 	}
 
+	/**
+	 * @param messageSelector the messageSelector.
+	 * @return the spec.
+	 * @see JmsDestinationPollingSource#setMessageSelector(String)
+	 */
 	public S messageSelector(String messageSelector) {
 		this.target.setMessageSelector(messageSelector);
 		return _this();
 	}
 
+	/**
+	 * Configure a {@link JmsHeaderMapper} to map from JMS headers and properties to
+	 * Spring Integration headers.
+	 * @param headerMapper the headerMapper.
+	 * @return the spec.
+	 */
 	public S headerMapper(JmsHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return _this();
 	}
 
+	/**
+	 * Configure the destination from which to receive messages.
+	 * @param destination the destination.
+	 * @return the spec.
+	 */
 	public S destination(Destination destination) {
 		this.target.setDestination(destination);
 		return _this();
 	}
 
+	/**
+	 * Configure the name of destination from which to receive messages.
+	 * @param destination the destination.
+	 * @return the spec.
+	 */
 	public S destination(String destination) {
 		this.target.setDestinationName(destination);
 		return _this();
@@ -74,6 +97,12 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 			super(connectionFactory);
 		}
 
+		/**
+		 * Configure the channel adapter to use the template specification created by invoking the
+		 * {@link Consumer} callback, passing in a {@link JmsTemplateSpec}.
+		 * @param configurer the configurer.
+		 * @return the spec.
+		 */
 		public JmsInboundChannelSpecTemplateAware configureJmsTemplate(Consumer<JmsTemplateSpec> configurer) {
 			Assert.notNull(configurer);
 			configurer.accept(this.jmsTemplateSpec);

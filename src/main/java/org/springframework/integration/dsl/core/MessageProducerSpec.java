@@ -20,6 +20,9 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.messaging.MessageChannel;
 
 /**
+ * An {@link IntegrationComponentSpec} for
+ * {@link org.springframework.integration.core.MessageProducer}s.
+ *
  * @author Artem Bilan
  */
 public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P extends MessageProducerSupport>
@@ -29,26 +32,51 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 		this.target = producer;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * Configure the message producer's bean name.
+	 */
+	@Override
 	public S id(String id) {
 		this.target.setBeanName(id);
 		return super.id(id);
 	}
 
+	/**
+	 * @param phase the phase.
+	 * @return the spec.
+	 * @see org.springframework.context.SmartLifecycle
+	 */
 	public S phase(int phase) {
 		this.target.setPhase(phase);
 		return _this();
 	}
 
+	/**
+	 * @param autoStartup the autoStartup.
+	 * @return the spec.
+	 * @see org.springframework.context.SmartLifecycle
+	 */
 	public S autoStartup(boolean autoStartup) {
 		this.target.setAutoStartup(autoStartup);
 		return _this();
 	}
 
+	/**
+	 * @param outputChannel the outputChannel.
+	 * @return the spec.
+	 * @see MessageProducerSupport#setOutputChannel(MessageChannel)
+	 */
 	public S outputChannel(MessageChannel outputChannel) {
 		target.setOutputChannel(outputChannel);
 		return _this();
 	}
 
+	/**
+	 * Configure the {@link MessageChannel} to which error messages will be sent.
+	 * @param errorChannel the errorChannel.
+	 * @return the spec.
+	 */
 	public S errorChannel(MessageChannel errorChannel) {
 		target.setErrorChannel(errorChannel);
 		return _this();

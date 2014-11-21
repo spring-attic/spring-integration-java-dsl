@@ -33,6 +33,8 @@ import org.springframework.integration.file.locking.NioFileLocker;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageSourceSpec} for a {@link FileReadingMessageSource}.
+ *
  * @author Artem Bilan
  */
 public class FileInboundChannelAdapterSpec
@@ -50,25 +52,55 @@ public class FileInboundChannelAdapterSpec
 		this.target = new FileReadingMessageSource(receptionOrderComparator);
 	}
 
+	/**
+	 * @param directory the directory.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setDirectory(File)
+	 */
 	FileInboundChannelAdapterSpec directory(File directory) {
 		this.target.setDirectory(directory);
 		return _this();
 	}
 
+	/**
+	 * @param scanner the scannner.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setScanner(DirectoryScanner)
+	 */
 	public FileInboundChannelAdapterSpec scanner(DirectoryScanner scanner) {
 		this.target.setScanner(scanner);
 		return _this();
 	}
 
+	/**
+	 * @param autoCreateDirectory the autoCreateDirectory.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setAutoCreateDirectory(boolean)
+	 */
 	public FileInboundChannelAdapterSpec autoCreateDirectory(boolean autoCreateDirectory) {
 		this.target.setAutoCreateDirectory(autoCreateDirectory);
 		return _this();
 	}
 
+	/**
+	 * Configure the filter; duplicate messages will <b>not</b> be prevented.
+	 * @param filter the filter.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 */
 	public FileInboundChannelAdapterSpec filter(FileListFilter<File> filter) {
 		return filter(filter, false);
 	}
 
+	/**
+	 * Configure the filter; if preventDuplicates is true, the filter is combined with an
+	 * {@link AcceptOnceFileListFilter} in a {@link CompositeFileListFilter}.
+	 * @param filter the filter.
+	 * @param preventDuplicates true to prevent duplicates.
+	 * @return the spec.
+	 * @see CompositeFileListFilter
+	 * @see AcceptOnceFileListFilter
+	 */
 	public FileInboundChannelAdapterSpec filter(FileListFilter<File> filter, boolean preventDuplicates) {
 		Assert.isNull(this.filter,
 				"The 'filter' (" + this.filter + ") is already configured for the FileReadingMessageSource");
@@ -81,6 +113,12 @@ public class FileInboundChannelAdapterSpec
 		return _this();
 	}
 
+	/**
+	 * Configure an {@link AcceptOnceFileListFilter} or {@link AcceptAllFileListFilter} depending
+	 * on preventDuplicates.
+	 * @param preventDuplicates true to configure an {@link AcceptOnceFileListFilter}.
+	 * @return the spec.
+	 */
 	public FileInboundChannelAdapterSpec preventDuplicatesFilter(boolean preventDuplicates) {
 		if (preventDuplicates) {
 			return filter(new AcceptOnceFileListFilter<File>(), false);
@@ -90,18 +128,48 @@ public class FileInboundChannelAdapterSpec
 		}
 	}
 
+	/**
+	 * Configure a {@link SimplePatternFileListFilter} with preventDuplicates true.
+	 * @param pattern The pattern.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see #filter(FileListFilter, boolean)
+	 */
 	public FileInboundChannelAdapterSpec patternFilter(String pattern) {
 		return patternFilter(pattern, true);
 	}
 
+	/**
+	 * Configure a {@link SimplePatternFileListFilter}.
+	 * @param pattern The pattern.
+	 * @param preventDuplicates the preventDuplicates.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see #filter(FileListFilter, boolean)
+	 */
 	public FileInboundChannelAdapterSpec patternFilter(String pattern, boolean preventDuplicates) {
 		return filter(new SimplePatternFileListFilter(pattern), preventDuplicates);
 	}
 
+	/**
+	 * Configure a {@link RegexPatternFileListFilter} with preventDuplicates true.
+	 * @param regex The regex.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see #filter(FileListFilter, boolean)
+	 */
 	public FileInboundChannelAdapterSpec regexFilter(String regex) {
 		return regexFilter(regex, true);
 	}
 
+	/**
+	 * Configure a {@link RegexPatternFileListFilter}.
+	 * @param regex The regex.
+	 * @param preventDuplicates the preventDuplicates.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see #filter(FileListFilter, boolean)
+	 */
 	public FileInboundChannelAdapterSpec regexFilter(String regex, boolean preventDuplicates) {
 		return filter(new RegexPatternFileListFilter(regex), preventDuplicates);
 	}
@@ -113,6 +181,11 @@ public class FileInboundChannelAdapterSpec
 		return compositeFilter;
 	}
 
+	/**
+	 * @param locker the locker.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setLocker(FileLocker)
+	 */
 	public FileInboundChannelAdapterSpec locker(FileLocker locker) {
 		Assert.isNull(this.locker,
 				"The 'locker' (" + this.locker + ") is already configured for the FileReadingMessageSource");
@@ -121,10 +194,20 @@ public class FileInboundChannelAdapterSpec
 		return _this();
 	}
 
+	/**
+	 * Configure an {@link NioFileLocker}.
+	 * @return the spec.
+	 * @see #locker(FileLocker)
+	 */
 	public FileInboundChannelAdapterSpec nioLocker() {
 		return locker(new NioFileLocker());
 	}
 
+	/**
+	 * @param scanEachPoll the scanEachPoll.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setScanEachPoll(boolean)
+	 */
 	public FileInboundChannelAdapterSpec scanEachPoll(boolean scanEachPoll) {
 		this.target.setScanEachPoll(scanEachPoll);
 		return _this();

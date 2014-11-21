@@ -18,8 +18,12 @@ package org.springframework.integration.dsl.amqp;
 
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
+import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 
 /**
+ * A {@link AmqpMessageChannelSpec} for {@link PublishSubscribeAmqpChannel}s.
+ *
  * @author Artem Bilan
  */
 public class AmqpPublishSubscribeMessageChannelSpec
@@ -30,6 +34,11 @@ public class AmqpPublishSubscribeMessageChannelSpec
 		this.amqpChannelFactoryBean.setPubSub(true);
 	}
 
+	/**
+	 * @param exchange the exchange.
+	 * @return the spec.
+	 * @see AmqpChannelFactoryBean#setExchange(FanoutExchange)
+	 */
 	public AmqpPublishSubscribeMessageChannelSpec exchange(FanoutExchange exchange) {
 		this.amqpChannelFactoryBean.setExchange(exchange);
 		return _this();

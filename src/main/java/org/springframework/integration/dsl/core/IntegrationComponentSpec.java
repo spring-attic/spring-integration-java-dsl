@@ -37,8 +37,8 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	protected String id;
 
 	/**
-	 * Configure the component identifier. Used as {@code beanName} to register bean
-	 * in the application context for this component.
+	 * Configure the component identifier. Used as the {@code beanName} to register the
+	 * bean in the application context for this component.
 	 * @param id the id.
 	 * @return the spec.
 	 */

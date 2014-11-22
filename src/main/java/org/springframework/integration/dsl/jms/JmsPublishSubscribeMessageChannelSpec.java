@@ -18,7 +18,12 @@ package org.springframework.integration.dsl.jms;
 
 import javax.jms.ConnectionFactory;
 
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
+
 /**
+ * A {@link JmsMessageChannelSpec} for a {@link org.springframework.integration.jms.SubscribableJmsChannel}
+ * configured with a topic.
+ *
  * @author Artem Bilan
  */
 public class JmsPublishSubscribeMessageChannelSpec
@@ -29,21 +34,44 @@ public class JmsPublishSubscribeMessageChannelSpec
 		this.jmsChannelFactoryBean.setPubSubDomain(true);
 	}
 
+	/**
+	 * @param durable the durable.
+	 * @return the current {@link JmsPublishSubscribeMessageChannelSpec}.
+	 * @see org.springframework.jms.listener.AbstractMessageListenerContainer#setSubscriptionDurable(boolean)
+	 */
 	public JmsPublishSubscribeMessageChannelSpec subscriptionDurable(boolean durable) {
 		this.jmsChannelFactoryBean.setSubscriptionDurable(durable);
 		return _this();
 	}
 
+	/**
+	 * @param durableSubscriptionName the durableSubscriptionName.
+	 * @return the current {@link JmsPublishSubscribeMessageChannelSpec}.
+	 * @see org.springframework.jms.listener.AbstractMessageListenerContainer#setDurableSubscriptionName(String)
+	 */
 	public JmsPublishSubscribeMessageChannelSpec durableSubscriptionName(String durableSubscriptionName) {
 		this.jmsChannelFactoryBean.setDurableSubscriptionName(durableSubscriptionName);
 		return _this();
 	}
 
+	/**
+	 * @param clientId the clientId.
+	 * @return the current {@link JmsPublishSubscribeMessageChannelSpec}.
+	 * @see org.springframework.jms.listener.AbstractMessageListenerContainer#setClientId(String)
+	 */
 	public JmsPublishSubscribeMessageChannelSpec clientId(String clientId) {
 		this.jmsChannelFactoryBean.setClientId(clientId);
 		return _this();
 	}
 
+	/**
+	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}
+	 * or a {@link org.springframework.jms.listener.SimpleMessageListenerContainer}.
+	 * @param pubSubNoLocal the pubSubNoLocal.
+	 * @return the current {@link JmsPublishSubscribeMessageChannelSpec}.
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setPubSubNoLocal(boolean)
+	 * @see org.springframework.jms.listener.SimpleMessageListenerContainer#setPubSubNoLocal(boolean)
+	 */
 	public JmsPublishSubscribeMessageChannelSpec pubSubNoLocal(boolean pubSubNoLocal) {
 		this.jmsChannelFactoryBean.setPubSubNoLocal(pubSubNoLocal);
 		return _this();

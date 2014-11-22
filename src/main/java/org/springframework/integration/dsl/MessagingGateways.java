@@ -21,6 +21,7 @@ import javax.jms.ConnectionFactory;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.dsl.amqp.Amqp;
+import org.springframework.integration.dsl.amqp.AmqpBaseInboundGatewaySpec;
 import org.springframework.integration.dsl.amqp.AmqpInboundGatewaySpec;
 import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.dsl.jms.JmsInboundGatewaySpec;
@@ -42,8 +43,8 @@ public class MessagingGateways {
 		return Amqp.inboundGateway(connectionFactory, queues);
 	}
 
-	public AmqpInboundGatewaySpec amqp(SimpleMessageListenerContainer listenerContainer) {
-		return (AmqpInboundGatewaySpec) Amqp.inboundGateway(listenerContainer);
+	public AmqpBaseInboundGatewaySpec<?> amqp(SimpleMessageListenerContainer listenerContainer) {
+		return Amqp.inboundGateway(listenerContainer);
 	}
 
 	public JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<DefaultMessageListenerContainer> jms(

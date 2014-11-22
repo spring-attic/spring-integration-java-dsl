@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl.amqp;
 
+import java.lang.reflect.Method;
+
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -27,7 +29,10 @@ import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageChannelSpec} for a {@link AbstractAmqpChannel}s.
+ *
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannelSpec<S>>
 		extends MessageChannelSpec<S, AbstractAmqpChannel> {
@@ -52,6 +57,12 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 		return super.id(id);
 	}
 
+	/**
+	 * Also implicitly sets the {@link #id(String)} (if not explicitly set).
+	 * @param queueName the queueName.
+	 * @return the spec.
+	 * @see AmqpChannelFactoryBean#setQueueName(String)
+	 */
 	public S queueName(String queueName) {
 		if (this.id == null) {
 			id(queueName + ".channel");
@@ -60,21 +71,76 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 		return _this();
 	}
 
+	/**
+	 * @param encoding the encoding.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.core.RabbitTemplate#setEncoding(String)
+	 */
 	public S encoding(String encoding) {
 		this.amqpChannelFactoryBean.setEncoding(encoding);
 		return _this();
 	}
 
+	/**
+	 * @param messageConverter the messageConverter.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.core.RabbitTemplate#setMessageConverter(MessageConverter)
+	 */
 	public S amqpMessageConverter(MessageConverter messageConverter) {
 		this.amqpChannelFactoryBean.setMessageConverter(messageConverter);
 		return _this();
 	}
 
+	/**
+	 * Configure {@code channelTransacted} on both the
+	 * {@link org.springframework.amqp.rabbit.core.RabbitTemplate} (for sends) and
+	 * {@link org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer}
+	 * (for receives) when using Spring Integration 4.0. When using Spring Integration
+	 * 4.1, only the container is configured. See {@link #templateChannelTransacted(boolean)}.
+	 * @param channelTransacted the channelTransacted.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.core.RabbitTemplate#setChannelTransacted(boolean)
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setChannelTransacted(boolean)
+	 */
 	public S channelTransacted(boolean channelTransacted) {
 		this.amqpChannelFactoryBean.setChannelTransacted(channelTransacted);
 		return _this();
 	}
 
+	/**
+	 * Configure {@code channelTransacted} on the
+	 * {@link org.springframework.amqp.rabbit.core.RabbitTemplate} used when sending
+	 * messages to the channel. Only applies when Spring Integration 4.1 or greater is
+	 * being used. Otherwise, see {@link #channelTransacted(boolean)}.
+	 * @param channelTransacted the channelTransacted.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.core.RabbitTemplate#setChannelTransacted(boolean)
+	 */
+	public S templateChannelTransacted(boolean channelTransacted) {
+		try {
+			Method method =
+					AmqpChannelFactoryBean.class.getDeclaredMethod("setTemplateChannelTransacted", boolean.class);
+			method.invoke(this.amqpChannelFactoryBean, channelTransacted);
+		}
+		catch (NoSuchMethodException e) {
+			throw new UnsupportedOperationException("Requires Spring Integration 4.1 or higher.", e);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		return _this();
+	}
+
+	/**
+	 * Configure {@code messagePropertiesConverter} on both the
+	 * {@link org.springframework.amqp.rabbit.core.RabbitTemplate} (for sends) and
+	 * {@link org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer}
+	 * (for receives).
+	 * @param messagePropertiesConverter the messagePropertiesConverter.
+	 * @return the spec.
+	 * @see org.springframework.amqp.rabbit.core.RabbitTemplate#setMessagePropertiesConverter
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setMessagePropertiesConverter
+	 */
 	public S messagePropertiesConverter(MessagePropertiesConverter messagePropertiesConverter) {
 		this.amqpChannelFactoryBean.setMessagePropertiesConverter(messagePropertiesConverter);
 		return _this();

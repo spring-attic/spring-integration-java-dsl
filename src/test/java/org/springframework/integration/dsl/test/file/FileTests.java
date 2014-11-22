@@ -224,11 +224,12 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow tailFlow() {
-			return IntegrationFlows.from((MessageProducers p) -> p.tail(new File(tmpDir, "TailTest"))
-					.delay(500)
-					.end(false)
-					.id("tailer")
-					.autoStartup(false))
+			return IntegrationFlows.from((MessageProducers p) ->
+					p.tail(new File(tmpDir, "TailTest"))
+							.delay(500)
+							.end(false)
+							.id("tailer")
+							.autoStartup(false))
 					.transform("hello "::concat)
 					.channel(MessageChannels.queue("tailChannel"))
 					.get();

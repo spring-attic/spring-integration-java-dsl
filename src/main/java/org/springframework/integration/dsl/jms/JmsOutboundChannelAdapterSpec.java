@@ -30,6 +30,8 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageHandlerSpec} for a {@link JmsSendingMessageHandler}.
+ *
  * @author Artem Bilan
  */
 public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSpec<S>>
@@ -45,31 +47,74 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 		this.target = new JmsSendingMessageHandler(this.jmsTemplateSpec.connectionFactory(connectionFactory).get());
 	}
 
+	/**
+	 * @param extractPayload the extractPayload flag.
+	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
+	 * @see JmsSendingMessageHandler#setExtractPayload(boolean)
+	 */
 	public S extractPayload(boolean extractPayload) {
 		this.target.setExtractPayload(extractPayload);
 		return _this();
 	}
 
+	/**
+	 * @param headerMapper the headerMapper.
+	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
+	 * @see JmsSendingMessageHandler#setHeaderMapper(JmsHeaderMapper)
+	 */
 	public S headerMapper(JmsHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return _this();
 	}
 
+	/**
+	 * Configure the destination to which this adapter will send messages.
+	 * @param destination the destination.
+	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
+	 * @see JmsSendingMessageHandler#setDestination(Destination)
+	 */
 	public S destination(Destination destination) {
 		this.target.setDestination(destination);
 		return _this();
 	}
 
+	/**
+	 * Configure the name of the destination to which this adapter will send messages.
+	 * @param destination the destination name.
+	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
+	 * @see JmsSendingMessageHandler#setDestinationName(String)
+	 */
 	public S destination(String destination) {
 		this.target.setDestinationName(destination);
 		return _this();
 	}
 
+	/**
+	 * Configure a SpEL expression that will evaluate, at run time, the destination to
+	 * which a message will be sent.
+	 * @param destination the destination name.
+	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
+	 * @see JmsSendingMessageHandler#setDestinationName(String)
+	 */
 	public S destinationExpression(String destination) {
 		this.target.setDestinationExpression(PARSER.parseExpression(destination));
 		return _this();
 	}
 
+	/**
+	 * Configure a {@link Function} that will be invoked at run time to determine the destination to
+	 * which a message will be sent. Typically used with a Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 * .<Foo>destination(m -> m.getPayload().getState())
+	 * }
+	 * </pre>
+	 * @param destinationFunction the destination function.
+	 * @param <P> the expected payload type.
+	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
+	 * @see JmsSendingMessageHandler#setDestinationName(String)
+	 * @see FunctionExpression
+	 */
 	public <P> S destination(Function<Message<P>, ?> destinationFunction) {
 		this.target.setDestinationExpression(new FunctionExpression<Message<P>>(destinationFunction));
 		return _this();

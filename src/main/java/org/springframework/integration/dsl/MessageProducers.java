@@ -19,7 +19,9 @@ package org.springframework.integration.dsl;
 import java.io.File;
 
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.dsl.amqp.Amqp;
+import org.springframework.integration.dsl.amqp.AmqpBaseInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.amqp.AmqpInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.file.Files;
 import org.springframework.integration.dsl.file.TailAdapterSpec;
@@ -42,6 +44,10 @@ public class MessageProducers {
 	public AmqpInboundChannelAdapterSpec amqp(
 			org.springframework.amqp.rabbit.connection.ConnectionFactory connectionFactory, Queue... queues) {
 		return Amqp.inboundAdapter(connectionFactory, queues);
+	}
+
+	public AmqpBaseInboundChannelAdapterSpec<?> inboundAdapter(SimpleMessageListenerContainer listenerContainer) {
+		return Amqp.inboundAdapter(listenerContainer);
 	}
 
 	public TailAdapterSpec tail(File file) {
@@ -67,6 +73,12 @@ public class MessageProducers {
 			javax.jms.ConnectionFactory connectionFactory,
 			Class<C> containerClass) {
 		return Jms.messageDriverChannelAdapter(connectionFactory, containerClass);
+	}
+
+	public
+	JmsMessageDrivenChannelAdapterSpec<? extends JmsMessageDrivenChannelAdapterSpec<?>> messageDriverChannelAdapter(
+			AbstractMessageListenerContainer listenerContainer) {
+		return Jms.messageDriverChannelAdapter(listenerContainer);
 	}
 
 	MessageProducers() {

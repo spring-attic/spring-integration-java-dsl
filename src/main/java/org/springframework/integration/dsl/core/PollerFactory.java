@@ -22,6 +22,14 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.scheduling.Trigger;
 
 /**
+ * An {@code Adapter} class for the {@link Pollers} factory.
+ * Typically used with a Java 8 Lambda expression:
+ * <pre class="code">
+ * {@code
+ *  c -> c.poller(p -> p.fixedRate(100))
+ * }
+ * </pre>
+ *
  * @author Artem Bilan
  */
 public class PollerFactory {

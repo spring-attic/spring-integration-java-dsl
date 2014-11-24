@@ -26,13 +26,16 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.dsl.core.IntegrationComponentSpec;
-import org.springframework.integration.dsl.config.IntegrationFlowBeanPostProcessor;
 import org.springframework.util.Assert;
 
 /**
  * The Java DSL Integration infrastructure {@code beanFactory} initializer.
+ * Registers {@link IntegrationFlowBeanPostProcessor} and checks if all
+ * {@link IntegrationComponentSpec} are extracted to the target object using
+ * {@link IntegrationComponentSpec#get()}.
  *
  * @author Artem Bilan
+ * @see org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor
  */
 public class DslIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 

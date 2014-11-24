@@ -21,7 +21,12 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
+ * An "artificial" {@link MessageChannel} implementation which will be unwrapped to the
+ * {@link MessageChannel} bean on the bean registration phase.
+ * For internal use only.
+ *
  * @author Artem Bilan
+ * @see org.springframework.integration.dsl.config.IntegrationFlowBeanPostProcessor
  */
 public class MessageChannelReference implements MessageChannel {
 

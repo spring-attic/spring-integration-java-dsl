@@ -19,9 +19,10 @@ import java.util.Properties;
 
 
 /**
+ * A {@code Builder} pattern implementation for the {@link Properties}.
+ *
  * @author Gary Russell
  * @author Artem Bilan
- *
  */
 public class PropertiesBuilder {
 

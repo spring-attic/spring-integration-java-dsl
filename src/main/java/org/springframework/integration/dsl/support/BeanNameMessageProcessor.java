@@ -25,6 +25,11 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ * An "artificial" {@link MessageProcessor} for lazy-load of target bean by its name.
+ * For internal use only.
+ *
+ * @param <T> the expected {@link #processMessage} result type.
+ *
  * @author Artem Bilan
  */
 public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware {

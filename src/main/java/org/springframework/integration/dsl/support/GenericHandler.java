@@ -19,6 +19,16 @@ package org.springframework.integration.dsl.support;
 import java.util.Map;
 
 /**
+ * A functional interface to specify {@link org.springframework.messaging.MessageHandler}
+ * logic with Java 8 Lambda expression:
+ * <pre class="code">
+ * {@code
+ *  .<Integer>handle((p, h) -> p / 2)
+ * }
+ * </pre>
+ *
+ * @param <P> the expected {@code payload} type.
+ *
  * @author Artem Bilan
  */
 public interface GenericHandler<P> {

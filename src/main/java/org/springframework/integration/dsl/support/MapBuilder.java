@@ -22,6 +22,8 @@ import java.util.Map;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
+ * A {@code Builder} pattern implementation for the {@link Map}.
+ *
  * @author Artem Bilan
  */
 public class MapBuilder<B extends MapBuilder<B, K, V>, K, V> {

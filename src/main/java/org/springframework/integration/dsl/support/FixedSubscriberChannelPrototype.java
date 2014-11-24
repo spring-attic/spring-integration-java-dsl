@@ -20,7 +20,13 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
 /**
+ * An "artificial" {@link MessageChannel} implementation which will be unwrapped to the
+ * {@link org.springframework.integration.channel.FixedSubscriberChannel} on the bean
+ * registration phase.
+ * For internal use only.
+ *
  * @author Artem Bilan
+ * @see org.springframework.integration.dsl.config.IntegrationFlowBeanPostProcessor
  */
 public class FixedSubscriberChannelPrototype implements MessageChannel {
 

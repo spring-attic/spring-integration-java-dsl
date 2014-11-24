@@ -49,6 +49,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * A {@link BeanPostProcessor} to parse {@link IntegrationFlow} beans and
+ * register their components as beans in the provided {@link BeanFactory},
+ * if necessary.
+ *
  * @author Artem Bilan
  */
 public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {

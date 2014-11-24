@@ -32,9 +32,10 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.ErrorHandler;
 
 /**
-* @author Artem Bilan
-
-*/
+ * An {@link IntegrationComponentSpec} for {@link PollerMetadata}s.
+ *
+ * @author Artem Bilan
+ */
 public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, PollerMetadata> {
 
 	private final PollerMetadata pollerMetadata = new PollerMetadata();
@@ -45,49 +46,92 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 		this.pollerMetadata.setTrigger(trigger);
 	}
 
+	/**
+	 * Specify the {@link TransactionSynchronizationFactory} to attach a
+	 * {@link org.springframework.transaction.support.TransactionSynchronization}
+	 * to the transaction around {@code poll} operation.
+	 * @param transactionSynchronizationFactory the TransactionSynchronizationFactory to use.
+	 * @return the spec.
+	 */
 	public PollerSpec transactionSynchronizationFactory(
 			TransactionSynchronizationFactory transactionSynchronizationFactory) {
-		pollerMetadata.setTransactionSynchronizationFactory(transactionSynchronizationFactory);
+		this.pollerMetadata.setTransactionSynchronizationFactory(transactionSynchronizationFactory);
 		return this;
 	}
 
+	/**
+	 * Specify the {@link ErrorHandler} to wrap a {@code taskExecutor}
+	 * to the {@link org.springframework.integration.util.ErrorHandlingTaskExecutor}.
+	 * @param errorHandler the {@link ErrorHandler} to use.
+	 * @return the spec.
+	 * @see #taskExecutor
+	 */
 	public PollerSpec errorHandler(ErrorHandler errorHandler) {
-		pollerMetadata.setErrorHandler(errorHandler);
+		this.pollerMetadata.setErrorHandler(errorHandler);
 		return this;
 	}
 
+	/**
+	 * @param maxMessagesPerPoll the maxMessagesPerPoll to set.
+	 * @return the spec.
+	 * @see PollerMetadata#setMaxMessagesPerPoll
+	 */
 	public PollerSpec maxMessagesPerPoll(long maxMessagesPerPoll) {
-		pollerMetadata.setMaxMessagesPerPoll(maxMessagesPerPoll);
+		this.pollerMetadata.setMaxMessagesPerPoll(maxMessagesPerPoll);
 		return this;
 	}
 
+	/**
+	 * Specify a timeout in milliseconds to wait for a message in the
+	 * {@link org.springframework.messaging.MessageChannel}.
+	 * Defaults to {@code 1000}.
+	 * @param receiveTimeout the timeout to use.
+	 * @return the spec.
+	 * @see org.springframework.messaging.PollableChannel#receive(long)
+	 */
 	public PollerSpec receiveTimeout(long receiveTimeout) {
-		pollerMetadata.setReceiveTimeout(receiveTimeout);
+		this.pollerMetadata.setReceiveTimeout(receiveTimeout);
 		return this;
 	}
 
+	/**
+	 * Specify AOP {@link Advice}s for the {@code pollingTask}.
+	 * @param advice the {@link Advice}s to use.
+	 * @return the spec.
+	 */
 	public PollerSpec advice(Advice... advice) {
 		this.adviceChain.addAll(Arrays.asList(advice));
 		return this;
 	}
 
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the
+	 * provided {@code PlatformTransactionManager} for the {@code pollingTask}.
+	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @return the spec.
+	 */
 	public PollerSpec transactional(PlatformTransactionManager transactionManager) {
 		return this.advice(new TransactionInterceptor(transactionManager, new MatchAlwaysTransactionAttributeSource()));
 	}
 
+	/**
+	 * Specify an {@link Executor} to perform the {@code pollingTask}.
+	 * @param taskExecutor the {@link Executor} to use.
+	 * @return the spec.
+	 */
 	public PollerSpec taskExecutor(Executor taskExecutor) {
-		pollerMetadata.setTaskExecutor(taskExecutor);
+		this.pollerMetadata.setTaskExecutor(taskExecutor);
 		return this;
 	}
 
 	public PollerSpec sendTimeout(long sendTimeout) {
-		pollerMetadata.setSendTimeout(sendTimeout);
+		this.pollerMetadata.setSendTimeout(sendTimeout);
 		return this;
 	}
 
 	@Override
 	protected PollerMetadata doGet() {
-		pollerMetadata.setAdviceChain(this.adviceChain);
+		this.pollerMetadata.setAdviceChain(this.adviceChain);
 		return this.pollerMetadata;
 	}
 

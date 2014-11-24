@@ -55,6 +55,9 @@ import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 
 /**
+ * An utility class to provide methods for out-of-the-box
+ * {@link org.springframework.integration.transformer.Transformer}s.
+ *
  * @author Artem Bilan
  */
 public abstract class Transformers {

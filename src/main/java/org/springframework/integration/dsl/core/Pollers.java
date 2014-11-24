@@ -24,6 +24,10 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
+ * An utility class to provide {@link PollerSpec}s for
+ * {@link org.springframework.integration.scheduling.PollerMetadata} configuration
+ * variants.
+ *
  * @author Artem Bilan
  */
 public final class Pollers {

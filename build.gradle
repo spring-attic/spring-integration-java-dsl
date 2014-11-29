@@ -53,12 +53,12 @@ ext {
 	springIntegrationVersion = '4.0.5.RELEASE'
 	springBootVersion = '1.1.9.RELEASE'
 
-	linkHomepage = 'https://github.com/spring-projects/spring-integration-extensions'
-	linkCi = 'https://build.spring.io/browse/INTEXT'
+	linkHomepage = 'https://github.com/spring-projects/spring-integration-java-dsl'
+	linkCi = 'https://build.spring.io/browse/INTEXT-SIJD'
 	linkIssue = 'https://jira.spring.io/browse/INTEXT'
-	linkScmUrl = 'https://github.com/spring-projects/spring-integration-extensions'
-	linkScmConnection = 'https://github.com/spring-projects/spring-integration-extensions.git'
-	linkScmDevConnection = 'git@github.com:spring-projects/spring-integration-extensions.git'
+	linkScmUrl = 'https://github.com/spring-projects/spring-integration-java-dsl'
+	linkScmConnection = 'https://github.com/spring-projects/spring-integration-java-dsl.git'
+	linkScmDevConnection = 'git@github.com:spring-projects/spring-integration-java-dsl.git'
 }
 
 eclipse.project.natures += 'org.springframework.ide.eclipse.core.springnature'

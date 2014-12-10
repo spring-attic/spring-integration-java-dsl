@@ -42,6 +42,7 @@ public class JmsOutboundGatewaySpec extends MessageHandlerSpec<JmsOutboundGatewa
 
 	JmsOutboundGatewaySpec(ConnectionFactory connectionFactory) {
 		this.target = new JmsOutboundGateway();
+		this.target.setRequiresReply(true);
 		this.target.setConnectionFactory(connectionFactory);
 	}
 

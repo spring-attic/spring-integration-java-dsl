@@ -41,6 +41,9 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 		this.expectReply = expectReply;
 		this.endpoint.setExpectReply(expectReply);
 		this.endpoint.setHeaderMapper(this.headerMapper);
+		if (expectReply) {
+			this.endpoint.setRequiresReply(true);
+		}
 	}
 
 	public AmqpOutboundEndpointSpec headerMapper(AmqpHeaderMapper headerMapper) {
@@ -102,7 +105,7 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 	}
 
 	public AmqpOutboundEndpointSpec mappedReplyHeaders(String... headers) {
-		Assert.isTrue(expectReply, "'mappedReplyHeaders' can be applied on for gateway");
+		Assert.isTrue(expectReply, "'mappedReplyHeaders' can be applied only for gateway");
 		this.headerMapper.setReplyHeaderNames(headers);
 		return this;
 	}

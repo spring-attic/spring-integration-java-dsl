@@ -24,6 +24,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -38,6 +39,17 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 
 	RecipientListRouterSpec() {
 		super(new DslRecipientListRouter());
+	}
+
+	/**
+	 * Adds a recipient channel that always will be selected.
+	 * @param channelName the channel name.
+	 * @return the router spec.
+	 */
+	public RecipientListRouterSpec recipient(String channelName) {
+		Assert.hasText(channelName);
+		((DslRecipientListRouter) this.target).add(channelName, (MessageSelector) null);
+		return _this();
 	}
 
 	/**
@@ -61,6 +73,41 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	public RecipientListRouterSpec recipient(String channelName, MessageSelector selector) {
 		Assert.hasText(channelName);
 		((DslRecipientListRouter) this.target).add(channelName, selector);
+		return _this();
+	}
+
+	/**
+	 * Adds a recipient channel that always will be selected.
+	 * @param channel the recipient channel.
+	 * @return the router spec.
+	 */
+	public RecipientListRouterSpec recipient(MessageChannel channel) {
+		Assert.notNull(channel);
+		((DslRecipientListRouter) this.target).add(channel, (MessageSelector) null);
+		return _this();
+	}
+
+	/**
+	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * @param channel the recipient channel.
+	 * @param expression the expression.
+	 * @return the router spec.
+	 */
+	public RecipientListRouterSpec recipient(MessageChannel channel, String expression) {
+		Assert.notNull(channel);
+		((DslRecipientListRouter) this.target).add(channel, expression);
+		return _this();
+	}
+
+	/**
+	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * @param channel the recipient channel.
+	 * @param selector the selector.
+	 * @return the router spec.
+	 */
+	public RecipientListRouterSpec recipient(MessageChannel channel, MessageSelector selector) {
+		Assert.notNull(channel);
+		((DslRecipientListRouter) this.target).add(channel, selector);
 		return _this();
 	}
 

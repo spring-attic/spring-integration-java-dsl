@@ -17,13 +17,13 @@
 package org.springframework.integration.dsl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.support.MessageChannelReference;
+import org.springframework.integration.dsl.support.tuple.Tuple2;
+import org.springframework.integration.dsl.support.tuple.Tuples;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.messaging.MessageChannel;
@@ -35,68 +35,58 @@ import org.springframework.util.StringUtils;
  */
 class DslRecipientListRouter extends RecipientListRouter {
 
-	private final Map<String, String> expressionRecipientMap = new HashMap<String, String>();
-
-	private final Map<String, MessageSelector> selectorRecipientMap = new HashMap<String, MessageSelector>();
-
-	private final Map<MessageChannel, String> channelExpressionRecipientMap = new HashMap<MessageChannel, String>();
-
-	private final Map<MessageChannel, MessageSelector> channelSelectorRecipientMap =
-			new HashMap<MessageChannel, MessageSelector>();
+	private final List<Tuple2<?, ?>> recipients = new ArrayList<Tuple2<?, ?>>();
 
 	void add(String channelName, String expression) {
-		this.expressionRecipientMap.put(channelName, expression);
+		this.recipients.add(Tuples.of(channelName, expression));
 	}
 
 	void add(String channelName, MessageSelector selector) {
-		this.selectorRecipientMap.put(channelName, selector);
+		this.recipients.add(Tuples.of(channelName, selector));
 	}
 
 	void add(MessageChannel channel, String expression) {
-		this.channelExpressionRecipientMap.put(channel, expression);
+		this.recipients.add(Tuples.of(channel, expression));
 	}
 
 	void add(MessageChannel channel, MessageSelector selector) {
-		this.channelSelectorRecipientMap.put(channel, selector);
+		this.recipients.add(Tuples.of(channel, selector));
 	}
 
 	@Override
 	public void onInit() throws Exception {
-		for (Map.Entry<String, String> recipient : this.expressionRecipientMap.entrySet()) {
-			ExpressionEvaluatingSelector selector = null;
-			String expression = recipient.getValue();
-			if (StringUtils.hasText(expression)) {
-				selector = new ExpressionEvaluatingSelector(expression);
-				selector.setBeanFactory(this.getBeanFactory());
+		List<Recipient> recipients = new ArrayList<Recipient>(this.recipients.size());
+
+		for (Tuple2<?, ?> recipient : this.recipients) {
+			if (recipient.getT1() instanceof String) {
+				recipients.add(new DslRecipient(new MessageChannelReference((String) recipient.getT1()),
+						populateRecipientSelector(recipient.getT2())));
 			}
-			this.selectorRecipientMap.put(recipient.getKey(), selector);
-		}
-
-		for (Map.Entry<MessageChannel, String> recipient : this.channelExpressionRecipientMap.entrySet()) {
-			ExpressionEvaluatingSelector selector = null;
-			String expression = recipient.getValue();
-			if (StringUtils.hasText(expression)) {
-				selector = new ExpressionEvaluatingSelector(expression);
-				selector.setBeanFactory(this.getBeanFactory());
+			else {
+				recipients.add(new Recipient((MessageChannel) recipient.getT1(),
+						populateRecipientSelector(recipient.getT2())));
 			}
-			this.channelSelectorRecipientMap.put(recipient.getKey(), selector);
-		}
-
-		List<Recipient> recipients = new ArrayList<Recipient>(this.selectorRecipientMap.size()
-				+ this.channelSelectorRecipientMap.size());
-
-		for (Map.Entry<String, MessageSelector> entry : selectorRecipientMap.entrySet()) {
-			recipients.add(new DslRecipient(new MessageChannelReference(entry.getKey()), entry.getValue()));
-		}
-
-		for (Map.Entry<MessageChannel, MessageSelector> entry : channelSelectorRecipientMap.entrySet()) {
-			recipients.add(new Recipient(entry.getKey(), entry.getValue()));
 		}
 
 		setRecipients(recipients);
+		this.recipients.clear();
 		super.onInit();
 	}
 
+	private MessageSelector populateRecipientSelector(Object recipientSelector) {
+		if (recipientSelector instanceof String) {
+			String expression = (String) recipientSelector;
+			if (StringUtils.hasText(expression)) {
+				ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
+				selector.setBeanFactory(getBeanFactory());
+				return selector;
+			}
+		}
+		else {
+			return (MessageSelector) recipientSelector;
+		}
+		return null;
+	}
 
 	class DslRecipient extends Recipient {
 

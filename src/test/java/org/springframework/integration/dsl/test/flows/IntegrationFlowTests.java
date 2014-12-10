@@ -67,6 +67,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -760,6 +761,31 @@ public class IntegrationFlowTests {
 		assertEquals("bad", resultD.getPayload());
 	}
 
+
+	@Autowired
+	@Qualifier("recipientListOrderFlow.input")
+	private MessageChannel recipientListOrderFlowInput;
+
+	@Autowired
+	@Qualifier("recipientListOrderResult")
+	private PollableChannel recipientListOrderResult;
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testRecipientListRouterOrder() {
+		this.recipientListOrderFlowInput.send(new GenericMessage<>(new AtomicReference<>("")));
+		Message<?> receive = this.recipientListOrderResult.receive(10000);
+		assertNotNull(receive);
+
+		AtomicReference<String> result = (AtomicReference<String>) receive.getPayload();
+		assertEquals("Hello World", result.get());
+
+		receive = this.recipientListOrderResult.receive(10000);
+		assertNotNull(receive);
+		result = (AtomicReference<String>) receive.getPayload();
+		assertEquals("Hello World", result.get());
+	}
+
 	@Test
 	public void testClaimCheck() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -843,6 +869,7 @@ public class IntegrationFlowTests {
 	@Configuration
 	@EnableIntegration
 	@IntegrationComponentScan
+	@EnableMessageHistory({"recipientListOrder*", "recipient1*", "recipient2*"})
 	public static class ContextConfiguration {
 
 		@Bean
@@ -1043,7 +1070,7 @@ public class IntegrationFlowTests {
 									m.getHeaders().containsKey("recipient")
 											&& (boolean) m.getHeaders().get("recipient"))
 							.recipientFlow("'foo' == payload or 'bar' == payload or 'baz' == payload",
-									f -> f.transform(String.class, p -> p.toUpperCase())
+									f -> f.<String, String>transform(String::toUpperCase)
 											.channel(c -> c.queue("recipientListSubFlow1Result")))
 							.recipientFlow(m -> "baz".equals(m.getPayload()),
 									f -> f.transform("Hello "::concat)
@@ -1051,6 +1078,40 @@ public class IntegrationFlowTests {
 					.channel("defaultOutputChannel")
 					.get();
 		}
+
+		@Bean
+		public IntegrationFlow recipientListOrderFlow() {
+			return f -> f
+					.routeToRecipients(r -> r
+							.recipient("recipient2.input")
+							.recipient("recipient1.input"));
+		}
+
+		@Bean
+		public IntegrationFlow recipient1() {
+			return f -> f
+					.<AtomicReference<String>>handle((p, h) -> {
+						p.set(p.get() + "World");
+						return p;
+					})
+					.channel("recipientListOrderResult");
+		}
+
+		@Bean
+		public IntegrationFlow recipient2() {
+			return f -> f
+					.<AtomicReference<String>>handle((p, h) -> {
+						p.set(p.get() + "Hello ");
+						return p;
+					})
+					.channel("recipientListOrderResult");
+		}
+
+		@Bean
+		public PollableChannel recipientListOrderResult() {
+			return new QueueChannel();
+		}
+
 	}
 
 	@Component("delayedAdvice")

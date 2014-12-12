@@ -612,7 +612,7 @@ public class IntegrationFlowTests {
 		}
 		catch (MessageDeliveryException e) {
 			assertThat(e.getMessage(),
-					containsString("no channel resolved by router and no default output channel defined"));
+					containsString("No channel resolved by router"));
 		}
 
 	}
@@ -707,7 +707,7 @@ public class IntegrationFlowTests {
 		}
 		catch (MessageDeliveryException e) {
 			assertThat(e.getMessage(),
-					containsString("no channel resolved by router and no default output channel defined"));
+					containsString("No channel resolved by router"));
 		}
 	}
 

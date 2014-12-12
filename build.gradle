@@ -21,6 +21,7 @@ repositories {
 		maven { url 'http://repo.spring.io/libs-snapshot' }
 	}
 	maven { url 'http://repo.spring.io/libs-milestone' }
+//	maven { url 'http://repo.spring.io/libs-staging-local' }
 }
 
 if (project.hasProperty('platformVersion')) {
@@ -48,10 +49,10 @@ ext {
 	hsqldbVersion = '2.3.2'
 	jacocoVersion = '0.7.1.201405082137'
 	jmsApiVersion = '1.1-rev-1'
-	mailVersion = '1.4.7'
+	mailVersion = '1.5.2'
 	slf4jVersion = '1.7.7'
-	springIntegrationVersion = '4.0.5.RELEASE'
-	springBootVersion = '1.1.9.RELEASE'
+	springIntegrationVersion = '4.0.6.RELEASE'
+	springBootVersion = '1.1.10.RELEASE'
 
 	linkHomepage = 'https://github.com/spring-projects/spring-integration-java-dsl'
 	linkCi = 'https://build.spring.io/browse/INTEXT-SIJD'

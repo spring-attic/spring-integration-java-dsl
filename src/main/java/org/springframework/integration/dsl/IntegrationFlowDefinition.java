@@ -30,12 +30,15 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.dsl.channel.DslWireTap;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
+import org.springframework.integration.dsl.channel.WireTapSpec;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
@@ -229,6 +232,27 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		PublishSubscribeSpec spec = new PublishSubscribeSpec(executor);
 		publishSubscribeChannelConfigurer.accept(spec);
 		return addComponents(spec.getComponentsToRegister()).channel(spec);
+	}
+
+	public B tap(String tapChannel) {
+		WireTapSpec spec = new WireTapSpec();
+		spec.channel(tapChannel);
+		return tap(spec);
+	}
+
+	public B tap(WireTapSpec wireTapSpec) {
+		DslWireTap tap = wireTapSpec.get();
+		MessageChannel channel = this.currentMessageChannel;
+		if (channel == null) {
+			channel = new DirectChannel();
+			registerOutputChannelIfCan(channel);
+			this.currentMessageChannel = channel;
+		}
+		addComponents(wireTapSpec.getComponentsToRegister());
+		if (channel instanceof ChannelInterceptorAware) {
+			((ChannelInterceptorAware) this.currentMessageChannel).addInterceptor(tap);
+		}
+		return _this();
 	}
 
 	/**

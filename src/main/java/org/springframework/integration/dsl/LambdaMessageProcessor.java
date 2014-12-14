@@ -72,7 +72,7 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 		});
 
 		Assert.notNull(methodValue.get(), "LambdaMessageProcessor is applicable for inline or lambda " +
-				"classes with single method - functional interfaces implementations.");
+				"classes with single method - functional interface implementations.");
 
 		this.method = methodValue.get();
 		this.method.setAccessible(true);

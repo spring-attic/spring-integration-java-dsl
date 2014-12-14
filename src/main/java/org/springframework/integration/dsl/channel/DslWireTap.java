@@ -19,7 +19,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.support.MessageChannelReference;
@@ -34,7 +36,8 @@ import org.springframework.util.Assert;
  * @since 1.0.2
  *
  */
-public class DslWireTap implements ChannelInterceptor, BeanFactoryAware, InitializingBean {
+public class DslWireTap implements ChannelInterceptor, BeanFactoryAware, VetoCapableInterceptor, InitializingBean,
+		Lifecycle {
 
 	private WireTap wireTap;
 
@@ -116,10 +119,12 @@ public class DslWireTap implements ChannelInterceptor, BeanFactoryAware, Initial
 		return this.wireTap.postReceive(message, channel);
 	}
 
+	@Override
 	public boolean isRunning() {
 		return this.wireTap.isRunning();
 	}
 
+	@Override
 	public void start() {
 		if (this.wireTap == null) {
 			afterPropertiesSet();
@@ -127,10 +132,12 @@ public class DslWireTap implements ChannelInterceptor, BeanFactoryAware, Initial
 		this.wireTap.start();
 	}
 
+	@Override
 	public void stop() {
 		this.wireTap.stop();
 	}
 
+	@Override
 	public boolean shouldIntercept(String beanName, ChannelInterceptorAware channel) {
 		return this.wireTap.shouldIntercept(beanName, channel);
 	}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.dsl.channel;
+package org.springframework.integration.dsl;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @since 1.0.2
  *
  */
-public class DslWireTap implements ChannelInterceptor, BeanFactoryAware, VetoCapableInterceptor, InitializingBean,
+class DslWireTap implements ChannelInterceptor, BeanFactoryAware, VetoCapableInterceptor, InitializingBean,
 		Lifecycle {
 
 	private WireTap wireTap;

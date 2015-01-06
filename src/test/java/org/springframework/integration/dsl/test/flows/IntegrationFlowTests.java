@@ -71,9 +71,9 @@ import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.Taps;
 import org.springframework.integration.dsl.channel.DirectChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
-import org.springframework.integration.dsl.channel.Taps;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
@@ -1035,7 +1035,7 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow wireTapFlow1() {
 			return IntegrationFlows.from(MessageChannels.direct("tappedChannel1"))
-					.tap(Taps.tap("tapChannel").selector(m -> m.getPayload().equals("foo")))
+					.wireTap(Taps.tap("tapChannel").selector(m -> m.getPayload().equals("foo")))
 					.channel("nullChannel")
 					.get();
 		}
@@ -1051,14 +1051,14 @@ public class IntegrationFlowTests {
 		public IntegrationFlow wireTapFlow3() {
 			return f -> f
 					.transform("payload")
-					.tap(Taps.tap("tapChannel").selector(m -> m.getPayload().equals("foo")))
+					.wireTap(Taps.tap("tapChannel").selector(m -> m.getPayload().equals("foo")))
 					.channel("nullChannel");
 		}
 
 		@Bean
 		public IntegrationFlow wireTapFlow4() {
 			return IntegrationFlows.from(MessageChannels.direct("tappedChannel4"))
-					.tap("tapChannel")
+					.wireTap("tapChannel")
 					.channel("nullChannel")
 					.get();
 		}

@@ -36,9 +36,7 @@ import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.dsl.channel.DslWireTap;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
-import org.springframework.integration.dsl.channel.WireTapSpec;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
@@ -234,13 +232,13 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return addComponents(spec.getComponentsToRegister()).channel(spec);
 	}
 
-	public B tap(String tapChannel) {
+	public B wireTap(String tapChannel) {
 		WireTapSpec spec = new WireTapSpec();
 		spec.channel(tapChannel);
-		return tap(spec);
+		return wireTap(spec);
 	}
 
-	public B tap(WireTapSpec wireTapSpec) {
+	public B wireTap(WireTapSpec wireTapSpec) {
 		DslWireTap tap = wireTapSpec.get();
 		MessageChannel channel = this.currentMessageChannel;
 		if (channel == null) {

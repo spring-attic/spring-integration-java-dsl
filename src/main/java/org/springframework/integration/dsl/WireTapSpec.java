@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.dsl.channel;
+package org.springframework.integration.dsl;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +25,7 @@ import org.springframework.integration.dsl.core.IntegrationComponentSpec;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 
 /**
@@ -32,7 +33,7 @@ import org.springframework.util.Assert;
  * @since 1.0.2
  *
  */
-public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, DslWireTap> implements ComponentsRegistration {
+public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, ChannelInterceptor> implements ComponentsRegistration {
 
 	private MessageSelector selector;
 
@@ -40,12 +41,12 @@ public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, DslWireTa
 
 	private Long timeout;
 
-	public WireTapSpec selector(String selectorExpression) {
+	WireTapSpec selector(String selectorExpression) {
 		this.selector = new ExpressionEvaluatingSelector(PARSER.parseExpression(selectorExpression));
 		return this;
 	}
 
-	public WireTapSpec selector(MessageSelector selector) {
+	WireTapSpec selector(MessageSelector selector) {
 		this.selector = selector;
 		return this;
 	}
@@ -66,7 +67,7 @@ public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, DslWireTa
 	}
 
 	@Override
-	protected DslWireTap doGet() {
+	protected ChannelInterceptor doGet() {
 		Assert.state(this.tapChannel != null, "tapChannel is required");
 		DslWireTap wireTap = new DslWireTap(this.tapChannel, this.selector);
 		if (this.timeout != null) {

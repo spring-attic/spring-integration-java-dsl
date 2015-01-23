@@ -30,8 +30,10 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
@@ -197,7 +199,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public B channel(MessageChannel messageChannel) {
 		Assert.notNull(messageChannel);
 		if (this.currentMessageChannel != null) {
-			this.register(new GenericEndpointSpec<BridgeHandler>(new BridgeHandler()), null);
+			bridge(null);
 		}
 		this.currentMessageChannel = messageChannel;
 		return registerOutputChannelIfCan(this.currentMessageChannel);
@@ -229,6 +231,155 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		PublishSubscribeSpec spec = new PublishSubscribeSpec(executor);
 		publishSubscribeChannelConfigurer.accept(spec);
 		return addComponents(spec.getComponentsToRegister()).channel(spec);
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
+	 * to the current {@link #currentMessageChannel}.
+	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <pre class="code">
+	 * {@code
+	 *  .filter("World"::equals)
+	 *  .wireTap(sf -> sf.<String, String>transform(String::toUpperCase))
+	 *  .handle(p -> process(p))
+	 * }
+	 * </pre>
+	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
+	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * @param flow the {@link IntegrationFlow} for wire-tap subflow as an alternative to the {@code wireTapChannel}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B wireTap(IntegrationFlow flow) {
+		return wireTap(flow, null);
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
+	 * to the current {@link #currentMessageChannel}.
+	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <pre class="code">
+	 * {@code
+	 *  f -> f.wireTap("tapChannel")
+	 *    .handle(p -> process(p))
+	 * }
+	 * </pre>
+	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
+	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * @param wireTapChannel the {@link MessageChannel} bean name to wire-tap.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B wireTap(String wireTapChannel) {
+		return wireTap(wireTapChannel, null);
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
+	 * to the current {@link #currentMessageChannel}.
+	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <pre class="code">
+	 * {@code
+	 *  .transform("payload")
+	 *  .wireTap(tapChannel())
+	 *  .channel("foo")
+	 * }
+	 * </pre>
+	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
+	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * @param wireTapChannel the {@link MessageChannel} to wire-tap.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B wireTap(MessageChannel wireTapChannel) {
+		return wireTap(wireTapChannel, null);
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
+	 * to the current {@link #currentMessageChannel}.
+	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <pre class="code">
+	 * {@code
+	 *  .transform("payload")
+	 *  .wireTap(sf -> sf.<String, String>transform(String::toUpperCase), wt -> wt.selector("payload == 'foo'"))
+	 *  .channel("foo")
+	 * }
+	 * </pre>
+	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
+	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * @param flow the {@link IntegrationFlow} for wire-tap subflow as an alternative to the {@code wireTapChannel}.
+	 * @param wireTapConfigurer the {@link Consumer} to accept options for the {@link WireTap}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B wireTap(IntegrationFlow flow, Consumer<WireTapSpec> wireTapConfigurer) {
+		DirectChannel wireTapChannel = new DirectChannel();
+		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(wireTapChannel);
+		flow.accept(flowBuilder);
+		addComponent(flowBuilder.get());
+		return wireTap(wireTapChannel, wireTapConfigurer);
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
+	 * to the current {@link #currentMessageChannel}.
+	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <pre class="code">
+	 * {@code
+	 *  .transform("payload")
+	 *  .wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
+	 *  .channel("foo")
+	 * }
+	 * </pre>
+	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
+	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * @param wireTapChannel the {@link MessageChannel} bean name to wire-tap.
+	 * @param wireTapConfigurer the {@link Consumer} to accept options for the {@link WireTap}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B wireTap(String wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) {
+		DirectChannel internalWireTapChannel = new DirectChannel();
+		addComponent(IntegrationFlows.from(internalWireTapChannel).channel(wireTapChannel).get());
+		return wireTap(internalWireTapChannel, wireTapConfigurer);
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
+	 * to the current {@link #currentMessageChannel}.
+	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <pre class="code">
+	 * {@code
+	 *  .transform("payload")
+	 *  .wireTap(tapChannel(), wt -> wt.selector(m -> m.getPayload().equals("foo")))
+	 *  .channel("foo")
+	 * }
+	 * </pre>
+	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
+	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
+	 * @param wireTapChannel the {@link MessageChannel} to wire-tap.
+	 * @param wireTapConfigurer the {@link Consumer} to accept options for the {@link WireTap}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B wireTap(MessageChannel wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) {
+		WireTapSpec wireTapSpec = new WireTapSpec(wireTapChannel);
+		if (wireTapConfigurer != null) {
+			wireTapConfigurer.accept(wireTapSpec);
+		}
+		addComponent(wireTapChannel);
+		return wireTap(wireTapSpec);
+	}
+
+	private B wireTap(WireTapSpec wireTapSpec) {
+		WireTap interceptor = wireTapSpec.get();
+		if (this.currentMessageChannel == null || !(this.currentMessageChannel instanceof ChannelInterceptorAware)) {
+			channel(new DirectChannel());
+		}
+		addComponents(wireTapSpec.getComponentsToRegister());
+		((ChannelInterceptorAware) this.currentMessageChannel).addInterceptor(interceptor);
+		return _this();
 	}
 
 	/**

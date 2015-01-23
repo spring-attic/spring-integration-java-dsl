@@ -44,15 +44,15 @@ compileTestJava {
 ext {
 	activeMqVersion = '5.10.0'
 	apacheSshdVersion = '0.10.1'
-	embedMongoVersion = '1.46.0'
+	embedMongoVersion = '1.46.4'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.2'
 	jacocoVersion = '0.7.1.201405082137'
 	jmsApiVersion = '1.1-rev-1'
 	mailVersion = '1.5.2'
 	slf4jVersion = '1.7.7'
-	springIntegrationVersion = '4.0.6.RELEASE'
-	springBootVersion = '1.1.10.RELEASE'
+	springIntegrationVersion = '4.1.1.RELEASE'
+	springBootVersion = '1.2.1.RELEASE'
 
 	linkHomepage = 'https://github.com/spring-projects/spring-integration-java-dsl'
 	linkCi = 'https://build.spring.io/browse/INTEXT-SIJD'

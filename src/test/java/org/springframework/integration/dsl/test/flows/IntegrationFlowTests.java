@@ -69,6 +69,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.dsl.Channels;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.DirectChannelSpec;
@@ -109,6 +110,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Artem Bilan
  * @author Tim Ysewyn
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -829,6 +831,69 @@ public class IntegrationFlowTests {
 	}
 
 	@Autowired
+	private SubscribableChannel tappedChannel1;
+
+	@Autowired
+	@Qualifier("wireTapFlow2.input")
+	private SubscribableChannel tappedChannel2;
+
+	@Autowired
+	@Qualifier("wireTapFlow3.input")
+	private SubscribableChannel tappedChannel3;
+
+	@Autowired
+	private SubscribableChannel tappedChannel4;
+
+	@Autowired
+	@Qualifier("tapChannel")
+	private QueueChannel tapChannel;
+
+	@Autowired
+	@Qualifier("wireTapFlow5.input")
+	private SubscribableChannel tappedChannel5;
+
+	@Autowired
+	private PollableChannel wireTapSubflowResult;
+
+	@Test
+	public void testWireTap() {
+		this.tappedChannel1.send(new GenericMessage<>("foo"));
+		this.tappedChannel1.send(new GenericMessage<>("bar"));
+		Message<?> out = this.tapChannel.receive(10000);
+		assertNotNull(out);
+		assertEquals("foo", out.getPayload());
+		assertNull(this.tapChannel.receive(0));
+
+		this.tappedChannel2.send(new GenericMessage<>("foo"));
+		this.tappedChannel2.send(new GenericMessage<>("bar"));
+		out = this.tapChannel.receive(10000);
+		assertNotNull(out);
+		assertEquals("foo", out.getPayload());
+		assertNull(this.tapChannel.receive(0));
+
+		this.tappedChannel3.send(new GenericMessage<>("foo"));
+		this.tappedChannel3.send(new GenericMessage<>("bar"));
+		out = this.tapChannel.receive(10000);
+		assertNotNull(out);
+		assertEquals("foo", out.getPayload());
+		assertNull(this.tapChannel.receive(0));
+
+		this.tappedChannel4.send(new GenericMessage<>("foo"));
+		this.tappedChannel4.send(new GenericMessage<>("bar"));
+		out = this.tapChannel.receive(10000);
+		assertNotNull(out);
+		assertEquals("foo", out.getPayload());
+		out = this.tapChannel.receive(10000);
+		assertNotNull(out);
+		assertEquals("bar", out.getPayload());
+
+		this.tappedChannel5.send(new GenericMessage<>("foo"));
+		out = this.wireTapSubflowResult.receive(10000);
+		assertNotNull(out);
+		assertEquals("FOO", out.getPayload());
+	}
+
+	@Autowired
 	@Qualifier("subscribersFlow.input")
 	private MessageChannel subscribersFlowInput;
 
@@ -965,6 +1030,51 @@ public class IntegrationFlowTests {
 									.channel(c -> c.queue("subscriber2Results"))))
 					.<Integer>handle((p, h) -> p * 3)
 					.channel(c -> c.queue("subscriber3Results"));
+		}
+
+		@Bean
+		public IntegrationFlow wireTapFlow1() {
+			return IntegrationFlows.from("tappedChannel1")
+					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
+					.channel("nullChannel")
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow wireTapFlow2() {
+			return f -> f
+					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
+					.channel("nullChannel");
+		}
+
+		@Bean
+		public IntegrationFlow wireTapFlow3() {
+			return f -> f
+					.transform("payload")
+					.wireTap("tapChannel", wt -> wt.selector("payload == 'foo'"))
+					.channel("nullChannel");
+		}
+
+		@Bean
+		public IntegrationFlow wireTapFlow4() {
+			return IntegrationFlows.from("tappedChannel4")
+					.wireTap(tapChannel())
+					.channel("nullChannel")
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow wireTapFlow5() {
+			return f -> f
+					.wireTap(sf -> sf
+							.<String, String>transform(String::toUpperCase)
+							.channel(c -> c.queue("wireTapSubflowResult")))
+					.channel("nullChannel");
+		}
+
+		@Bean
+		public QueueChannel tapChannel() {
+			return new QueueChannel();
 		}
 
 	}
@@ -1221,7 +1331,7 @@ public class IntegrationFlowTests {
 			return f -> f.enrichHeaders(s -> s.header("FOO", "BAR"))
 					.split("testSplitterData", "buildList", c -> c.applySequence(false))
 					.channel(c -> c.executor(this.taskExecutor()))
-					.split(Message.class, target -> (List<?>) target.getPayload(), c -> c.applySequence(false))
+					.split(Message.class, target -> target.getPayload(), c -> c.applySequence(false))
 					.channel(MessageChannels.executor(this.taskExecutor()))
 					.split(s -> s.applySequence(false).get().getT2().setDelimiters(","))
 					.channel(c -> c.executor(this.taskExecutor()))

@@ -49,6 +49,7 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
@@ -162,7 +163,7 @@ public class SftpTests {
 	@SuppressWarnings("unchecked")
 	public void testSftpMgetFlow() {
 		String dir = "sftpSource/";
-		this.sftpMgetInputChannel.send(new GenericMessage<Object>(dir + "*"));
+		this.sftpMgetInputChannel.send(new GenericMessage<>(dir + "*"));
 		Message<?> result = this.remoteFileOutputChannel.receive(1000);
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
@@ -219,7 +220,7 @@ public class SftpTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return f -> f.controlBus();
+			return IntegrationFlowDefinition::<Void>controlBus;
 		}
 
 		@Bean

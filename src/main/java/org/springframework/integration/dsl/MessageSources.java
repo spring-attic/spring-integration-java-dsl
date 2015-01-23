@@ -23,6 +23,7 @@ import javax.jms.ConnectionFactory;
 
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.core.io.Resource;
 import org.springframework.integration.dsl.file.FileInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.file.Files;
 import org.springframework.integration.dsl.ftp.Ftp;
@@ -32,6 +33,7 @@ import org.springframework.integration.dsl.jms.JmsInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.mail.ImapMailInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.mail.Mail;
 import org.springframework.integration.dsl.mail.Pop3MailInboundChannelAdapterSpec;
+import org.springframework.integration.dsl.scripting.ScriptMessageSourceSpec;
 import org.springframework.integration.dsl.sftp.Sftp;
 import org.springframework.integration.dsl.sftp.SftpInboundChannelAdapterSpec;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -100,6 +102,14 @@ public class MessageSources {
 
 	public Pop3MailInboundChannelAdapterSpec pop3(String host, int port, String username, String password) {
 		return Mail.pop3InboundAdapter(host, port, username, password);
+	}
+	
+	public ScriptMessageSourceSpec script(Resource scriptResource) {
+		return new ScriptMessageSourceSpec(scriptResource);
+	}
+	
+	public ScriptMessageSourceSpec script(String scriptLocation) {
+		return new ScriptMessageSourceSpec(scriptLocation);
 	}
 
 	MessageSources() {

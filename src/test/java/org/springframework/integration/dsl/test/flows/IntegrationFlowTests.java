@@ -75,6 +75,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.DirectChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
+import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -97,6 +98,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
@@ -349,7 +351,7 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testRouterAsNonLastComponent() {
-		this.routerAsNonLastFlowChannel.send(new GenericMessage<String>("Hello World"));
+		this.routerAsNonLastFlowChannel.send(new GenericMessage<>("Hello World"));
 		Message<?> receive = this.routerAsNonLastDefaultOutputChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals("Hello World", receive.getPayload());
@@ -911,7 +913,7 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testSubscribersSubFlows() {
-		this.subscribersFlowInput.send(new GenericMessage<Integer>(2));
+		this.subscribersFlowInput.send(new GenericMessage<>(2));
 
 		Message<?> receive1 = this.subscriber1Results.receive(5000);
 		assertNotNull(receive1);
@@ -1346,7 +1348,7 @@ public class IntegrationFlowTests {
 		public IntegrationFlow splitAggregateFlow() {
 			return IntegrationFlows.from("splitAggregateInput", true)
 					.split()
-					.channel(MessageChannels.executor(this.taskExecutor()))
+					.channel(MessageChannels.executor(taskExecutor()))
 					.resequence()
 					.aggregate()
 					.get();
@@ -1456,8 +1458,7 @@ public class IntegrationFlowTests {
 			return name + "-channel";
 		}
 
-		@SuppressWarnings("deprecation")
-		public String routeByHeader(@org.springframework.integration.annotation.Header("targetChannel") String name) {
+		public String routeByHeader(@Header("targetChannel") String name) {
 			return name + "-channel";
 		}
 

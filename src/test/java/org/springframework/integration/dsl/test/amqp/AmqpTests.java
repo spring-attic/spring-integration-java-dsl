@@ -122,29 +122,23 @@ public class AmqpTests {
 	@Import(RabbitAutoConfiguration.class)
 	public static class ContextConfiguration {
 
-		@Autowired
-		private ConnectionFactory rabbitConnectionFactory;
-
-		@Autowired
-		private AmqpTemplate amqpTemplate;
-
 		@Bean
 		public Queue queue() {
 			return new AnonymousQueue();
 		}
 
 		@Bean
-		public IntegrationFlow amqpFlow() {
-			return IntegrationFlows.from(Amqp.inboundGateway(this.rabbitConnectionFactory, queue()))
+		public IntegrationFlow amqpFlow(ConnectionFactory rabbitConnectionFactory) {
+			return IntegrationFlows.from(Amqp.inboundGateway(rabbitConnectionFactory, queue()))
 					.transform("hello "::concat)
 					.transform(String.class, String::toUpperCase)
 					.get();
 		}
 
 		@Bean
-		public IntegrationFlow amqpOutboundFlow() {
-			return IntegrationFlows.from(Amqp.channel("amqpOutboundInput", this.rabbitConnectionFactory))
-					.handle(Amqp.outboundAdapter(this.amqpTemplate).routingKeyExpression("headers.routingKey"))
+		public IntegrationFlow amqpOutboundFlow(ConnectionFactory rabbitConnectionFactory, AmqpTemplate amqpTemplate) {
+			return IntegrationFlows.from(Amqp.channel("amqpOutboundInput", rabbitConnectionFactory))
+					.handle(Amqp.outboundAdapter(amqpTemplate).routingKeyExpression("headers.routingKey"))
 					.get();
 		}
 
@@ -159,10 +153,10 @@ public class AmqpTests {
 		}
 
 		@Bean
-		public IntegrationFlow amqpInboundFlow() {
-			return IntegrationFlows.from((MessageProducers p) -> p.amqp(this.rabbitConnectionFactory, fooQueue()))
+		public IntegrationFlow amqpInboundFlow(ConnectionFactory rabbitConnectionFactory) {
+			return IntegrationFlows.from((MessageProducers p) -> p.amqp(rabbitConnectionFactory, fooQueue()))
 					.transform(String.class, String::toUpperCase)
-					.channel(Amqp.pollableChannel(this.rabbitConnectionFactory)
+					.channel(Amqp.pollableChannel(rabbitConnectionFactory)
 							.queueName("amqpReplyChannel")
 							.channelTransacted(true))
 					.get();

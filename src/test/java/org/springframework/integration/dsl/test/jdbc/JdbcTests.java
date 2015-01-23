@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -53,7 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Artem Bilan
  */
-@ContextConfiguration
+@SpringApplicationConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class JdbcTests {
@@ -84,7 +85,7 @@ public class JdbcTests {
 		private DataSource dataSource;
 
 		@Bean
-		public IntegrationFlow jdbcSplitter() {
+		public IntegrationFlow jdbcSplitter(JdbcTemplate jdbcTemplate) {
 			return f ->
 					f.<String>split(this::iterator, e -> e.applySequence(false))
 							.channel(c -> c.queue("splitResultsChannel"));

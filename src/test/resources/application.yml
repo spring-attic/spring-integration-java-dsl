@@ -1,0 +1,6 @@
+spring:
+  jmx:
+#    enabled: false
+  datasource:
+    schema: classpath*:**/schema.sql
+    data:   classpath*:**/data.sql

@@ -51,6 +51,7 @@ import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
@@ -152,7 +153,7 @@ public class FtpTests {
 	@SuppressWarnings("unchecked")
 	public void testFtpMgetFlow() {
 		String dir = "ftpSource/";
-		this.ftpMgetInputChannel.send(new GenericMessage<Object>(dir + "*"));
+		this.ftpMgetInputChannel.send(new GenericMessage<>(dir + "*"));
 		Message<?> result = this.remoteFileOutputChannel.receive(1000);
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
@@ -199,7 +200,7 @@ public class FtpTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return f -> f.controlBus();
+			return IntegrationFlowDefinition::<Void>controlBus;
 		}
 
 		@Bean

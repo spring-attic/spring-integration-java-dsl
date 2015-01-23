@@ -32,7 +32,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.springframework.aop.TargetSource;
@@ -47,6 +50,7 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.channel.MessageChannels;
@@ -77,7 +81,8 @@ import org.springframework.util.StreamUtils;
 @DirtiesContext
 public class FileTests {
 
-	private static final File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+	@ClassRule
+	public static final TemporaryFolder tmpDir = new TemporaryFolder();
 
 	@Autowired
 	private ListableBeanFactory beanFactory;
@@ -136,12 +141,12 @@ public class FileTests {
 		dfa.setPropertyValue("fileNameGenerator", fileNameGenerator);
 		this.fileFlow1Input.send(message);
 
-		assertTrue(new File(tmpDir, "foo").exists());
+		assertTrue(new File(tmpDir.getRoot(), "foo").exists());
 	}
 
 	@Test
 	public void testMessageProducerFlow() throws Exception {
-		FileOutputStream file = new FileOutputStream(new File(tmpDir, "TailTest"));
+		FileOutputStream file = new FileOutputStream(new File(tmpDir.getRoot(), "TailTest"));
 		for (int i = 0; i < 50; i++) {
 			file.write((i + "\n").getBytes());
 		}
@@ -167,7 +172,7 @@ public class FileTests {
 			if (even) {
 				evens.add(i);
 			}
-			FileOutputStream file = new FileOutputStream(new File(tmpDir, i + extension));
+			FileOutputStream file = new FileOutputStream(new File(tmpDir.getRoot(), i + extension));
 			file.write(("" + i).getBytes());
 			file.flush();
 			file.close();
@@ -211,13 +216,13 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return f -> f.controlBus();
+			return IntegrationFlowDefinition::<Void>controlBus;
 		}
 
 		@Bean
 		public IntegrationFlow fileFlow1() {
 			return IntegrationFlows.from("fileFlow1Input")
-					.<FileWritingMessageHandler>handleWithAdapter(h -> h.file(tmpDir).fileNameGenerator(message -> null)
+					.<FileWritingMessageHandler>handleWithAdapter(h -> h.file(tmpDir.getRoot()).fileNameGenerator(message -> null)
 							, c -> c.id("fileWriting"))
 					.get();
 		}
@@ -225,7 +230,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow tailFlow() {
 			return IntegrationFlows.from((MessageProducers p) ->
-					p.tail(new File(tmpDir, "TailTest"))
+					p.tail(new File(tmpDir.getRoot(), "TailTest"))
 							.delay(500)
 							.end(false)
 							.id("tailer")
@@ -238,7 +243,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileReadingFlow() {
 			return IntegrationFlows
-					.from(s -> s.file(tmpDir).patternFilter("*.sitest"),
+					.from(s -> s.file(tmpDir.getRoot()).patternFilter("*.sitest"),
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.transform(Transformers.fileToString())
 					.aggregate(a -> a.correlationExpression("1")
@@ -251,7 +256,7 @@ public class FileTests {
 		public IntegrationFlow fileWritingFlow() {
 			return IntegrationFlows.from("fileWritingInput")
 					.enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.sitest")
-							.header("directory", new File(tmpDir, "fileWritingFlow")))
+							.header("directory", new File(tmpDir.getRoot(), "fileWritingFlow")))
 					.handleWithAdapter(a -> a.fileGateway(m -> m.getHeaders().get("directory")))
 					.channel(MessageChannels.queue("fileWritingResultChannel"))
 					.get();

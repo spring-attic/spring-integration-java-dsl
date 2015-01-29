@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.ChannelInterceptorAware;
@@ -158,7 +160,7 @@ public class JmsTests {
 	}
 
 	@Configuration
-	@EnableAutoConfiguration
+	@Import({ActiveMQAutoConfiguration.class, IntegrationAutoConfiguration.class})
 	@IntegrationComponentScan
 	@ComponentScan
 	public static class ContextConfiguration {

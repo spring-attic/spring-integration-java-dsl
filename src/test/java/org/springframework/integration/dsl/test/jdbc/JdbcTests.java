@@ -18,10 +18,13 @@ package org.springframework.integration.dsl.test.jdbc;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+
+import javax.sql.DataSource;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,8 +38,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.jdbc.InvalidResultSetAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
+import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -63,6 +68,7 @@ public class JdbcTests {
 	@Test
 	public void testJdbcSplitter() {
 		this.jdbcSplitterChannel.send(new GenericMessage<>("foo"));
+
 		for (int i = 0; i < 10; i++) {
 			Message<?> result = this.splitResultsChannel.receive(1000);
 			assertNotNull(result);
@@ -75,21 +81,30 @@ public class JdbcTests {
 	public static class ContextConfiguration {
 
 		@Autowired
-		private JdbcTemplate jdbcTemplate;
+		private DataSource dataSource;
 
 		@Bean
 		public IntegrationFlow jdbcSplitter() {
 			return f ->
-					f.<String>split(p ->
-							jdbcTemplate.execute("SELECT * from FOO",
-									(PreparedStatement ps) ->
-											new ResultSetIterator<Foo>(ps.executeQuery(),
-													(rs, rowNum) ->
-															new Foo(rs.getInt(1), rs.getString(2))))
-							, e -> e.applySequence(false))
+					f.<String>split(this::iterator, e -> e.applySequence(false))
 							.channel(c -> c.queue("splitResultsChannel"));
 		}
 
+		private ResultSetIterator<?> iterator(Object payload) {
+			SQLExceptionTranslator exceptionTranslator = new SQLErrorCodeSQLExceptionTranslator(this.dataSource);
+			String sql = "SELECT * from FOO";
+			PreparedStatement preparedStatement = null;
+			try {
+				Connection connection = this.dataSource.getConnection();
+				preparedStatement = connection.prepareStatement(sql);
+				ResultSet resultSet = preparedStatement.executeQuery();
+				return new ResultSetIterator<>(connection, resultSet, (rs, rowNum) ->
+						new Foo(rs.getInt(1), rs.getString(2)));
+			}
+			catch (SQLException e) {
+				throw exceptionTranslator.translate("PreparedStatement", sql, e);
+			}
+		}
 	}
 
 	private static class Foo {
@@ -107,11 +122,14 @@ public class JdbcTests {
 
 	private static class ResultSetIterator<T> implements Iterator<T> {
 
+		private Connection connection;
+
 		private final ResultSet rs;
 
 		private final RowMapper<T> rowMapper;
 
-		private ResultSetIterator(ResultSet rs, RowMapper<T> rowMapper) {
+		private ResultSetIterator(Connection connection, ResultSet rs, RowMapper<T> rowMapper) {
+			this.connection = connection;
 			this.rs = rs;
 			this.rowMapper = rowMapper;
 		}
@@ -121,7 +139,8 @@ public class JdbcTests {
 			try {
 				boolean hasNext = !this.rs.isLast();
 				if (!hasNext) {
-					this.rs.close();
+					JdbcUtils.closeResultSet(this.rs);
+					JdbcUtils.closeConnection(this.connection);
 				}
 				return hasNext;
 			}

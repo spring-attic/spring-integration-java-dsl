@@ -44,7 +44,8 @@ compileTestJava {
 ext {
 	activeMqVersion = '5.10.0'
 	apacheSshdVersion = '0.10.1'
-	embedMongoVersion = '1.46.0'
+	commonsDbcpVersion = '1.4'
+	embedMongoVersion = '1.46.4'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.2'
 	jacocoVersion = '0.7.1.201405082137'
@@ -116,6 +117,8 @@ dependencies {
 	testRuntime "com.sun.mail:pop3:$mailVersion"
 	testRuntime "com.sun.mail:imap:$mailVersion"
 	testRuntime "org.hsqldb:hsqldb:$hsqldbVersion"
+
+	testRuntime "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
 
 	jacoco "org.jacoco:org.jacoco.agent:$jacocoVersion:runtime"
 }

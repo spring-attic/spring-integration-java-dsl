@@ -27,11 +27,11 @@ public abstract class Scripts {
 	public static ScriptSpec script(Resource scriptResource) {
 		return new ScriptSpec(scriptResource);
 	}
-	
+
 	public static ScriptSpec script(String scriptLocation) {
 		return new ScriptSpec(scriptLocation);
 	}
-	
+
 	private Scripts() {
 	}
 

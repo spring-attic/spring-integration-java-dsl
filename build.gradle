@@ -42,7 +42,7 @@ compileTestJava {
 }
 
 ext {
-	activeMqVersion = '5.10.0'
+	activeMqVersion = '5.10.1'
 	apacheSshdVersion = '0.13.0'
 	commonsDbcpVersion = '1.4'
 	embedMongoVersion = '1.46.4'
@@ -118,21 +118,20 @@ dependencies {
 
 	testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
 
-	testRuntime("org.apache.activemq:activemq-broker:$activeMqVersion")
-	testRuntime("org.apache.activemq:activemq-kahadb-store:$activeMqVersion") {
-		exclude group: "org.springframework"
-	}
+	testRuntime "org.apache.activemq:activemq-broker:$activeMqVersion"
+	
 	testRuntime "com.sun.mail:javax.mail:$mailVersion"
 	testRuntime "com.sun.mail:smtp:$mailVersion"
 	testRuntime "com.sun.mail:pop3:$mailVersion"
 	testRuntime "com.sun.mail:imap:$mailVersion"
 
 	testRuntime "org.hsqldb:hsqldb:$hsqldbVersion"
-
 	testRuntime "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
-	testRuntime("org.jruby:jruby:$jrubyVersion")
-	testRuntime("org.python:jython-standalone:$jythonVersion")
-		jacoco "org.jacoco:org.jacoco.agent:$jacocoVersion:runtime"
+
+	testRuntime "org.jruby:jruby:$jrubyVersion"
+	testRuntime "org.python:jython-standalone:$jythonVersion"
+
+	jacoco "org.jacoco:org.jacoco.agent:$jacocoVersion:runtime"
 }
 
 // enable all compiler warnings; individual projects may customize further

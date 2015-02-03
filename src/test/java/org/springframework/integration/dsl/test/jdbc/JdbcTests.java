@@ -48,7 +48,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
@@ -85,7 +84,7 @@ public class JdbcTests {
 		private DataSource dataSource;
 
 		@Bean
-		public IntegrationFlow jdbcSplitter(JdbcTemplate jdbcTemplate) {
+		public IntegrationFlow jdbcSplitter() {
 			return f ->
 					f.<String>split(this::iterator, e -> e.applySequence(false))
 							.channel(c -> c.queue("splitResultsChannel"));

@@ -19,10 +19,14 @@ package org.springframework.integration.dsl.core;
 import org.springframework.integration.handler.MessageProcessor;
 
 /**
+ * The {@link IntegrationComponentSpec} specific base class
+ * for {@link MessageProcessor}s.
+ *
  * @author Artem Bilan
+ *
  * @since 1.1
  */
-public abstract class MessageProcessorSpec<S extends MessageProcessorSpec<S>> 
+public abstract class MessageProcessorSpec<S extends MessageProcessorSpec<S>>
 		extends IntegrationComponentSpec<S, MessageProcessor<?>> {
-	
+
 }

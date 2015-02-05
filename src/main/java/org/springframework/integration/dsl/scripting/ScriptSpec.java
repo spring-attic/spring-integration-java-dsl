@@ -28,13 +28,16 @@ import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.util.Assert;
 
 /**
+ * The {@link MessageProcessorSpec} implementation for the
+ * {@link DslScriptExecutingMessageProcessor}.
+ *
  * @author Artem Bilan
  * @since 1.1
  */
 public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
-	
+
 	private final DslScriptExecutingMessageProcessor processor;
-	
+
 	private ScriptVariableGenerator variableGenerator;
 
 	private Map<String, Object> variables = new HashMap<String, Object>();
@@ -49,17 +52,35 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 		this.processor = new DslScriptExecutingMessageProcessor(scriptLocation);
 	}
 
+	/**
+	 * The script lang (Groovy, ruby, python etc.)
+	 * @param lang the script lang
+	 * @return the current spec
+	 * @see DslScriptExecutingMessageProcessor#setLang
+	 */
 	public ScriptSpec lang(String lang) {
 		Assert.hasText(lang);
 		this.processor.setLang(lang);
 		return this;
 	}
 
+	/**
+	 * The refreshCheckDelay in milliseconds for refreshable script resource
+	 * @param refreshCheckDelay the refresh check delay milliseconds
+	 * @return the current spec
+	 * @see org.springframework.integration.scripting.RefreshableResourceScriptSource
+	 */
 	public ScriptSpec refreshCheckDelay(long refreshCheckDelay) {
 		this.processor.setRefreshCheckDelay(refreshCheckDelay);
 		return this;
 	}
 
+	/**
+	 * The {@link ScriptVariableGenerator} to use
+	 * @param variableGenerator the {@link ScriptVariableGenerator}
+	 * @return the current spec
+	 * @see org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor
+	 */
 	public ScriptSpec variableGenerator(ScriptVariableGenerator variableGenerator) {
 		Assert.notNull(variableGenerator);
 		Assert.state(this.variables.isEmpty(), "'variableGenerator' and 'variables' are mutually exclusive");
@@ -67,10 +88,22 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 		return this;
 	}
 
+	/**
+	 * The script variables to use
+	 * @param variables the script variables {@link MapBuilder}
+	 * @return the current spec
+	 * @see DefaultScriptVariableGenerator
+	 */
 	public ScriptSpec variables(MapBuilder<?, String, Object> variables) {
 		return variables(variables.get());
 	}
 
+	/**
+	 * The script variables to use
+	 * @param variables the script variables {@link Map}
+	 * @return the current spec
+	 * @see DefaultScriptVariableGenerator
+	 */
 	public ScriptSpec variables(Map<String, Object> variables) {
 		Assert.notEmpty(variables);
 		Assert.state(this.variableGenerator == null, "'variableGenerator' and 'variables' are mutually exclusive");
@@ -78,6 +111,13 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 		return this;
 	}
 
+	/**
+	 * The script variable to use
+	 * @param name the name of variable
+	 * @param value the value of variable
+	 * @return the current spec
+	 * @see DefaultScriptVariableGenerator
+	 */
 	public ScriptSpec variable(String name, Object value) {
 		Assert.hasText(name);
 		Assert.state(this.variableGenerator == null, "'variableGenerator' and 'variables' are mutually exclusive");

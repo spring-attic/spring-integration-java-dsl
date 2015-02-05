@@ -34,10 +34,14 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.util.StringUtils;
 
 /**
+ * The adapter {@link MessageProcessor} around {@link AbstractScriptExecutingMessageProcessor}.
+ * Delegates to the {@link GroovyScriptExecutingMessageProcessor}, if provided {@link #lang}
+ * matches to {@code groovy} string. Otherwise to the {@link ScriptExecutingMessageProcessor}.
+ *
  * @author Artem Bilan
  * @since 1.1
  */
-class DslScriptExecutingMessageProcessor 
+class DslScriptExecutingMessageProcessor
 		implements MessageProcessor<Object>, InitializingBean, ApplicationContextAware {
 
 	private Resource script;
@@ -49,7 +53,7 @@ class DslScriptExecutingMessageProcessor
 	private long refreshCheckDelay = -1;
 
 	private ScriptVariableGenerator variableGenerator;
-	
+
 	private ApplicationContext applicationContext;
 
 	private AbstractScriptExecutingMessageProcessor<?> delegate;
@@ -104,7 +108,7 @@ class DslScriptExecutingMessageProcessor
 			this.delegate = new ScriptExecutingMessageProcessor(scriptSource, this.variableGenerator,
 					ScriptExecutorFactory.getScriptExecutor(this.lang));
 		}
-		
+
 		this.delegate.setBeanFactory(this.applicationContext);
 		this.delegate.setBeanClassLoader(this.applicationContext.getClassLoader());
 	}
@@ -113,5 +117,5 @@ class DslScriptExecutingMessageProcessor
 	public Object processMessage(Message<?> message) {
 		return this.delegate.processMessage(message);
 	}
-	
+
 }

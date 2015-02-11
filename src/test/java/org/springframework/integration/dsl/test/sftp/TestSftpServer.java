@@ -26,6 +26,7 @@ import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.FileSystemView;
 import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
 import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.sftp.SftpSubsystem;
@@ -125,25 +126,12 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 	public void afterPropertiesSet() throws Exception {
 		this.sftpFolder.create();
 		this.localFolder.create();
+		
 		this.server.setPasswordAuthenticator((username, password, session) -> true);
 		this.server.setPort(this.port);
 		this.server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-		SftpSubsystem.Factory sftp = new SftpSubsystem.Factory();
-		this.server.setSubsystemFactories(Arrays.<NamedFactory<Command>>asList(sftp));
-		this.server.setFileSystemFactory(new NativeFileSystemFactory() {
-
-			@Override
-			public FileSystemView createFileSystemView(org.apache.sshd.common.Session session) {
-				return new NativeFileSystemView(session.getUsername(), false) {
-
-					@Override
-					public String getVirtualUserDir() {
-						return sftpRootFolder.getAbsolutePath();
-					}
-				};
-			}
-
-		});
+		this.server.setSubsystemFactories(Arrays.<NamedFactory<Command>>asList(new SftpSubsystem.Factory()));
+		this.server.setFileSystemFactory(new VirtualFileSystemFactory(sftpRootFolder.getAbsolutePath()));
 		this.server.start();
 	}
 

@@ -28,6 +28,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -37,6 +39,7 @@ import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.Channels;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
@@ -64,21 +67,20 @@ import de.flapdoodle.embed.process.runtime.Network;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class MongoDbTest {
-
-	private static int mongoPort;
+public class MongoDbTests {
 
 	private static MongodExecutable mongodExe;
 
 	@BeforeClass
 	public static void setup() throws IOException {
-		mongoPort = Network.getFreeServerPort();
+		int mongoPort = Network.getFreeServerPort();
 		mongodExe = MongodStarter.getDefaultInstance()
 				.prepare(new MongodConfigBuilder()
 						.version(Version.Main.PRODUCTION)
 						.net(new Net(mongoPort, Network.localhostIsIPv6()))
 						.build());
 		mongodExe.start();
+		System.setProperty("spring.data.mongodb.port", "" + mongoPort);
 	}
 
 	@AfterClass
@@ -162,18 +164,13 @@ public class MongoDbTest {
 
 
 	@Configuration
-	@EnableIntegration
+	@SpringBootApplication
 	@IntegrationComponentScan
 	public static class ContextConfiguration {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return f -> f.controlBus();
-		}
-
-		@Bean
-		public MongoDbFactory mongoDbFactory() throws Exception {
-			return new SimpleMongoDbFactory(new MongoClient("localhost", mongoPort), "local");
+			return IntegrationFlowDefinition::<Void>controlBus;
 		}
 
 		@Bean
@@ -197,3 +194,4 @@ public class MongoDbTest {
 	}
 
 }
+

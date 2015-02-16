@@ -48,7 +48,7 @@ ext {
 	embedMongoVersion = '1.46.4'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.2'
-	jacocoVersion = '0.7.1.201405082137'
+	jacocoVersion = '0.7.2.201409121644'
 	jmsApiVersion = '1.1-rev-1'
 	jrubyVersion = '1.7.15'
 	jythonVersion = '2.5.3'
@@ -119,7 +119,7 @@ dependencies {
 	testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
 
 	testRuntime "org.apache.activemq:activemq-broker:$activeMqVersion"
-	
+
 	testRuntime "com.sun.mail:javax.mail:$mailVersion"
 	testRuntime "com.sun.mail:smtp:$mailVersion"
 	testRuntime "com.sun.mail:pop3:$mailVersion"
@@ -264,6 +264,6 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '1.12'
+	gradleVersion = '2.3'
 	distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }

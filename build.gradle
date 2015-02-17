@@ -42,7 +42,7 @@ compileTestJava {
 }
 
 ext {
-	activeMqVersion = '5.10.1'
+	activeMqVersion = '5.11.0'
 	apacheSshdVersion = '0.13.0'
 	commonsDbcpVersion = '1.4'
 	embedMongoVersion = '1.46.4'
@@ -53,7 +53,7 @@ ext {
 	jrubyVersion = '1.7.15'
 	jythonVersion = '2.5.3'
 	mailVersion = '1.5.2'
-	slf4jVersion = '1.7.7'
+	slf4jVersion = '1.7.8'
 	springIntegrationVersion = '4.1.2.RELEASE'
 	springBootVersion = '1.2.1.RELEASE'
 
@@ -172,7 +172,7 @@ sonarRunner {
 	}
 }
 
-task api(type: Javadoc) {
+javadoc {
 	group = 'Documentation'
 	description = 'Generates the Javadoc API documentation.'
 	title = "${rootProject.description} ${version} API"
@@ -193,7 +193,7 @@ task docsZip(type: Zip) {
 	description = "Builds -${classifier} archive containing the api " +
 			"for deployment at static.springframework.org/spring-integration/docs."
 
-	from(api) {
+	from(javadoc) {
 		into 'api'
 	}
 }

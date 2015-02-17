@@ -24,16 +24,18 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -52,6 +54,12 @@ public class FlowServiceTests {
 	@Autowired(required = false)
 	private MyFlow myFlow;
 
+	@Autowired
+	private MessageChannel myFlowAdapterInput;
+
+	@Autowired
+	private PollableChannel myFlowAdapterOutput;
+
 	@Test
 	public void testFlowService() {
 		assertNotNull(this.myFlow);
@@ -62,19 +70,42 @@ public class FlowServiceTests {
 		assertEquals("FOO", receive.getPayload());
 	}
 
+	@Test
+	public void testFlowAdapterService() {
+		this.myFlowAdapterInput.send(new GenericMessage<>("BAR"));
+		Message<?> receive = this.myFlowAdapterOutput.receive(1000);
+		assertNotNull(receive);
+		assertEquals("bar", receive.getPayload());
+	}
+
 	@Configuration
 	@EnableIntegration
 	@ComponentScan
 	public static class ContextConfiguration {
-
 	}
 
 	@Component
 	public static class MyFlow implements IntegrationFlow {
 
 		@Override
-		public void accept(IntegrationFlowDefinition<?> f) {
+		public void configure(IntegrationFlowDefinition<?> f) {
 			f.<String, String>transform(String::toUpperCase);
+		}
+
+	}
+
+	@Component
+	public static class MyFlowAdapter extends IntegrationFlowAdapter {
+
+		@Override
+		protected IntegrationFlowDefinition<?> buildFlow() {
+			return from("myFlowAdapterInput")
+					.transform(this::transform)
+					.channel(c -> c.queue("myFlowAdapterOutput"));
+		}
+
+		private String transform(String payload) {
+			return payload.toLowerCase();
 		}
 
 	}

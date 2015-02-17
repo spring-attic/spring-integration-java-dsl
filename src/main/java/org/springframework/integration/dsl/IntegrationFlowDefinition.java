@@ -59,7 +59,6 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
@@ -320,7 +319,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public B wireTap(IntegrationFlow flow, Consumer<WireTapSpec> wireTapConfigurer) {
 		DirectChannel wireTapChannel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(wireTapChannel);
-		flow.accept(flowBuilder);
+		flow.configure(flowBuilder);
 		addComponent(flowBuilder.get());
 		return wireTap(wireTapChannel, wireTapConfigurer);
 	}
@@ -435,24 +434,24 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the 
+	 * Populate the {@link MessageTransformingHandler} instance for the
 	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .transform(Scripts.script("classpath:myScript.py").valiable("foo", bar()))
 	 * }
-	 * </pre> 
+	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
-	 * @since 1.1 
+	 * @since 1.1
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec) {
 		return transform(messageProcessorSpec, null);
 	}
 
 	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the 
+	 * Populate the {@link MessageTransformingHandler} instance for the
 	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
@@ -460,9 +459,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .transform(Scripts.script("classpath:myScript.py").valiable("foo", bar()),
 	 *           e -> e.autoStartup(false))
 	 * }
-	 * </pre> 
+	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options. 
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
 	 * @since 1.1
@@ -474,7 +473,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return addComponent(processor)
 				.transform(new MethodInvokingTransformer(processor), endpointConfigurer);
 	}
-	
+
 	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
 	 * for the specific {@code payloadType} to convert at runtime.
@@ -579,7 +578,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
-	 * for the {@link org.springframework.integration.handler.MessageProcessor} from 
+	 * for the {@link org.springframework.integration.handler.MessageProcessor} from
 	 * the provided {@link MessageProcessorSpec}.
 	 * <pre class="code">
 	 * {@code
@@ -588,7 +587,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @since 1.1 
+	 * @since 1.1
 	 */
 	public B filter(MessageProcessorSpec<?> messageProcessorSpec) {
 		return filter(messageProcessorSpec, null);
@@ -596,9 +595,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
-	 * for the {@link org.springframework.integration.handler.MessageProcessor} from 
+	 * for the {@link org.springframework.integration.handler.MessageProcessor} from
 	 * the provided {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}. 
+	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .filter(Scripts.script(scriptResource).lang("ruby"),
@@ -899,7 +898,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @since 1.1 
+	 * @since 1.1
 	 */
 	public B handle(MessageProcessorSpec<?> messageProcessorSpec) {
 		return handle(messageProcessorSpec, null);
@@ -927,7 +926,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return addComponent(processor)
 				.handle(new ServiceActivatingHandler(processor), endpointConfigurer);
 	}
-	
+
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the selected protocol specific
 	 * {@link MessageHandler} implementation from {@code Namespace Factory}:
@@ -1336,7 +1335,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the 
+	 * Populate the {@link MethodInvokingSplitter} to evaluate the
 	 * {@link org.springframework.integration.handler.MessageProcessor} at runtime
 	 * from provided {@link MessageProcessorSpec}.
 	 * <pre class="code">
@@ -1355,10 +1354,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link MethodInvokingSplitter} to evaluate the 
+	 * Populate the {@link MethodInvokingSplitter} to evaluate the
 	 * {@link org.springframework.integration.handler.MessageProcessor} at runtime
 	 * from provided {@link MessageProcessorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}. 
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .split(Scripts.script(myScriptResource).lang("groovy").refreshCheckDelay(1000),
@@ -1367,7 +1366,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param messageProcessorSpec the splitter {@link MessageProcessorSpec}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
-	 * and for {@link MethodInvokingSplitter}. 
+	 * and for {@link MethodInvokingSplitter}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see SplitterEndpointSpec
 	 * @see org.springframework.integration.dsl.scripting.ScriptSpec
@@ -1894,7 +1893,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @since 1.1 
+	 * @since 1.1
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec) {
 		return route(messageProcessorSpec, null);
@@ -1912,7 +1911,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * }
 	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options. 
+	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @since 1.1
 	 */
@@ -1924,7 +1923,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	/**
 	 * Populate the {@link MethodInvokingRouter} for the {@link org.springframework.integration.handler.MessageProcessor}
 	 * from the provided {@link MessageProcessorSpec} with default options.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}. 
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
 	 *  .route(Scripts.script(myScriptResource).lang("groovy").refreshCheckDelay(1000),
@@ -1936,7 +1935,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.  
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @since 1.1
 	 */
@@ -1948,7 +1947,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return addComponent(processor)
 				.route(new MethodInvokingRouter(processor), routerConfigurer, endpointConfigurer);
 	}
-	
+
 	/**
 	 * Populate the provided {@link AbstractMappingMessageRouter} implementation
 	 * with options from {@link RouterSpec} and endpoint options from {@link GenericEndpointSpec}.
@@ -2153,7 +2152,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		Assert.notNull(flow);
 		final DirectChannel requestChannel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(requestChannel);
-		flow.accept(flowBuilder);
+		flow.configure(flowBuilder);
 		addComponent(flowBuilder.get());
 		return gateway(requestChannel, endpointConfigurer);
 	}

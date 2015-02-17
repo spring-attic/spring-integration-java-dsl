@@ -86,8 +86,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		return bean;
 	}
 
-	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow,
-			String beanName) {
+	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String beanName) {
 		String flowNamePrefix = beanName + ".";
 		int subFlowNameIndex = 0;
 		int channelNameIndex = 0;
@@ -202,7 +201,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 
 	private Object processIntegrationFlowImpl(IntegrationFlow flow, String beanName) {
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(beanName + ".input");
-		flow.accept(flowBuilder);
+		flow.configure(flowBuilder);
 		return processStandardIntegrationFlow(flowBuilder.get(), beanName);
 	}
 

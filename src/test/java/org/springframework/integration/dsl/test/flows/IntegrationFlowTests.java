@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,6 +267,8 @@ public class IntegrationFlowTests {
 	public void testDirectFlow() {
 		assertTrue(this.beanFactory.containsBean("filter"));
 		assertTrue(this.beanFactory.containsBean("filter.handler"));
+		assertTrue(this.beanFactory.containsBean("expressionFilter"));
+		assertTrue(this.beanFactory.containsBean("expressionFilter.handler"));
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("100").setReplyChannel(replyChannel).build();
 		try {
@@ -943,6 +945,7 @@ public class IntegrationFlowTests {
 							c -> c.autoStartup(false).id("payloadSerializingTransformer"))
 					.channel(MessageChannels.queue(new SimpleMessageStore(), "fooQueue"))
 					.transform(new PayloadDeserializingTransformer())
+					.filter("true", e -> e.id("expressionFilter"))
 					.channel(publishSubscribeChannel())
 					.transform((Integer p) -> p * 2, c -> c.advice(this.expressionAdvice()))
 					.get();

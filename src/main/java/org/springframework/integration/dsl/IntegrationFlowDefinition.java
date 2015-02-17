@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Gabriele Del Prete
  *
  * @see org.springframework.integration.dsl.config.IntegrationFlowBeanPostProcessor
  */
@@ -537,8 +538,26 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B filter(String expression) {
+		return filter(expression, null);
+	}
+
+	/**
+	 * Populate a {@link MessageFilter} with {@link MessageSelector} for the provided SpEL expression.
+	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}:
+	 * <pre class="code">
+	 * {@code
+	 *  .filter("payload.hot"), e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param expression the SpEL expression.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see FilterEndpointSpec
+	 * @since 1.0.2
+	 */
+	public B filter(String expression, Consumer<FilterEndpointSpec> endpointConfigurer) {
 		Assert.hasText(expression);
-		return this.filter(new ExpressionEvaluatingSelector(PARSER.parseExpression(expression)));
+		return filter(new ExpressionEvaluatingSelector(expression), endpointConfigurer);
 	}
 
 	/**
@@ -555,7 +574,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public <P> B filter(GenericSelector<P> genericSelector) {
-		return this.filter(null, genericSelector);
+		return filter(null, genericSelector);
 	}
 
 	/**

@@ -537,8 +537,26 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B filter(String expression) {
+		return this.filter(expression, null);
+	}
+
+	/**
+	 * Populate a {@link MessageFilter} with {@link MessageSelector} for the provided SpEL expression.
+	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
+	 * Typically used with a Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .filter("payload.hot"), e -> e.autoStartup(false))
+	 * }
+	 * </pre>
+	 * @param expression the SpEL expression.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see FilterEndpointSpec
+	 */
+	public B filter(String expression, Consumer<FilterEndpointSpec> endpointConfigurer) {
 		Assert.hasText(expression);
-		return this.filter(new ExpressionEvaluatingSelector(PARSER.parseExpression(expression)));
+		return this.filter(new ExpressionEvaluatingSelector(PARSER.parseExpression(expression)), endpointConfigurer);
 	}
 
 	/**

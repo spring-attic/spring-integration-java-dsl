@@ -29,6 +29,7 @@ import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototy
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -122,7 +123,7 @@ public final class IntegrationFlows {
 	 * @see MessageSources
 	 */
 	public static IntegrationFlowBuilder from(MessageSourcesFunction sources) {
-		return from(sources, null);
+		return from(sources, (Consumer<SourcePollingChannelAdapterSpec>) null);
 	}
 
 	/**
@@ -153,7 +154,7 @@ public final class IntegrationFlows {
 	 * @see MessageSourceSpec and its implementations.
 	 */
 	public static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
-		return from(messageSourceSpec, null);
+		return from(messageSourceSpec, (Consumer<SourcePollingChannelAdapterSpec>) null);
 	}
 
 	/**
@@ -174,6 +175,40 @@ public final class IntegrationFlows {
 	}
 
 	/**
+	 * Populate the provided {@link MethodInvokingMessageSource} for the method of the provided service.
+	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
+	 * @param service the service to use.
+	 * @param methodName the method to invoke.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 * @see MethodInvokingMessageSource
+	 * @since 1.1
+	 */
+	public static IntegrationFlowBuilder from(Object service, String methodName) {
+		return from(service, methodName, null);
+	}
+
+	/**
+	 * Populate the provided {@link MethodInvokingMessageSource} for the method of the provided service.
+	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
+	 * @param service the service to use.
+	 * @param methodName the method to invoke.
+	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
+	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 * @see MethodInvokingMessageSource
+	 * @since 1.1
+	 */
+	public static IntegrationFlowBuilder from(Object service, String methodName,
+			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+		Assert.notNull(service);
+		Assert.hasText(methodName);
+		MethodInvokingMessageSource messageSource = new MethodInvokingMessageSource();
+		messageSource.setObject(service);
+		messageSource.setMethodName(methodName);
+		return from(messageSource, endpointConfigurer);
+	}
+
+	/**
 	 * Populate the provided {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
 	 * @param messageSource the {@link MessageSource} to populate.
@@ -181,7 +216,7 @@ public final class IntegrationFlows {
 	 * @see MessageSource
 	 */
 	public static IntegrationFlowBuilder from(MessageSource<?> messageSource) {
-		return from(messageSource, null);
+		return from(messageSource, (Consumer<SourcePollingChannelAdapterSpec>) null);
 	}
 
 	/**
@@ -246,7 +281,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessageProducerSupport messageProducer) {
-		return from(messageProducer, null);
+		return from(messageProducer, (IntegrationFlowBuilder) null);
 	}
 
 	private static IntegrationFlowBuilder from(MessageProducerSupport messageProducer,
@@ -333,12 +368,16 @@ public final class IntegrationFlows {
 	private IntegrationFlows() {
 	}
 
-	public interface ChannelsFunction extends Function<Channels, MessageChannelSpec<?, ?>> {}
+	public interface ChannelsFunction extends Function<Channels, MessageChannelSpec<?, ?>> {
+	}
 
-	public interface MessageSourcesFunction extends Function<MessageSources, MessageSourceSpec<?, ?>> {}
+	public interface MessageSourcesFunction extends Function<MessageSources, MessageSourceSpec<?, ?>> {
+	}
 
-	public interface MessageProducersFunction extends Function<MessageProducers, MessageProducerSpec<?, ?>> {}
+	public interface MessageProducersFunction extends Function<MessageProducers, MessageProducerSpec<?, ?>> {
+	}
 
-	public interface MessagingGatewaysFunction extends Function<MessagingGateways, MessagingGatewaySpec<?, ?>> {}
+	public interface MessagingGatewaysFunction extends Function<MessagingGateways, MessagingGatewaySpec<?, ?>> {
+	}
 
 }

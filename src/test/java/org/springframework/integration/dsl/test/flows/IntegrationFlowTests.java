@@ -63,24 +63,22 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.dsl.Channels;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.DirectChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
-import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
-import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -1414,7 +1412,7 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow routeMethodInvocationFlow2() {
 			return IntegrationFlows.from("routerMethod2Input")
-					.route(new MethodInvokingRouter(new RoutingTestBean(), "routeByHeader"))
+					.route(new RoutingTestBean())
 					.get();
 		}
 
@@ -1461,6 +1459,7 @@ public class IntegrationFlowTests {
 			return name + "-channel";
 		}
 
+		@Router
 		public String routeByHeader(@Header("targetChannel") String name) {
 			return name + "-channel";
 		}

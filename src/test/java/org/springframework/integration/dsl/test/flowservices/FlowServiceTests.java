@@ -19,13 +19,26 @@ package org.springframework.integration.dsl.test.flowservices;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -35,10 +48,13 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.TriggerContext;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Artem Bilan
@@ -55,9 +71,6 @@ public class FlowServiceTests {
 	private MyFlow myFlow;
 
 	@Autowired
-	private MessageChannel myFlowAdapterInput;
-
-	@Autowired
 	private PollableChannel myFlowAdapterOutput;
 
 	@Test
@@ -72,16 +85,16 @@ public class FlowServiceTests {
 
 	@Test
 	public void testFlowAdapterService() {
-		this.myFlowAdapterInput.send(new GenericMessage<>("BAR"));
-		Message<?> receive = this.myFlowAdapterOutput.receive(1000);
+		Message<?> receive = this.myFlowAdapterOutput.receive(10000);
 		assertNotNull(receive);
-		assertEquals("bar", receive.getPayload());
+		assertEquals("bar:FOO", receive.getPayload());
 	}
 
 	@Configuration
 	@EnableIntegration
 	@ComponentScan
 	public static class ContextConfiguration {
+
 	}
 
 	@Component
@@ -97,15 +110,51 @@ public class FlowServiceTests {
 	@Component
 	public static class MyFlowAdapter extends IntegrationFlowAdapter {
 
+		private final AtomicBoolean invoked = new AtomicBoolean();
+
+		public Date nextExecutionTime(TriggerContext triggerContext) {
+			return this.invoked.getAndSet(true) ? null : new Date();
+		}
+
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
-			return from("myFlowAdapterInput")
-					.transform(this::transform)
+			return from(this, "messageSource", e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
+					.split(this)
+					.transform(this)
+					.aggregate(a -> a.processor(this, null), null)
+					.enrichHeaders(Collections.singletonMap("foo", "FOO"))
+					.filter(this)
+					.handle(this)
 					.channel(c -> c.queue("myFlowAdapterOutput"));
 		}
 
-		private String transform(String payload) {
+		public String messageSource() {
+			return "B,A,R";
+		}
+
+		@Splitter
+		public String[] split(String payload) {
+			return StringUtils.commaDelimitedListToStringArray(payload);
+		}
+
+		@Transformer
+		public String transform(String payload) {
 			return payload.toLowerCase();
+		}
+
+		@Aggregator
+		public String aggregate(List<String> payloads) {
+			return payloads.stream().collect(Collectors.joining());
+		}
+
+		@Filter
+		public boolean filter(@Header Optional<String> foo) {
+			return foo.isPresent();
+		}
+
+		@ServiceActivator
+		public String handle(String payload, @Header String foo) {
+			return payload + ":" + foo;
 		}
 
 	}

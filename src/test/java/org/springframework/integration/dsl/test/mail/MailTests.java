@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.dsl.HeaderEnricherSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
@@ -217,7 +216,7 @@ public class MailTests {
 									.javaMailProperties(p -> p.put("mail.debug", "true")),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
 					.enrichHeaders(s -> s.headerExpressions(c -> c.put(MailHeaders.SUBJECT, "payload.subject")
-									.put(MailHeaders.FROM, "payload.from[0].toString()")))
+							.put(MailHeaders.FROM, "payload.from[0].toString()")))
 					.channel(MessageChannels.queue("pop3Channel"))
 					.get();
 		}

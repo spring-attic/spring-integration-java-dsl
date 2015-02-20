@@ -23,9 +23,6 @@ import java.util.Arrays;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.common.file.FileSystemView;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
@@ -126,7 +123,7 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 	public void afterPropertiesSet() throws Exception {
 		this.sftpFolder.create();
 		this.localFolder.create();
-		
+
 		this.server.setPasswordAuthenticator((username, password, session) -> true);
 		this.server.setPort(this.port);
 		this.server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));

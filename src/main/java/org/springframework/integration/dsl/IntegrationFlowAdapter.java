@@ -134,6 +134,16 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow {
 	protected IntegrationFlowDefinition<?> from(IntegrationFlows.MessagingGatewaysFunction gateways) {
 		return IntegrationFlows.from(gateways);
 	}
+	
+
+	public static IntegrationFlowBuilder from(Object service, String methodName) {
+		return IntegrationFlows.from(service, methodName);
+	}
+
+	public static IntegrationFlowBuilder from(Object service, String methodName, 
+			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+		return IntegrationFlows.from(service, methodName, endpointConfigurer);
+	}
 
 	protected abstract IntegrationFlowDefinition<?> buildFlow();
 

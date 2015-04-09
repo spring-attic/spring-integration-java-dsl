@@ -42,20 +42,23 @@ compileTestJava {
 }
 
 ext {
-	activeMqVersion = '5.11.0'
-	apacheSshdVersion = '0.13.0'
+	activeMqVersion = '5.11.1'
+	apacheSshdVersion = '0.14.0'
 	commonsDbcpVersion = '1.4'
-	embedMongoVersion = '1.46.4'
+	embedMongoVersion = '1.47.1'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.2'
 	jacocoVersion = '0.7.2.201409121644'
 	jmsApiVersion = '1.1-rev-1'
-	jrubyVersion = '1.7.15'
+	jrubyVersion = '1.7.19'
 	jythonVersion = '2.5.3'
+	kafkaVersion = '0.8.1.1'
 	mailVersion = '1.5.2'
-	slf4jVersion = '1.7.8'
-	springIntegrationVersion = '4.1.2.RELEASE'
-	springBootVersion = '1.2.1.RELEASE'
+	scalaVersion = '2.10'
+	slf4jVersion = '1.7.11'
+	springIntegrationVersion = '4.1.3.RELEASE'
+	springIntegrationKafkaVersion = '1.1.1.RELEASE'
+	springBootVersion = '1.2.3.RELEASE'
 
 	linkHomepage = 'https://github.com/spring-projects/spring-integration-java-dsl'
 	linkCi = 'https://build.spring.io/browse/INTEXT-SIJD'
@@ -101,33 +104,38 @@ dependencies {
 	 , 'spring-integration-xmpp'].each {
 		compile("org.springframework.integration:$it:$springIntegrationVersion", optional)
 	}
+	compile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
+		optional it
+		exclude group: 'org.apache.avro', module: 'avro'
+		exclude group: 'org.apache.avro', module: 'avro-compiler'
+		exclude group: 'com.yammer.metrics', module: 'metrics-core'
+		exclude group: 'com.yammer.metrics', module: 'metrics-annotation'
+		exclude group: 'org.apache.velocity', module: 'velocity'
+		exclude group: 'log4j', module: 'log4j'
+	}
 	compile("javax.jms:jms-api:$jmsApiVersion", provided)
 	compile("javax.mail:javax.mail-api:$mailVersion", provided)
 
 	testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 	testCompile("org.springframework.boot:spring-boot-starter:$springBootVersion") {
-		exclude module: "spring-boot-starter-logging"
+		exclude module: 'spring-boot-starter-logging'
 	}
 	testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-
 	testCompile "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embedMongoVersion"
-
 	testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
-
 	testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
+	testCompile ("org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test") {
+		exclude group: 'log4j', module: 'log4j'
+	}
 
 	testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
-
 	testRuntime "org.apache.activemq:activemq-broker:$activeMqVersion"
-
 	testRuntime "com.sun.mail:javax.mail:$mailVersion"
 	testRuntime "com.sun.mail:smtp:$mailVersion"
 	testRuntime "com.sun.mail:pop3:$mailVersion"
 	testRuntime "com.sun.mail:imap:$mailVersion"
-
 	testRuntime "org.hsqldb:hsqldb:$hsqldbVersion"
 	testRuntime "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
-
 	testRuntime "org.jruby:jruby:$jrubyVersion"
 	testRuntime "org.python:jython-standalone:$jythonVersion"
 

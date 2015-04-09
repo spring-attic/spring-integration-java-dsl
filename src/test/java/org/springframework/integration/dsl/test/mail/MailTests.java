@@ -135,7 +135,7 @@ public class MailTests {
 
 		Properties javaMailProperties = TestUtils.getPropertyValue(this.sendMailHandler,
 				"mailSender.javaMailProperties", Properties.class);
-		assertEquals("true", javaMailProperties.getProperty("mail.debug"));
+		assertEquals("false", javaMailProperties.getProperty("mail.debug"));
 
 		this.sendMailChannel.send(MessageBuilder.withPayload("foo").build());
 
@@ -204,7 +204,7 @@ public class MailTests {
 									.port(smtpPort)
 									.credentials("user", "pw")
 									.protocol("smtp")
-									.javaMailProperties(p -> p.put("mail.debug", "true")),
+									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.id("sendMailEndpoint"))
 					.get();
 		}
@@ -213,7 +213,7 @@ public class MailTests {
 		public IntegrationFlow pop3MailFlow() {
 			return IntegrationFlows
 					.from(s -> s.pop3("localhost", pop3Port, "user", "pw")
-									.javaMailProperties(p -> p.put("mail.debug", "true")),
+									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
 					.enrichHeaders(s -> s.headerExpressions(c -> c.put(MailHeaders.SUBJECT, "payload.subject")
 							.put(MailHeaders.FROM, "payload.from[0].toString()")))
@@ -226,7 +226,7 @@ public class MailTests {
 			return IntegrationFlows
 					.from(s -> s.imap("imap://user:pw@localhost:" + imapPort + "/INBOX")
 									.searchTermStrategy(this::fromAndNotSeenTerm)
-									.javaMailProperties(p -> p.put("mail.debug", "true")),
+									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.autoStartup(true)
 									.poller(p -> p.fixedDelay(1000)))
 					.channel(MessageChannels.queue("imapChannel"))
@@ -238,7 +238,7 @@ public class MailTests {
 			return IntegrationFlows
 					.from((MessageProducers mp) -> mp.imap("imap://user:pw@localhost:" + imapIdlePort + "/INBOX")
 							.searchTermStrategy(this::fromAndNotSeenTerm)
-							.javaMailProperties(p -> p.put("mail.debug", "true")
+							.javaMailProperties(p -> p.put("mail.debug", "false")
 									.put("mail.imap.connectionpoolsize", "5"))
 							.shouldReconnectAutomatically(false))
 					.channel(MessageChannels.queue("imapIdleChannel"))

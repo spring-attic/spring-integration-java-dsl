@@ -43,6 +43,8 @@ import org.springframework.util.CollectionUtils;
 import kafka.serializer.Decoder;
 
 /**
+ * A {@link MessageSourceSpec} for {@link KafkaHighLevelConsumerMessageSource}.
+ *
  * @author Artem Bilan
  * @since 1.1
  */
@@ -66,11 +68,21 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 		this.consumerContext.setConsumerConfigurations(this.consumerConfigurations);
 	}
 
+	/**
+	 * @param consumerProperties the Kafka High Level Consumer properties.
+	 * @return the spec.
+	 * @see <a href="https://kafka.apache.org/documentation.html#consumerconfigs">Kafka Consumer Configs</a>
+	 */
 	public KafkaHighLevelConsumerMessageSourceSpec consumerProperties(Properties consumerProperties) {
 		this.consumerProperties = consumerProperties;
 		return _this();
 	}
 
+	/**
+	 * @param consumerProperties the {@link PropertiesBuilder} Java 8 Lambda.
+	 * @return the spec.
+	 * @see <a href="https://kafka.apache.org/documentation.html#consumerconfigs">Kafka Consumer Configs</a>
+	 */
 	public KafkaHighLevelConsumerMessageSourceSpec consumerProperties(Consumer<PropertiesBuilder> consumerProperties) {
 		Assert.notNull(consumerProperties);
 		PropertiesBuilder properties = new PropertiesBuilder();
@@ -78,6 +90,14 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 		return consumerProperties(properties.get());
 	}
 
+	/**
+	 * Add Kafka High Level Consumer to this {@link KafkaHighLevelConsumerMessageSource}
+	 * under provided {@code groupId}.
+	 * @param groupId the Consumer group id.
+	 * @param consumerMetadataSpec the Consumer metadata Java 8 Lambda.
+	 * @return the spec.
+	 * @see KafkaHighLevelConsumerMessageSourceSpec.ConsumerMetadataSpec
+	 */
 	public KafkaHighLevelConsumerMessageSourceSpec addConsumer(String groupId,
 			Consumer<ConsumerMetadataSpec> consumerMetadataSpec) {
 		Assert.hasText(groupId);
@@ -104,7 +124,10 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 		return this.kafkaHighLevelConsumerMessageSource;
 	}
 
-
+	/**
+	 * A helper class in the Builder pattern style to delegate options to the {@link ConsumerMetadata}
+	 * and populate {@link ConsumerConfiguration}.
+	 */
 	public class ConsumerMetadataSpec {
 
 		private final ConsumerMetadata consumerMetadata = new ConsumerMetadata();
@@ -122,45 +145,83 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 					KafkaHighLevelConsumerMessageSourceSpec.this.consumerProperties);
 		}
 
+		/**
+		 * Specify the Kafka High Level Consumer {@code consumer.timeout.ms} property.
+		 * @param consumerTimeout the consumer timeout.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec consumerTimeout(int consumerTimeout) {
 			this.consumerMetadata.setConsumerTimeout("" + consumerTimeout);
 			return this;
 		}
 
+		/**
+		 * Specify a {@link Decoder} for Kafka message body.
+		 * Can be used as Java 8 Lambda.
+		 * @param valueDecoder the value decoder.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec valueDecoder(Decoder valueDecoder) {
 			this.consumerMetadata.setValueDecoder(valueDecoder);
 			return this;
 		}
 
+		/**
+		 * Specify a {@link Decoder} for Kafka message key.
+		 * Can be used as Java 8 Lambda.
+		 * @param keyDecoder the key decoder.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec keyDecoder(Decoder keyDecoder) {
 			this.consumerMetadata.setKeyDecoder(keyDecoder);
 			return this;
 		}
 
+		/**
+		 * @param topicStreamMap the of Kafka topics and their number of streams.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec topicStreamMap(Map<String, Integer> topicStreamMap) {
 			this.consumerMetadata.setTopicStreamMap(topicStreamMap);
 			return this;
 		}
 
+		/**
+		 * @param topicStreamMap the {@link MapBuilder} Java 8 Lambda for Kafka topics and their number of streams.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec topicStreamMap(Consumer<MapBuilder<?, String, Integer>> topicStreamMap) {
 			Assert.notNull(topicStreamMap);
 			MapBuilder builder = new MapBuilder();
 			topicStreamMap.accept(builder);
 			return topicStreamMap(builder.get());
 		}
-
+		/**
+		 * @param pattern the Kafka topics pattern.
+		 * @param numberOfStreams the number of streams.
+		 * @param exclude the {@code boolean} flag to include or exclude hte provided pattern.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec topicFilter(String pattern, int numberOfStreams, boolean exclude) {
 			this.consumerMetadata.setTopicFilterConfiguration(
 					new TopicFilterConfiguration(pattern, numberOfStreams, exclude));
 			return this;
 		}
 
+		/**
+		 * @param executor the Consumer task executor.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec executor(Executor executor) {
 			Assert.notNull(executor);
 			this.executor = executor;
 			return this;
 		}
 
+		/**
+		 * @param maxMessages the number of messages to consume for one stream during one polling task.
+		 * @return the spec.
+		 */
 		public ConsumerMetadataSpec maxMessages(int maxMessages) {
 			this.maxMessages = maxMessages;
 			return this;

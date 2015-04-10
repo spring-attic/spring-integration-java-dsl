@@ -27,19 +27,36 @@ import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.util.Assert;
 
 /**
+ * Factory class for Kafka components.
+ *
  * @author Artem Bilan
  * @since 1.1
  */
 public abstract class Kafka {
 
+	/**
+	 * Create an initial {@link KafkaHighLevelConsumerMessageSourceSpec}.
+	 * @param zookeeperConnect the zookeeperConnect.
+	 * @return the KafkaHighLevelConsumerMessageSourceSpec.
+	 */
 	public static KafkaHighLevelConsumerMessageSourceSpec inboundChannelAdapter(ZookeeperConnect zookeeperConnect) {
 		return new KafkaHighLevelConsumerMessageSourceSpec(zookeeperConnect);
 	}
 
+	/**
+	 * Create an initial {@link KafkaProducerMessageHandlerSpec}.
+	 * @return the KafkaProducerMessageHandlerSpec.
+	 */
 	public static KafkaProducerMessageHandlerSpec outboundChannelAdapter() {
 		return outboundChannelAdapter((Properties) null);
 	}
 
+	/**
+	 * Create an initial {@link KafkaProducerMessageHandlerSpec} with Kafka Producer properties.
+	 * @param producerProperties the {@link PropertiesBuilder} Java 8 Lambda.
+	 * @return the KafkaProducerMessageHandlerSpec.
+	 * @see <a href="https://kafka.apache.org/documentation.html#producerconfigs">Kafka Producer Configs</a>
+	 */
 	public static KafkaProducerMessageHandlerSpec outboundChannelAdapter(
 			Consumer<PropertiesBuilder> producerProperties) {
 		Assert.notNull(producerProperties);
@@ -48,22 +65,45 @@ public abstract class Kafka {
 		return outboundChannelAdapter(properties.get());
 	}
 
+	/**
+	 * Create an initial {@link KafkaProducerMessageHandlerSpec} with Kafka Producer properties.
+	 * @param producerProperties the producerProperties.
+	 * @return the KafkaProducerMessageHandlerSpec.
+	 * @see <a href="https://kafka.apache.org/documentation.html#producerconfigs">Kafka Producer Configs</a>
+	 */
 	public static KafkaProducerMessageHandlerSpec outboundChannelAdapter(Properties producerProperties) {
 		return new KafkaProducerMessageHandlerSpec(producerProperties);
 	}
 
+	/**
+	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}.
+	 * @param messageListenerContainer the {@link KafkaMessageListenerContainer}.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.
+	 */
 	@SuppressWarnings("rawtypes")
 	public static KafkaMessageDrivenChannelAdapterSpec messageDriverChannelAdapter(
 			KafkaMessageListenerContainer messageListenerContainer) {
 		return new KafkaMessageDrivenChannelAdapterSpec(messageListenerContainer);
 	}
 
+	/**
+	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
+	 * @param connectionFactory the {@link ConnectionFactory}.
+	 * @param partitions the {@link Partition} vararg.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
+	 */
 	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
 	messageDriverChannelAdapter(ConnectionFactory connectionFactory, Partition... partitions) {
 		return messageDriverChannelAdapter(
 				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(connectionFactory, partitions));
 	}
 
+	/**
+	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
+	 * @param connectionFactory the {@link ConnectionFactory}.
+	 * @param topics the Kafka topic name vararg.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
+	 */
 	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
 	messageDriverChannelAdapter(ConnectionFactory connectionFactory, String... topics) {
 		return messageDriverChannelAdapter(

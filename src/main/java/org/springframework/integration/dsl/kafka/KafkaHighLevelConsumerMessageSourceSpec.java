@@ -161,7 +161,7 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 		 * @param valueDecoder the value decoder.
 		 * @return the spec.
 		 */
-		public ConsumerMetadataSpec valueDecoder(Decoder valueDecoder) {
+		public <T> ConsumerMetadataSpec valueDecoder(Decoder<T> valueDecoder) {
 			this.consumerMetadata.setValueDecoder(valueDecoder);
 			return this;
 		}
@@ -172,7 +172,7 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 		 * @param keyDecoder the key decoder.
 		 * @return the spec.
 		 */
-		public ConsumerMetadataSpec keyDecoder(Decoder keyDecoder) {
+		public <T> ConsumerMetadataSpec keyDecoder(Decoder<T> keyDecoder) {
 			this.consumerMetadata.setKeyDecoder(keyDecoder);
 			return this;
 		}

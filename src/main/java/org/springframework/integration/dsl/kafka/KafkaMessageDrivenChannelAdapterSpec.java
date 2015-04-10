@@ -52,7 +52,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	 * @param keyDecoder the key decoder.
 	 * @return the spec.
 	 */
-	public S keyDecoder(Decoder<?> keyDecoder) {
+	public <T> S keyDecoder(Decoder<T> keyDecoder) {
 		this.target.setKeyDecoder(keyDecoder);
 		return _this();
 	}
@@ -63,7 +63,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	 * @param payloadDecoder the value decoder.
 	 * @return the spec.
 	 */
-	public S payloadDecoder(Decoder<?> payloadDecoder) {
+	public <T> S payloadDecoder(Decoder<T> payloadDecoder) {
 		this.target.setPayloadDecoder(payloadDecoder);
 		return _this();
 	}

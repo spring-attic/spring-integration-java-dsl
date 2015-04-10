@@ -67,7 +67,6 @@ import com.gs.collections.impl.list.mutable.FastList;
 
 import kafka.admin.AdminUtils;
 import kafka.api.OffsetRequest;
-import kafka.serializer.StringEncoder;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.IntEncoder;
@@ -257,7 +256,7 @@ public class KafkaTests {
 			metadata.async(true)
 					.batchNumMessages(10)
 					.valueClassType(String.class)
-					.valueEncoder(new StringEncoder(null))
+					.<String>valueEncoder(String::getBytes)
 					.keyEncoder(new IntEncoder(null));
 		}
 

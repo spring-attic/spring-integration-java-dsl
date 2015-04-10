@@ -171,7 +171,7 @@ public class KafkaProducerMessageHandlerSpec
 		 * @param valueEncoder the value encoder.
 		 * @return the spec.
 		 */
-		public ProducerMetadataSpec valueEncoder(Encoder valueEncoder) {
+		public <T> ProducerMetadataSpec valueEncoder(Encoder<T> valueEncoder) {
 			this.producerMetadata.setValueEncoder(valueEncoder);
 			return this;
 		}
@@ -182,7 +182,7 @@ public class KafkaProducerMessageHandlerSpec
 		 * @param keyEncoder the key encoder.
 		 * @return the spec.
 		 */
-		public ProducerMetadataSpec keyEncoder(Encoder keyEncoder) {
+		public <T> ProducerMetadataSpec keyEncoder(Encoder<T> keyEncoder) {
 			this.producerMetadata.setKeyEncoder(keyEncoder);
 			return this;
 		}

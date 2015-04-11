@@ -186,6 +186,7 @@ public class KafkaTests {
 		}
 
 		@Bean
+		@DependsOn("topicManager")
 		public ConnectionFactory connectionFactory(EmbeddedZookeeper zookeeper) {
 			return new DefaultConnectionFactory(new ZookeeperConfiguration(zookeeper.connectString()));
 		}

@@ -121,6 +121,16 @@ public class KafkaProducerMessageHandlerSpec
 		return _this();
 	}
 
+	/**
+	 * Add Kafka Producer to this {@link KafkaProducerMessageHandler}
+	 * for the provided {@code topic} and {@code brokerList}.
+	 * @param topic the Kafka topic to send messages.
+	 * @param brokerList the Kafka brokers ({@code metadata.broker.list})
+	 * in the format {@code host1:port1,host2:port2}.
+	 * @param producerMetadataSpecConsumer the Producer metadata Java 8 Lambda.
+	 * @return the spec.
+	 * @see KafkaProducerMessageHandlerSpec.ProducerMetadataSpec
+	 */
 	public KafkaProducerMessageHandlerSpec addProducer(String topic, String brokerList,
 			Consumer<ProducerMetadataSpec> producerMetadataSpecConsumer) {
 		Assert.hasText(topic);
@@ -169,6 +179,7 @@ public class KafkaProducerMessageHandlerSpec
 		 * Specify an {@link Encoder} for Kafka message body.
 		 * Can be used as Java 8 Lambda.
 		 * @param valueEncoder the value encoder.
+		 * @param <T> the expected value type.
 		 * @return the spec.
 		 */
 		public <T> ProducerMetadataSpec valueEncoder(Encoder<T> valueEncoder) {
@@ -180,6 +191,7 @@ public class KafkaProducerMessageHandlerSpec
 		 * Specify an {@link Encoder} for Kafka message key.
 		 * Can be used as Java 8 Lambda.
 		 * @param keyEncoder the key encoder.
+		 * @param <T> the expected key type.
 		 * @return the spec.
 		 */
 		public <T> ProducerMetadataSpec keyEncoder(Encoder<T> keyEncoder) {

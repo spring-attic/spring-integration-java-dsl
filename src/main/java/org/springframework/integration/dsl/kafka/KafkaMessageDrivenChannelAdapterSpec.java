@@ -50,6 +50,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	 * Specify a {@link Decoder} for Kafka message key.
 	 * Can be used as Java 8 Lambda.
 	 * @param keyDecoder the key decoder.
+	 * @param <T> the expected key type.
 	 * @return the spec.
 	 */
 	public <T> S keyDecoder(Decoder<T> keyDecoder) {
@@ -61,6 +62,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	 * Specify a {@link Decoder} for Kafka message body.
 	 * Can be used as Java 8 Lambda.
 	 * @param payloadDecoder the value decoder.
+	 * @param <T> the expected payload type.
 	 * @return the spec.
 	 */
 	public <T> S payloadDecoder(Decoder<T> payloadDecoder) {

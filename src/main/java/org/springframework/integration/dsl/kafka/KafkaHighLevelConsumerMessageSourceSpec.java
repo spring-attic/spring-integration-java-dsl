@@ -159,6 +159,7 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 		 * Specify a {@link Decoder} for Kafka message body.
 		 * Can be used as Java 8 Lambda.
 		 * @param valueDecoder the value decoder.
+		 * @param <T> the expected value type.
 		 * @return the spec.
 		 */
 		public <T> ConsumerMetadataSpec valueDecoder(Decoder<T> valueDecoder) {
@@ -170,6 +171,7 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 		 * Specify a {@link Decoder} for Kafka message key.
 		 * Can be used as Java 8 Lambda.
 		 * @param keyDecoder the key decoder.
+		 * @param <T> the expected key type.
 		 * @return the spec.
 		 */
 		public <T> ConsumerMetadataSpec keyDecoder(Decoder<T> keyDecoder) {

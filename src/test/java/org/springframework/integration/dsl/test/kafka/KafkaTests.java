@@ -33,9 +33,9 @@ import org.I0Itec.zkclient.ZkClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -162,56 +162,30 @@ public class KafkaTests {
 			return kafkaServer.config().hostName() + ":" + kafkaServer.config().port();
 		}
 
-		@Bean
-		public SmartLifecycle topicManager(EmbeddedZookeeper zookeeper, ZkClient zookeeperClient,
+		@Bean(destroyMethod = "destroy")
+		public InitializingBean topicManager(EmbeddedZookeeper zookeeper, ZkClient zookeeperClient,
 				List<KafkaServer> kafkaServers) {
-			return new SmartLifecycle() {
-
-				private volatile boolean running;
+			return new InitializingBean() {
 
 				@Override
-				public boolean isAutoStartup() {
-					return true;
-				}
-
-				@Override
-				public void start() {
+				public void afterPropertiesSet() throws Exception {
 					TopicUtils.ensureTopicCreated(zookeeper.connectString(), TEST_TOPIC, 1, 1);
 					TopicUtils.ensureTopicCreated(zookeeper.connectString(), TEST_TOPIC2, 1, 1);
-					this.running = true;
 				}
 
-				@Override
-				public void stop(Runnable callback) {
-					stop();
-					callback.run();
-				}
-
-				@Override
-				public void stop() {
+				public void destroy() {
 					AdminUtils.deleteTopic(zookeeperClient, TEST_TOPIC);
 					TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), TEST_TOPIC, 0, 5000L);
 					AdminUtils.deleteTopic(zookeeperClient, TEST_TOPIC2);
 					TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), TEST_TOPIC2, 0, 5000L);
 					kafkaServers.forEach(e -> Utils.rm(e.config().logDirs()));
-					this.running = false;
-				}
 
-				@Override
-				public boolean isRunning() {
-					return this.running;
-				}
-
-				@Override
-				public int getPhase() {
-					return 0;
 				}
 
 			};
 		}
 
 		@Bean
-		@DependsOn("topicManager")
 		public ConnectionFactory connectionFactory(EmbeddedZookeeper zookeeper) {
 			return new DefaultConnectionFactory(new ZookeeperConfiguration(zookeeper.connectString()));
 		}

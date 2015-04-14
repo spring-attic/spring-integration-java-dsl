@@ -24,6 +24,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static scala.collection.JavaConversions.asScalaBuffer;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -33,6 +34,7 @@ import org.I0Itec.zkclient.ZkClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -137,9 +139,9 @@ public class KafkaTests {
 
 	@Configuration
 	@EnableIntegration
-	public static class ContextConfiguration {
+	public static class ContextConfiguration implements DisposableBean {
 
-		@Bean(destroyMethod = "shutdown")
+		@Bean
 		public EmbeddedZookeeper zookeeper() {
 			return new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
 		}
@@ -149,7 +151,7 @@ public class KafkaTests {
 			return new ZkClient(zookeeper.connectString(), 6000, 6000, ZKStringSerializer$.MODULE$);
 		}
 
-		@Bean(destroyMethod = "shutdown")
+		@Bean
 		@DependsOn("zookeeper")
 		public KafkaServer kafkaServer() {
 			Properties brokerConfigProperties = TestUtils.createBrokerConfig(1, TestUtils.choosePort());
@@ -167,19 +169,18 @@ public class KafkaTests {
 				List<KafkaServer> kafkaServers) {
 			return new InitializingBean() {
 
+				private final List<String> topics = Arrays.asList(TEST_TOPIC, TEST_TOPIC2);
+
 				@Override
 				public void afterPropertiesSet() throws Exception {
-					TopicUtils.ensureTopicCreated(zookeeper.connectString(), TEST_TOPIC, 1, 1);
-					TopicUtils.ensureTopicCreated(zookeeper.connectString(), TEST_TOPIC2, 1, 1);
+					this.topics.forEach(t -> TopicUtils.ensureTopicCreated(zookeeper.connectString(), t, 1, 1));
 				}
 
 				public void destroy() {
-					AdminUtils.deleteTopic(zookeeperClient, TEST_TOPIC);
-					TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), TEST_TOPIC, 0, 5000L);
-					AdminUtils.deleteTopic(zookeeperClient, TEST_TOPIC2);
-					TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), TEST_TOPIC2, 0, 5000L);
-					kafkaServers.forEach(e -> Utils.rm(e.config().logDirs()));
-
+					this.topics.forEach(t -> {
+						AdminUtils.deleteTopic(zookeeperClient, t);
+						TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), t, 0, 5000L);
+					});
 				}
 
 			};
@@ -259,6 +260,28 @@ public class KafkaTests {
 									.collect(Collectors.toList()))
 					.channel(c -> c.queue("pollKafkaResults"))
 					.get();
+		}
+
+		@Override
+		public void destroy() throws Exception {
+			try {
+				kafkaServer().shutdown();
+			}
+			catch (Exception e) {
+				// do nothing
+			}
+			try {
+				Utils.rm(kafkaServer().config().logDirs());
+			}
+			catch (Exception e) {
+				// do nothing
+			}
+			try {
+				zookeeper().shutdown();
+			}
+			catch (Exception e) {
+				// do nothing
+			}
 		}
 
 	}

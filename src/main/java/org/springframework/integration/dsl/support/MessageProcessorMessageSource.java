@@ -18,7 +18,6 @@ package org.springframework.integration.dsl.support;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 
 /**
  * The {@link org.springframework.integration.core.MessageSource} strategy implementation

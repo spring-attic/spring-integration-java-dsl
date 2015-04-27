@@ -31,6 +31,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -53,7 +54,9 @@ import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.listener.Acknowledgment;
 import org.springframework.integration.kafka.listener.MetadataStoreOffsetManager;
 import org.springframework.integration.kafka.support.KafkaHeaders;
+import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
+import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.integration.kafka.util.TopicUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -69,6 +72,7 @@ import com.gs.collections.impl.list.mutable.FastList;
 
 import kafka.admin.AdminUtils;
 import kafka.api.OffsetRequest;
+import kafka.serializer.Encoder;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.IntEncoder;
@@ -154,8 +158,7 @@ public class KafkaTests {
 		@Bean
 		@DependsOn("zookeeper")
 		public KafkaServer kafkaServer() {
-			Properties brokerConfigProperties = TestUtils.createBrokerConfig(1, TestUtils.choosePort());
-			brokerConfigProperties.put("controlled.shutdown.enable", "false");
+			Properties brokerConfigProperties = TestUtils.createBrokerConfig(1, TestUtils.choosePort(), false);
 			return TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
 		}
 
@@ -222,18 +225,15 @@ public class KafkaTests {
 					.handle(kafkaMessageHandler(serverAddress));
 		}
 
+		@SuppressWarnings("unchecked")
 		private KafkaProducerMessageHandlerSpec kafkaMessageHandler(String serverAddress) {
+			Encoder<?> intEncoder = new IntEncoder(null);
 			return Kafka.outboundChannelAdapter(props -> props.put("queue.buffering.max.ms", "15000"))
 					.messageKey(m -> m.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
-					.addProducer(TEST_TOPIC, serverAddress, this::producer);
-		}
-
-		private void producer(KafkaProducerMessageHandlerSpec.ProducerMetadataSpec metadata) {
-			metadata.async(true)
-					.batchNumMessages(10)
-					.valueClassType(String.class)
-					.<String>valueEncoder(String::getBytes)
-					.keyEncoder(new IntEncoder(null));
+					.addProducer(new ProducerMetadata<>(TEST_TOPIC, Integer.class, String.class,
+							new EncoderAdaptingSerializer<>((Encoder<Integer>) intEncoder), new
+									StringSerializer()),
+							serverAddress);
 		}
 
 		@Bean

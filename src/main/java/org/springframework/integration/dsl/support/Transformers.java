@@ -325,7 +325,7 @@ public abstract class Transformers {
 		return transformer;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SafeVarargs
 	public static XsltPayloadTransformer xslt(Resource xsltTemplate,
 			Tuple2<String, Expression>... xslParameterMappings) {
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(xsltTemplate);

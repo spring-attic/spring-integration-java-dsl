@@ -57,13 +57,16 @@ ext {
 	jmsApiVersion = '1.1-rev-1'
 	jrubyVersion = '1.7.19'
 	jythonVersion = '2.5.3'
-	kafkaVersion = '0.8.1.1'
+	kafkaVersion = '0.8.2.1'
 	mailVersion = '1.5.2'
+	reactiveStreamsVersion = '1.0.0'
+	reactorVersion = '2.0.4.RELEASE'
 	scalaVersion = '2.10'
-	slf4jVersion = '1.7.11'
-	springIntegrationVersion = '4.1.3.RELEASE'
-	springIntegrationKafkaVersion = '1.1.1.RELEASE'
-	springBootVersion = '1.2.3.RELEASE'
+	slf4jVersion = '1.7.12'
+	springIntegrationVersion = '4.2.0.M2'
+	springIntegrationKafkaVersion = '1.2.0.RELEASE'
+	springBootVersion = '1.3.0.M1'
+	testNgVersion = '6.8.21'
 
 	linkHomepage = 'https://github.com/spring-projects/spring-integration-java-dsl'
 	linkCi = 'https://build.spring.io/browse/INTEXT-SIJD'
@@ -82,7 +85,7 @@ configurations {
 }
 
 dependencies {
-	compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+	compile("org.springframework.integration:spring-integration-core:$springIntegrationVersion")
 
 	['spring-integration-amqp'
 	 , 'spring-integration-event'
@@ -117,9 +120,12 @@ dependencies {
 		exclude group: 'com.yammer.metrics', module: 'metrics-annotation'
 		exclude group: 'org.apache.velocity', module: 'velocity'
 		exclude group: 'log4j', module: 'log4j'
+		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 	}
 	compile("javax.jms:jms-api:$jmsApiVersion", provided)
 	compile("javax.mail:javax.mail-api:$mailVersion", provided)
+
+	compile("org.reactivestreams:reactive-streams:$reactiveStreamsVersion", optional)
 
 	testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 	testCompile("org.springframework.boot:spring-boot-starter:$springBootVersion") {
@@ -129,9 +135,15 @@ dependencies {
 	testCompile "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embedMongoVersion"
 	testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
-	testCompile ("org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test") {
+	testCompile("org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test") {
 		exclude group: 'log4j', module: 'log4j'
+		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 	}
+	testCompile("org.reactivestreams:reactive-streams-tck:$reactiveStreamsVersion") {
+		exclude group: 'org.reactivestreams', module: 'reactive-streams-examples'
+	}
+	testCompile "io.projectreactor:reactor-stream:$reactorVersion"
+	testCompile "org.testng:testng:$testNgVersion"
 
 	testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	testRuntime "org.apache.activemq:activemq-broker:$activeMqVersion"

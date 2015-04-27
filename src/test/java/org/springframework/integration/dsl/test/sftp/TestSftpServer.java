@@ -118,7 +118,6 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 		};
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.sftpFolder.create();

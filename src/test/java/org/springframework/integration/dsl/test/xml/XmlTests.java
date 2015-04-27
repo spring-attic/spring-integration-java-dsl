@@ -16,21 +16,33 @@
 
 package org.springframework.integration.dsl.test.xml;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.support.FunctionExpression;
+import org.springframework.integration.dsl.support.Transformers;
+import org.springframework.integration.dsl.support.tuple.Tuples;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xml.router.XPathRouter;
 import org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -48,6 +60,10 @@ public class XmlTests {
 
 	@Autowired
 	private MessageChannel inputChannel;
+
+	@Autowired
+	@Qualifier("xsltFlow.input")
+	private MessageChannel xsltFlowInput;
 
 	@Autowired
 	private PollableChannel wrongMessagesChannel;
@@ -73,9 +89,28 @@ public class XmlTests {
 		assertNotNull(this.receivedChannel.receive(10000));
 	}
 
+	@Test
+	public void testXsltFlow() {
+		String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+		this.xsltFlowInput.send(MessageBuilder.withPayload(doc)
+				.setHeader("testParam", "testParamValue")
+				.setHeader("testParam2", "FOO")
+				.build());
+		Message<?> resultMessage = this.receivedChannel.receive(10000);
+		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
+		String payload = (String) resultMessage.getPayload();
+		assertThat(payload, containsString("testParamValue"));
+		assertThat(payload, containsString("FOO"));
+		assertThat(payload, containsString("hello"));
+	}
+
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
+
+		@Value("org/springframework/integration/dsl/test/xml/transformer.xslt")
+		private Resource xslt;
 
 		@Bean
 		public PollableChannel wrongMessagesChannel() {
@@ -110,6 +145,18 @@ public class XmlTests {
 			router.setChannelMapping("Tags", "splittingChannel");
 			router.setChannelMapping("Tag", "receivedChannel");
 			return router;
+		}
+
+		@Bean
+		public IntegrationFlow xsltFlow() {
+			return f -> f
+					.transform(Transformers.xslt(this.xslt,
+							Tuples.of("testParam", new FunctionExpression<Message<?>>(m -> m.getHeaders().get("testParam"))),
+							Tuples.of("testParam2", new FunctionExpression<Message<?>>(m -> m.getHeaders().get("testParam2"))),
+							Tuples.of("unresolved", new FunctionExpression<Message<?>>(m -> m.getHeaders().get("foo"))),
+							Tuples.of("testParam3", new LiteralExpression("hello"))
+					))
+					.channel(receivedChannel());
 		}
 
 	}

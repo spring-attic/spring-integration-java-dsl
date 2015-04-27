@@ -21,6 +21,9 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import org.reactivestreams.Publisher;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -33,6 +36,7 @@ import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.GenericSelector;
@@ -83,6 +87,7 @@ import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -2442,6 +2447,36 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return gateway(requestChannel, endpointConfigurer);
 	}
 
+	/**
+	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
+	 * @param <T> the {@code payload} type
+	 * @return the Reactive Streams {@link Publisher}
+	 */
+	public <T> Publisher<Message<T>> toReactivePublisher() {
+		return toReactivePublisher(Executors.newSingleThreadExecutor());
+	}
+
+	/**
+	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
+	 * @param executor the managed {@link Executor} to be used for the background task to
+	 *                 poll messages from the {@link PollableChannel}.
+	 *                 Defaults to {@link Executors#newSingleThreadExecutor()}.
+	 * @param <T> the {@code payload} type
+	 * @return the Reactive Streams {@link Publisher}
+	 */
+	public <T> Publisher<Message<T>> toReactivePublisher(Executor executor) {
+		Assert.notNull(executor);
+		MessageChannel channelForPublisher = this.currentMessageChannel;
+		if (channelForPublisher == null) {
+			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
+			publishSubscribeChannel.setMinSubscribers(1);
+			channelForPublisher = publishSubscribeChannel;
+			channel(channelForPublisher);
+		}
+		get();
+		return new PublisherIntegrationFlow<T>(this.integrationComponents, channelForPublisher, executor);
+	}
+
 	private <S extends ConsumerEndpointSpec<S, ?>> B register(S endpointSpec, Consumer<S> endpointConfigurer) {
 		if (endpointConfigurer != null) {
 			endpointConfigurer.accept(endpointSpec);
@@ -2544,27 +2579,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return (B) this;
 	}
 
-	private static boolean isLambda(Object o) {
-		Class<?> aClass = o.getClass();
-		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
-	}
-
-	private static Object extractProxyTarget(Object target) {
-		if (!(target instanceof Advised)) {
-			return target;
-		}
-		Advised advised = (Advised) target;
-		if (advised.getTargetSource() == null) {
-			return null;
-		}
-		try {
-			return extractProxyTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
-			throw new BeanCreationException("Could not extract target", e);
-		}
-	}
-
 	protected StandardIntegrationFlow get() {
 		if (this.currentMessageChannel instanceof FixedSubscriberChannelPrototype) {
 			throw new BeanCreationException("The 'currentMessageChannel' (" + this.currentMessageChannel +
@@ -2586,6 +2600,27 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			}
 		}
 		return new StandardIntegrationFlow(this.integrationComponents);
+	}
+
+	private static boolean isLambda(Object o) {
+		Class<?> aClass = o.getClass();
+		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
+	}
+
+	private static Object extractProxyTarget(Object target) {
+		if (!(target instanceof Advised)) {
+			return target;
+		}
+		Advised advised = (Advised) target;
+		if (advised.getTargetSource() == null) {
+			return null;
+		}
+		try {
+			return extractProxyTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			throw new BeanCreationException("Could not extract target", e);
+		}
 	}
 
 }

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.integration.dsl.core.ComponentsRegistration;
+import org.springframework.integration.dsl.core.IntegrationComponentSpec;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Consumer;
 import org.springframework.integration.dsl.support.Function;
@@ -35,7 +36,9 @@ import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
-import kafka.javaapi.producer.Producer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.Serializer;
+
 import kafka.producer.Partitioner;
 import kafka.serializer.Encoder;
 
@@ -54,8 +57,8 @@ public class KafkaProducerMessageHandlerSpec
 
 	private final Properties producerProperties;
 
-	private final Map<String, ProducerConfiguration> producerConfigurations =
-			new HashMap<String, ProducerConfiguration>();
+	private final Map<String, ProducerConfiguration<?, ?>> producerConfigurations =
+			new HashMap<String, ProducerConfiguration<?, ?>>();
 
 	KafkaProducerMessageHandlerSpec(Properties producerProperties) {
 		this.producerProperties = producerProperties;
@@ -124,27 +127,20 @@ public class KafkaProducerMessageHandlerSpec
 	/**
 	 * Add Kafka Producer to this {@link KafkaProducerMessageHandler}
 	 * for the provided {@code topic} and {@code brokerList}.
-	 * @param topic the Kafka topic to send messages.
+	 * @param producerMetadata the {@link ProducerMetadata} - options for Kafka {@link Producer}.
 	 * @param brokerList the Kafka brokers ({@code metadata.broker.list})
 	 * in the format {@code host1:port1,host2:port2}.
-	 * @param producerMetadataSpecConsumer the Producer metadata Java 8 Lambda.
 	 * @return the spec.
-	 * @see KafkaProducerMessageHandlerSpec.ProducerMetadataSpec
 	 */
-	public KafkaProducerMessageHandlerSpec addProducer(String topic, String brokerList,
-			Consumer<ProducerMetadataSpec> producerMetadataSpecConsumer) {
-		Assert.hasText(topic);
+	public KafkaProducerMessageHandlerSpec addProducer(ProducerMetadata producerMetadata, String brokerList) {
+		Assert.notNull(producerMetadata);
 		Assert.hasText(brokerList);
-		Assert.notNull(producerMetadataSpecConsumer);
-		ProducerMetadataSpec spec = new ProducerMetadataSpec(new ProducerMetadata(topic));
-		producerMetadataSpecConsumer.accept(spec);
 		try {
-			ProducerMetadata producerMetadata = spec.producerMetadata;
-			producerMetadata.afterPropertiesSet();
 			ProducerFactoryBean producerFactoryBean =
 					new ProducerFactoryBean(producerMetadata, brokerList, this.producerProperties);
 			Producer producer = producerFactoryBean.getObject();
-			this.producerConfigurations.put(topic, new ProducerConfiguration(producerMetadata, producer));
+			this.producerConfigurations.put(producerMetadata.getTopic(),
+					new ProducerConfiguration(producerMetadata, producer));
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -161,112 +157,6 @@ public class KafkaProducerMessageHandlerSpec
 	@Override
 	protected KafkaProducerMessageHandler doGet() {
 		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * A helper class in the Builder pattern style to delegate options to the
-	 * {@link ProducerMetadata}.
-	 */
-	public static class ProducerMetadataSpec {
-
-		private final ProducerMetadata producerMetadata;
-
-		ProducerMetadataSpec(ProducerMetadata producerMetadata) {
-			this.producerMetadata = producerMetadata;
-		}
-
-		/**
-		 * Specify an {@link Encoder} for Kafka message body.
-		 * Can be used as Java 8 Lambda.
-		 * @param valueEncoder the value encoder.
-		 * @param <T> the expected value type.
-		 * @return the spec.
-		 */
-		public <T> ProducerMetadataSpec valueEncoder(Encoder<T> valueEncoder) {
-			this.producerMetadata.setValueEncoder(valueEncoder);
-			return this;
-		}
-
-		/**
-		 * Specify an {@link Encoder} for Kafka message key.
-		 * Can be used as Java 8 Lambda.
-		 * @param keyEncoder the key encoder.
-		 * @param <T> the expected key type.
-		 * @return the spec.
-		 */
-		public <T> ProducerMetadataSpec keyEncoder(Encoder<T> keyEncoder) {
-			this.producerMetadata.setKeyEncoder(keyEncoder);
-			return this;
-		}
-
-		/**
-		 * Specify a {@link Class} for the message key.
-		 * @param keyClassType the type for key to encode.
-		 * @return the spec.
-		 */
-		public ProducerMetadataSpec keyClassType(Class<?> keyClassType) {
-			this.producerMetadata.setKeyClassType(keyClassType);
-			return this;
-		}
-
-		/**
-		 * Specify a {@link Class} for the message body.
-		 * @param valueClassType the type for message body to encode.
-		 * @return the spec.
-		 */
-		public ProducerMetadataSpec valueClassType(Class<?> valueClassType) {
-			this.producerMetadata.setValueClassType(valueClassType);
-			return this;
-		}
-
-		/**
-		 * Specify a compression codec constant.
-		 * Valid values are:
-		 * <ul>
-		 * 	<li>none
-		 * 	<li>gzip
-		 * 	<li>snappy
-		 * </ul>
-		 * @param compressionCodec the compression codec constant.
-		 * @return the spec.
-		 */
-		public ProducerMetadataSpec compressionCodec(String compressionCodec) {
-			this.producerMetadata.setCompressionCodec(compressionCodec);
-			return this;
-		}
-
-		/**
-		 * Specify a {@link Partitioner} reference.
-		 * Can be used as Java 8 Lambda.
-		 * @param partitioner the partitioner.
-		 * @return spec.
-		 * @see Partitioner
-		 */
-		public ProducerMetadataSpec partitioner(Partitioner partitioner) {
-			this.producerMetadata.setPartitioner(partitioner);
-			return this;
-		}
-
-		/**
-		 * Specify a {@code sync/async} ({@code producer.type}) Producer behaviour.
-		 * @param async the {@code boolean} flag to indicate the Producer behaviour. Defaults to {@code false}.
-		 * @return the spec.
-		 */
-		public ProducerMetadataSpec async(boolean async) {
-			this.producerMetadata.setAsync(async);
-			return this;
-		}
-
-		/**
-		 * Specify a number of message property ({@code batch.num.messages}) for {@code async} Producer behaviour.
-		 * @param batchNumMessages the number of message to batch.
-		 * @return the spec.
-		 */
-		public ProducerMetadataSpec batchNumMessages(int batchNumMessages) {
-			this.producerMetadata.setBatchNumMessages("" + batchNumMessages);
-			return this;
-		}
-
 	}
 
 }

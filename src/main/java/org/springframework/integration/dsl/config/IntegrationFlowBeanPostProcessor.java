@@ -28,12 +28,14 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
@@ -205,8 +207,14 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		return processStandardIntegrationFlow(flowBuilder.get(), beanName);
 	}
 
+	@SuppressWarnings("deprecation")
 	private void registerComponent(Object component, String beanName) {
 		this.beanFactory.registerSingleton(beanName, component);
+		if (component instanceof org.springframework.integration.expression.IntegrationEvaluationContextAware) {
+			StandardEvaluationContext evaluationContext = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
+			((org.springframework.integration.expression.IntegrationEvaluationContextAware) component)
+					.setIntegrationEvaluationContext(evaluationContext);
+		}
 		this.beanFactory.initializeBean(component, beanName);
 	}
 

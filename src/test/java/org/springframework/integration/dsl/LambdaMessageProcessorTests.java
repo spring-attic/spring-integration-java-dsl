@@ -35,6 +35,7 @@ import org.springframework.messaging.support.GenericMessage;
 public class LambdaMessageProcessorTests {
 
 	@Test
+	@SuppressWarnings("divzero")
 	public void testException() {
 		try {
 			handle ((m, h) -> 1 / 0);

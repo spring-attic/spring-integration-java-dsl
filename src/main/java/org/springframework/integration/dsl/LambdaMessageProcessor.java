@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -124,6 +125,9 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 
 		try {
 			return this.method.invoke(this.target, args);
+		}
+		catch(InvocationTargetException e) {
+			throw new MessageHandlingException(message, e.getCause());
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(message, e);

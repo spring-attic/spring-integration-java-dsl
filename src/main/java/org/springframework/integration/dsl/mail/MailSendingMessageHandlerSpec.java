@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.mail;
 
+import java.lang.reflect.Constructor;
 import java.util.Properties;
 
 import javax.activation.FileTypeMap;
@@ -23,7 +25,9 @@ import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Consumer;
 import org.springframework.integration.dsl.support.PropertiesBuilder;
 import org.springframework.integration.mail.MailSendingMessageHandler;
+import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author Gary Russell
@@ -32,11 +36,24 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 public class MailSendingMessageHandlerSpec
 		extends MessageHandlerSpec<MailSendingMessageHandlerSpec, MailSendingMessageHandler> {
 
+	private final static Constructor<?> MAIL_SENDER_CONSTRUCTOR =
+			ClassUtils.getConstructorIfAvailable(MailSendingMessageHandler.class, MailSender.class);
+
 	private final JavaMailSenderImpl sender = new JavaMailSenderImpl();
 
-	MailSendingMessageHandlerSpec (String host) {
+	MailSendingMessageHandlerSpec(String host) {
 		this.sender.setHost(host);
-		this.target = new MailSendingMessageHandler(this.sender);
+		if (MAIL_SENDER_CONSTRUCTOR == null) {
+			this.target = new MailSendingMessageHandler(this.sender);
+		}
+		else {
+			try {
+				this.target = (MailSendingMessageHandler) MAIL_SENDER_CONSTRUCTOR.newInstance(this.sender);
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
 	}
 
 	public MailSendingMessageHandlerSpec javaMailProperties(Properties javaMailProperties) {

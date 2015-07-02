@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,17 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		return mputFilter(new SimplePatternFileListFilter(pattern));
 	}
 
+	/**
+	 * @param regex the RegExp to filter files
+	 * @return the current Spec
+	 * @deprecated in favor of {@link #regexMputFilter(String)}
+	 */
+	@Deprecated
 	public S regexMpuFilter(String regex) {
+		return regexMputFilter(regex);
+	}
+
+	public S regexMputFilter(String regex) {
 		return mputFilter(new RegexPatternFileListFilter(regex));
 	}
 

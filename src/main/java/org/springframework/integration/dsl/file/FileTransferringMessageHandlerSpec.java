@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,10 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 		extends MessageHandlerSpec<S, FileTransferringMessageHandler<F>>
 		implements ComponentsRegistration {
 
+	private final static Constructor<?> FILE_EXISTS_MODE_CONSTRUCTOR =
+			ClassUtils.getConstructorIfAvailable(FileTransferringMessageHandler.class, RemoteFileTemplate.class,
+					FileExistsMode.class);
+
 	private FileNameGenerator fileNameGenerator;
 
 	private DefaultFileNameGenerator defaultFileNameGenerator;
@@ -58,10 +62,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	@SuppressWarnings("unchecked")
 	protected FileTransferringMessageHandlerSpec(RemoteFileTemplate<F> remoteFileTemplate,
 			FileExistsMode fileExistsMode) {
-		Constructor<?> fileExistsModeConstructor =
-				ClassUtils.getConstructorIfAvailable(FileTransferringMessageHandler.class, RemoteFileTemplate.class,
-						FileExistsMode.class);
-		if (fileExistsModeConstructor == null) {
+		if (FILE_EXISTS_MODE_CONSTRUCTOR == null) {
 			logger.warn("The 'FileExistsMode' constructor argument for the 'FileTransferringMessageHandler' is " +
 					"available since Spring Integration 4.1. Will be ignored for previous versions.");
 			this.target = new FileTransferringMessageHandler<F>(remoteFileTemplate);
@@ -69,7 +70,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 		else {
 			try {
 				this.target =
-						(FileTransferringMessageHandler<F>) fileExistsModeConstructor.newInstance(remoteFileTemplate,
+						(FileTransferringMessageHandler<F>) FILE_EXISTS_MODE_CONSTRUCTOR.newInstance(remoteFileTemplate,
 								fileExistsMode);
 			}
 			catch (Exception e) {

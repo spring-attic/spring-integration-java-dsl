@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -26,7 +27,7 @@ public class StandardIntegrationFlow implements IntegrationFlow {
 	private final Set<Object> integrationComponents;
 
 	StandardIntegrationFlow(Set<Object> integrationComponents) {
-		this.integrationComponents = integrationComponents;
+		this.integrationComponents = new LinkedHashSet<Object>(integrationComponents);
 	}
 
 	public Set<Object> getIntegrationComponents() {

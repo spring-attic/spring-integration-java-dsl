@@ -23,8 +23,6 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.reactivestreams.Publisher;
-
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanCreationException;
@@ -91,6 +89,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import org.reactivestreams.Publisher;
 
 /**
  * The {@code Builder} pattern implementation for the EIP-method chain.
@@ -2591,7 +2591,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			if (this.currentComponent != null) {
 				if (this.currentComponent instanceof SourcePollingChannelAdapterSpec) {
 					throw new BeanCreationException("The 'SourcePollingChannelAdapter' (" + this.currentComponent
-							+ ") " + "must be configured with at least one 'MessageChanel' or 'MessageHandler'.");
+							+ ") " + "must be configured with at least one 'MessageChannel' or 'MessageHandler'.");
 				}
 			}
 			else if (this.currentMessageChannel != null) {

@@ -252,7 +252,7 @@ public class ScriptsTests {
 			return IntegrationFlows
 					.from((MessageSources ms) ->
 							ms.script("org/springframework/integration/dsl/test/scripts/TestMessageSourceScript.ruby"),
-							e -> e.poller(p -> p.fixedDelay(100).maxMessagesPerPoll(1)))
+							e -> e.poller(p -> p.fixedDelay(100)))
 					.channel(c -> c.queue("messageSourceChannel"))
 					.get();
 		}

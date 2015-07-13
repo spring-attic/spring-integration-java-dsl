@@ -193,7 +193,7 @@ public class FtpTests {
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
 		public PollerMetadata poller() {
-			return Pollers.fixedRate(500).maxMessagesPerPoll(1).get();
+			return Pollers.fixedRate(500).get();
 		}
 
 		@Bean

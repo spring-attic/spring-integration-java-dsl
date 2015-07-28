@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,23 @@ import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.util.ErrorHandler;
 
 /**
  * A {@link JmsDestinationAccessorSpec} for {@link JmsListenerContainerSpec}s.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer>
 		extends JmsDestinationAccessorSpec<JmsListenerContainerSpec<C>, C> {
 
 	JmsListenerContainerSpec(Class<C> aClass) throws Exception {
 		super(aClass.newInstance());
+		if (DefaultMessageListenerContainer.class.isAssignableFrom(aClass)) {
+			target.setSessionTransacted(true);
+		}
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl.jms;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
 
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -24,6 +25,7 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public abstract class Jms {
 
@@ -122,6 +124,34 @@ public abstract class Jms {
 			JmsListenerContainerSpec<C> spec = new JmsListenerContainerSpec<C>(containerClass)
 					.connectionFactory(connectionFactory);
 			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<C>(spec);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public static JmsListenerContainerSpec<DefaultMessageListenerContainer> container(
+			ConnectionFactory connectionFactory, Destination destination) {
+		try {
+			JmsListenerContainerSpec<DefaultMessageListenerContainer> jmsListenerContainerSpec =
+					new JmsListenerContainerSpec<DefaultMessageListenerContainer>(DefaultMessageListenerContainer.class);
+			jmsListenerContainerSpec.connectionFactory(connectionFactory);
+			jmsListenerContainerSpec.destination(destination);
+			return jmsListenerContainerSpec;
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public static JmsListenerContainerSpec<DefaultMessageListenerContainer> container(
+			ConnectionFactory connectionFactory, String destinationName) {
+		try {
+			JmsListenerContainerSpec<DefaultMessageListenerContainer> jmsListenerContainerSpec =
+					new JmsListenerContainerSpec<DefaultMessageListenerContainer>(DefaultMessageListenerContainer.class);
+			jmsListenerContainerSpec.connectionFactory(connectionFactory);
+			jmsListenerContainerSpec.destination(destinationName);
+			return jmsListenerContainerSpec;
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

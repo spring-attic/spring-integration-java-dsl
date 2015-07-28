@@ -69,6 +69,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -136,6 +137,15 @@ public class JmsTests {
 
 		assertNotNull(receive);
 		assertEquals("hello through the jms", receive.getPayload());
+
+		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
+				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
+				.build());
+
+		receive = this.jmsOutboundInboundReplyChannel.receive(5000);
+
+		assertNotNull(receive);
+		assertEquals("foo", receive.getPayload());
 	}
 
 	@Test
@@ -226,6 +236,19 @@ public class JmsTests {
 					.from(Jms.messageDriverChannelAdapter(this.jmsConnectionFactory)
 							.destination("jmsMessageDriver"))
 					.<String, String>transform(String::toLowerCase)
+					.channel(jmsOutboundInboundReplyChannel())
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow jmsMessageDrivenFlowWithContainer() {
+			return IntegrationFlows
+					.from(Jms.messageDriverChannelAdapter(
+								Jms.container(this.jmsConnectionFactory, "containerSpecDestination")
+									.pubSubDomain(false)
+									.get())
+							.id("fromContainerSpec"))
+					.<String, String>transform(String::trim)
 					.channel(this.jmsOutboundInboundReplyChannel())
 					.get();
 		}

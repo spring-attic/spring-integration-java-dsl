@@ -57,6 +57,7 @@ import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -100,6 +101,12 @@ public class JmsTests {
 
 	@Autowired
 	private TestChannelInterceptor testChannelInterceptor;
+
+	@Autowired
+	private ConnectionFactory jmsConnectionFactory;
+
+	@Autowired
+	private PollableChannel jmsPubSubBridgeChannel;
 
 	@Test
 	public void testPollingFlow() {
@@ -161,6 +168,17 @@ public class JmsTests {
 
 		assertNotNull(receive);
 		assertEquals("HELLO THROUGH THE JMS PIPELINE", receive.getPayload());
+	}
+
+	@Test
+	public void testPubSubFlow() {
+		JmsTemplate template = new JmsTemplate(this.jmsConnectionFactory);
+		template.setPubSubDomain(true);
+		template.setDefaultDestinationName("pubsub");
+		template.convertAndSend("foo");
+		Message<?> received = this.jmsPubSubBridgeChannel.receive(5000);
+		assertNotNull(received);
+		assertEquals("foo", received.getPayload());
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
@@ -228,6 +246,20 @@ public class JmsTests {
 					.<String, String>transform(String::toUpperCase)
 					.channel(this.jmsOutboundInboundReplyChannel())
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow pubSubFlow() {
+			return IntegrationFlows.from(Jms.publishSubscribeChannel(this.jmsConnectionFactory)
+											.destination("pubsub"))
+									.bridge(e -> e.id("bridgePubSub"))
+									.channel(jmsPubSubBridgeChannel())
+									.get();
+		}
+
+		@Bean
+		public PollableChannel jmsPubSubBridgeChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean

@@ -57,6 +57,7 @@ import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -69,6 +70,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -99,6 +101,12 @@ public class JmsTests {
 
 	@Autowired
 	private TestChannelInterceptor testChannelInterceptor;
+
+	@Autowired
+	private ConnectionFactory jmsConnectionFactory;
+
+	@Autowired
+	private PollableChannel jmsPubSubBridgeChannel;
 
 	@Test
 	public void testPollingFlow() {
@@ -136,6 +144,15 @@ public class JmsTests {
 
 		assertNotNull(receive);
 		assertEquals("hello through the jms", receive.getPayload());
+
+		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
+				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
+				.build());
+
+		receive = this.jmsOutboundInboundReplyChannel.receive(5000);
+
+		assertNotNull(receive);
+		assertEquals("foo", receive.getPayload());
 	}
 
 	@Test
@@ -151,6 +168,17 @@ public class JmsTests {
 
 		assertNotNull(receive);
 		assertEquals("HELLO THROUGH THE JMS PIPELINE", receive.getPayload());
+	}
+
+	@Test
+	public void testPubSubFlow() {
+		JmsTemplate template = new JmsTemplate(this.jmsConnectionFactory);
+		template.setPubSubDomain(true);
+		template.setDefaultDestinationName("pubsub");
+		template.convertAndSend("foo");
+		Message<?> received = this.jmsPubSubBridgeChannel.receive(5000);
+		assertNotNull(received);
+		assertEquals("foo", received.getPayload());
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
@@ -221,11 +249,38 @@ public class JmsTests {
 		}
 
 		@Bean
+		public IntegrationFlow pubSubFlow() {
+			return IntegrationFlows.from(Jms.publishSubscribeChannel(this.jmsConnectionFactory)
+											.destination("pubsub"))
+									.bridge(e -> e.id("bridgePubSub"))
+									.channel(jmsPubSubBridgeChannel())
+									.get();
+		}
+
+		@Bean
+		public PollableChannel jmsPubSubBridgeChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public IntegrationFlow jmsMessageDriverFlow() {
 			return IntegrationFlows
 					.from(Jms.messageDriverChannelAdapter(this.jmsConnectionFactory)
 							.destination("jmsMessageDriver"))
 					.<String, String>transform(String::toLowerCase)
+					.channel(jmsOutboundInboundReplyChannel())
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow jmsMessageDrivenFlowWithContainer() {
+			return IntegrationFlows
+					.from(Jms.messageDriverChannelAdapter(
+								Jms.container(this.jmsConnectionFactory, "containerSpecDestination")
+									.pubSubDomain(false)
+									.get())
+							.id("fromContainerSpec"))
+					.<String, String>transform(String::trim)
 					.channel(this.jmsOutboundInboundReplyChannel())
 					.get();
 		}

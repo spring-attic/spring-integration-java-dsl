@@ -27,8 +27,8 @@ import javax.annotation.PostConstruct;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
-import org.springframework.integration.router.MappingMessageRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

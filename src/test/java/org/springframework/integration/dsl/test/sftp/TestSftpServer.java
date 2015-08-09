@@ -173,6 +173,7 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 		factory.setPort(this.port);
 		factory.setUser("foo");
 		factory.setPassword("foo");
+		factory.setAllowUnknownKeys(true);
 		return factory;
 	}
 

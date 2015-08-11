@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.reactivestreams.Publisher;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanCreationException;
@@ -89,8 +91,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import org.reactivestreams.Publisher;
 
 /**
  * The {@code Builder} pattern implementation for the EIP-method chain.
@@ -1132,7 +1132,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public <H extends MessageHandler> B handle(H messageHandler, Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
-		Assert.notNull(messageHandler);
+		Assert.notNull(messageHandler, "'messageHandler' must not be null");
 		return this.register(new GenericEndpointSpec<H>(messageHandler), endpointConfigurer);
 	}
 

@@ -4,6 +4,7 @@ apply plugin: 'java'
 apply from: "${rootProject.projectDir}/publish-maven.gradle"
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+apply plugin: 'jacoco'
 
 buildscript {
 	repositories {
@@ -53,7 +54,6 @@ ext {
 	embedMongoVersion = '1.47.1'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.2'
-	jacocoVersion = '0.7.2.201409121644'
 	jmsApiVersion = '1.1-rev-1'
 	jrubyVersion = '1.7.19'
 	jythonVersion = '2.5.3'
@@ -78,11 +78,10 @@ ext {
 
 eclipse.project.natures += 'org.springframework.ide.eclipse.core.springnature'
 
-// See http://www.gradle.org/docs/current/userguide/dependency_management.html#sub:configurations
-// and http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.ConfigurationContainer.html
-configurations {
-	jacoco //Configuration Group used by Sonar to provide Code Coverage using JaCoCo
+jacoco {
+	toolVersion = "0.7.2.201409121644"
 }
+
 
 dependencies {
 	compile("org.springframework.integration:spring-integration-core:$springIntegrationVersion")
@@ -155,8 +154,6 @@ dependencies {
 	testRuntime "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
 	testRuntime "org.jruby:jruby:$jrubyVersion"
 	testRuntime "org.python:jython-standalone:$jythonVersion"
-
-	jacoco "org.jacoco:org.jacoco.agent:$jacocoVersion:runtime"
 }
 
 // enable all compiler warnings; individual projects may customize further
@@ -165,8 +162,22 @@ dependencies {
 test {
 	// suppress all console output during testing unless running `gradle -i`
 	logging.captureStandardOutput(LogLevel.INFO)
-	jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=*"
+	maxHeapSize = "1024m"
+	jacoco {
+		append = false
+		destinationFile = file("$buildDir/jacoco.exec")
+	}
 }
+
+jacocoTestReport {
+	reports {
+		xml.enabled false
+		csv.enabled false
+		html.destination "${buildDir}/reports/jacoco/html"
+	}
+}
+
+build.dependsOn jacocoTestReport
 
 task sourcesJar(type: Jar) {
 	classifier = 'sources'
@@ -289,6 +300,6 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '2.3'
+	gradleVersion = '2.5'
 	distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }

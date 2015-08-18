@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Comparator;
 
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -67,6 +68,52 @@ public abstract class Ftp {
 	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
 			String command, String expression) {
 		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(sessionFactory, command, expression));
+	}
+
+	/**
+	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the remoteFilePath.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate} to be based on.
+	 * @param command the command to perform on the FTP.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link FtpOutboundGatewaySpec}
+	 * @see RemoteFileTemplate
+	 * @since 1.1
+	 */
+	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
+	             AbstractRemoteFileOutboundGateway.Command command, String expression) {
+		return outboundGateway(remoteFileTemplate, command.getCommand(), expression);
+	}
+
+	/**
+	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the remoteFilePath.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate} to be based on.
+	 * @param command the command to perform on the FTP.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link FtpOutboundGatewaySpec}
+	 * @see RemoteFileTemplate
+	 * @since 1.1
+	 */
+	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
+	                                                      String command, String expression) {
+		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(remoteFileTemplate, command, expression));
+	}
+
+
+
+	/**
+	 * Produce a {@link FtpOutboundGatewaySpec} based on the {@link MessageSessionCallback}.
+	 * @param sessionFactory the {@link SessionFactory} to connect to.
+	 * @param messageSessionCallback the {@link MessageSessionCallback} to perform SFTP operation(s)
+	 *                               with the {@code Message} context.
+	 * @return the {@link FtpOutboundGatewaySpec}
+	 * @see MessageSessionCallback
+	 * @since 1.1
+	 */
+	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
+	                    MessageSessionCallback<FTPFile, ?> messageSessionCallback) {
+		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(sessionFactory, messageSessionCallback));
 	}
 
 }

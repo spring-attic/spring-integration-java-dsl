@@ -1045,7 +1045,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			serviceActivatingHandler = new ServiceActivatingHandler(new LambdaMessageProcessor(handler, payloadType));
 		}
 		else {
-			serviceActivatingHandler = new ServiceActivatingHandler(handler);
+			serviceActivatingHandler = new ServiceActivatingHandler(handler, "handle");
 		}
 		return this.handle(serviceActivatingHandler, endpointConfigurer);
 	}
@@ -1812,18 +1812,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B resequence() {
-		return this.resequence((Consumer<GenericEndpointSpec<ResequencingMessageHandler>>) null);
-	}
-
-	/**
-	 * Populate the {@link ResequencingMessageHandler} with default options.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see GenericEndpointSpec
-	 */
-	public B resequence(Consumer<GenericEndpointSpec<ResequencingMessageHandler>> endpointConfigurer) {
-		return this.handle(new ResequencerSpec().get(), endpointConfigurer);
+		return resequence(null);
 	}
 
 	/**
@@ -1833,20 +1822,42 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * <pre class="code">
 	 * {@code
 	 *  .resequence(r -> r.releasePartialSequences(true).correlationExpression("'foo'"),
-	 *             e -> e.applySequence(false))
+	 *             e -> e.phase(100))
 	 * }
 	 * </pre>
 	 * @param resequencerConfigurer the {@link Consumer} to provide {@link ResequencingMessageHandler} options.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see GenericEndpointSpec
+	 * @deprecated since 1.1 in favor of {@link #resequence(Consumer)}
 	 */
+	@Deprecated
 	public B resequence(Consumer<ResequencerSpec> resequencerConfigurer,
 			Consumer<GenericEndpointSpec<ResequencingMessageHandler>> endpointConfigurer) {
 		Assert.notNull(resequencerConfigurer);
 		ResequencerSpec spec = new ResequencerSpec();
 		resequencerConfigurer.accept(spec);
-		return this.handle(spec.get(), endpointConfigurer);
+		return handle(spec.get().getT2(), endpointConfigurer);
+	}
+
+	/**
+	 * Populate the {@link ResequencingMessageHandler} with provided options from {@link ResequencerSpec}.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically used with a Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .resequence(r -> r.releasePartialSequences(true)
+	 *                    .correlationExpression("'foo'")
+	 *                    .phase(100))
+	 * }
+	 * </pre>
+	 * @param resequencer the {@link Consumer} to provide {@link ResequencingMessageHandler} options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see ResequencerSpec
+	 * @since 1.1
+	 */
+	public B resequence(Consumer<ResequencerSpec> resequencer) {
+		return register(new ResequencerSpec(), resequencer);
 	}
 
 	/**
@@ -1854,18 +1865,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B aggregate() {
-		return aggregate((Consumer<GenericEndpointSpec<AggregatingMessageHandler>>) null);
-	}
-
-	/**
-	 * Populate the {@link AggregatingMessageHandler} with default options.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see GenericEndpointSpec
-	 */
-	public B aggregate(Consumer<GenericEndpointSpec<AggregatingMessageHandler>> endpointConfigurer) {
-		return handle(new AggregatorSpec().get(), endpointConfigurer);
+		return aggregate(null);
 	}
 
 	/**
@@ -1882,13 +1882,35 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see GenericEndpointSpec
+	 * @deprecated since 1.1 in favor of {@link #aggregate(Consumer)}
 	 */
+	@Deprecated
 	public B aggregate(Consumer<AggregatorSpec> aggregatorConfigurer,
 			Consumer<GenericEndpointSpec<AggregatingMessageHandler>> endpointConfigurer) {
 		Assert.notNull(aggregatorConfigurer);
 		AggregatorSpec spec = new AggregatorSpec();
 		aggregatorConfigurer.accept(spec);
-		return this.handle(spec.get(), endpointConfigurer);
+		return this.handle(spec.get().getT2(), endpointConfigurer);
+	}
+
+	/**
+	 * Populate the {@link AggregatingMessageHandler} with provided options from {@link AggregatorSpec}.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Typically used with a Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .aggregate(a -> a.correlationExpression("1")
+	 *                   .releaseStrategy(g -> g.size() == 25)
+	 *                   .phase(100))
+	 * }
+	 * </pre>
+	 * @param aggregator the {@link Consumer} to provide {@link AggregatingMessageHandler} options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see AggregatorSpec
+	 * @since 1.1
+	 */
+	public B aggregate(Consumer<AggregatorSpec> aggregator) {
+		return register(new AggregatorSpec(), aggregator);
 	}
 
 	/**

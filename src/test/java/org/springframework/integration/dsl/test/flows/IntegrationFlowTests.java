@@ -75,6 +75,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.DirectChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
+import org.springframework.integration.dsl.support.GenericHandler;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -1123,7 +1124,18 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow flow3() {
 			return IntegrationFlows.from("flow3Input")
-					.handle(Integer.class, (p, h) -> p * 2)
+					.handle(Integer.class, new GenericHandler<Integer>() {
+
+						public void setFoo(String foo) {}
+
+						public void setFoo(Integer foo) {}
+
+						@Override
+						public Object handle(Integer p, Map<String, Object> h) {
+							return p * 2;
+						}
+
+					})
 					.handle(new ApplicationEventPublishingMessageHandler())
 					.get();
 		}
@@ -1341,7 +1353,7 @@ public class IntegrationFlowTests {
 					.<String, Integer>transform(Integer::parseInt)
 					.enrichHeaders(h ->
 							h.headerFunction(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Message::getPayload))
-					.resequence(r -> r.releasePartialSequences(true).correlationExpression("'foo'"), null)
+					.resequence(r -> r.releasePartialSequences(true).correlationExpression("'foo'"))
 					.headerFilter("foo", false);
 		}
 

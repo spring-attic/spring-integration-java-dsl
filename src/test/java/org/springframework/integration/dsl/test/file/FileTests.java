@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,7 +246,7 @@ public class FileTests {
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.transform(Transformers.fileToString())
 					.aggregate(a -> a.correlationExpression("1")
-							.releaseStrategy(g -> g.size() == 25), null)
+							.releaseStrategy(g -> g.size() == 25))
 					.channel(MessageChannels.queue("fileReadingResultChannel"))
 					.get();
 		}

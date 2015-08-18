@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.sftp;
 import java.io.File;
 import java.util.Comparator;
 
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -67,6 +68,50 @@ public abstract class Sftp {
 	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
 			String command, String expression) {
 		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(sessionFactory, command, expression));
+	}
+
+	/**
+	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the remoteFilePath.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate} to be based on.
+	 * @param command the command to perform on the SFTP.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link SftpOutboundGatewaySpec}
+	 * @see RemoteFileTemplate
+	 * @since 1.1
+	 */
+	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
+			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+		return outboundGateway(remoteFileTemplate, command.getCommand(), expression);
+	}
+
+	/**
+	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link RemoteFileTemplate},
+	 * {@link AbstractRemoteFileOutboundGateway.Command} and {@code expression} for the remoteFilePath.
+	 * @param remoteFileTemplate the {@link RemoteFileTemplate} to be based on.
+	 * @param command the command to perform on the SFTP.
+	 * @param expression the remoteFilePath SpEL expression.
+	 * @return the {@link SftpOutboundGatewaySpec}
+	 * @see RemoteFileTemplate
+	 * @since 1.1
+	 */
+	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
+			String command, String expression) {
+		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(remoteFileTemplate, command, expression));
+	}
+
+	/**
+	 * Produce a {@link SftpOutboundGatewaySpec} based on the {@link MessageSessionCallback}.
+	 * @param sessionFactory the {@link SessionFactory} to connect to.
+	 * @param messageSessionCallback the {@link MessageSessionCallback} to perform SFTP operation(s)
+	 *                               with the {@code Message} context.
+	 * @return the {@link SftpOutboundGatewaySpec}
+	 * @see MessageSessionCallback
+	 * @since 1.1
+	 */
+	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
+	       MessageSessionCallback<ChannelSftp.LsEntry, ?> messageSessionCallback) {
+		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(sessionFactory, messageSessionCallback));
 	}
 
 }

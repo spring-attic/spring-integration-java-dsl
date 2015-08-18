@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.io.File;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
@@ -34,9 +35,9 @@ import org.springframework.util.Assert;
 public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutboundGatewaySpec<F, S>>
 		extends MessageHandlerSpec<S, AbstractRemoteFileOutboundGateway<F>> {
 
-	private FileListFilter<F> filter;
+	private CompositeFileListFilter<F> filter;
 
-	private FileListFilter<File> mputFilter;
+	private CompositeFileListFilter<File> mputFilter;
 
 	protected RemoteFileOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<F> outboundGateway) {
 		this.target = outboundGateway;
@@ -89,10 +90,19 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	public S filter(FileListFilter<F> filter) {
-		Assert.isNull(this.filter,
-				"The 'filter' (" + this.filter + ") is already configured for the: " + this);
-		this.filter = filter;
-		this.target.setFilter(filter);
+		if (this.filter == null) {
+			if (filter instanceof CompositeFileListFilter) {
+				this.filter = (CompositeFileListFilter<F>) filter;
+			}
+			else {
+				this.filter = new CompositeFileListFilter<F>();
+				this.filter.addFilter(filter);
+			}
+			this.target.setFilter(this.filter);
+		}
+		else {
+			this.filter.addFilter(filter);
+		}
 		return _this();
 	}
 
@@ -101,10 +111,19 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	public abstract S regexFileNameFilter(String regex);
 
 	public S mputFilter(FileListFilter<File> filter) {
-		Assert.isNull(this.mputFilter,
-				"The 'filter' (" + this.mputFilter + ") is already configured for the: " + this);
-		this.mputFilter = filter;
-		this.target.setMputFilter(filter);
+		if (this.mputFilter == null) {
+			if (filter instanceof CompositeFileListFilter) {
+				this.mputFilter = (CompositeFileListFilter<File>) filter;
+			}
+			else {
+				this.mputFilter = new CompositeFileListFilter<File>();
+				this.mputFilter.addFilter(filter);
+			}
+			this.target.setMputFilter(this.mputFilter);
+		}
+		else {
+			this.mputFilter.addFilter(filter);
+		}
 		return _this();
 	}
 

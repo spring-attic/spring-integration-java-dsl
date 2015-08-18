@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.springframework.integration.dsl.support.Function;
 import org.springframework.messaging.Message;
 
 /**
+ * The Spring Integration File components Factory.
+ *
  * @author Artem Bilan
  */
 public abstract class Files {
@@ -62,6 +64,37 @@ public abstract class Files {
 
 	public static TailAdapterSpec tailAdapter(File file) {
 		return new TailAdapterSpec().file(file);
+	}
+
+	/**
+	 * The {@link FileSplitterSpec} builder factory method with default arguments.
+	 * @return the {@link FileSplitterSpec} builder.
+	 * @since 1.1
+	 */
+	public static FileSplitterSpec splitter() {
+		return splitter(true);
+	}
+
+	/**
+	 * The {@link FileSplitterSpec} builder factory method with {@code iterator} flag specified.
+	 * @param iterator the {@code boolean} flag to specify the {@code iterator} mode or not.
+	 * @return the {@link FileSplitterSpec} builder.
+	 * @since 1.1
+	 */
+	public static FileSplitterSpec splitter(boolean iterator) {
+		return splitter(iterator, false);
+	}
+
+	/**
+	 * The {@link FileSplitterSpec} builder factory method with {@code iterator} and {@code markers}
+	 * flags specified.
+	 * @param iterator the {@code boolean} flag to specify the {@code iterator} mode or not.
+	 * @param markers true to emit start of file/end of file marker messages before/after the data.
+	 * @return the {@link FileSplitterSpec} builder.
+	 * @since 1.1
+	 */
+	public static FileSplitterSpec splitter(boolean iterator, boolean markers) {
+		return new FileSplitterSpec(iterator, markers);
 	}
 
 }

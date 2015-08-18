@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,8 @@ import org.springframework.integration.aggregator.ResequencingMessageHandler;
  */
 public class ResequencerSpec extends CorrelationHandlerSpec<ResequencerSpec, ResequencingMessageHandler> {
 
-	private final ResequencingMessageHandler resequencingMessageHandler =
-			new ResequencingMessageHandler(new ResequencingMessageGroupProcessor());
-
 	ResequencerSpec() {
+		super(new ResequencingMessageHandler(new ResequencingMessageGroupProcessor()));
 	}
 
 	/**
@@ -36,13 +34,8 @@ public class ResequencerSpec extends CorrelationHandlerSpec<ResequencerSpec, Res
 	 * @see ResequencingMessageHandler#setReleasePartialSequences(boolean)
 	 */
 	public ResequencerSpec releasePartialSequences(boolean releasePartialSequences) {
-		this.resequencingMessageHandler.setReleasePartialSequences(releasePartialSequences);
+		this.target.getT2().setReleasePartialSequences(releasePartialSequences);
 		return _this();
-	}
-
-	@Override
-	protected ResequencingMessageHandler doGet() {
-		return this.configure(this.resequencingMessageHandler);
 	}
 
 }

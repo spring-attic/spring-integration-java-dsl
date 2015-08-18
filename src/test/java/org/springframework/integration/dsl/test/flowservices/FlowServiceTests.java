@@ -121,7 +121,7 @@ public class FlowServiceTests {
 			return from(this, "messageSource", e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
 					.split(this)
 					.transform(this)
-					.aggregate(a -> a.processor(this, null), null)
+					.aggregate(a -> a.processor(this, null))
 					.enrichHeaders(Collections.singletonMap("foo", "FOO"))
 					.filter(this)
 					.handle(this)

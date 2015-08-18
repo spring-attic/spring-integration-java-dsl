@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.config.EnableIntegration;
@@ -54,6 +58,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
+import org.springframework.integration.dsl.file.Files;
 import org.springframework.integration.dsl.support.Transformers;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
@@ -115,6 +120,10 @@ public class FileTests {
 	@Autowired
 	@Qualifier("fileWritingResultChannel")
 	private PollableChannel fileWritingResultChannel;
+
+	@Autowired
+	@Qualifier("fileSplittingResultChannel")
+	private PollableChannel fileSplittingResultChannel;
 
 	@Test
 	public void testFileHandler() throws Exception {
@@ -201,6 +210,21 @@ public class FileTests {
 		assertEquals(payload, fileContent);
 	}
 
+	@Test
+	public void testFileSplitterFlow() throws Exception {
+		FileOutputStream file = new FileOutputStream(new File(tmpDir.getRoot(), "foo.tmp"));
+		file.write(("HelloWorld\näöüß").getBytes(Charset.defaultCharset()));
+		file.flush();
+		file.close();
+
+		Message<?> receive = this.fileSplittingResultChannel.receive(10000);
+		assertNotNull(receive); //HelloWorld
+		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		receive = this.fileSplittingResultChannel.receive(10000);
+		assertNotNull(receive); //äöüß
+		assertNull(this.fileSplittingResultChannel.receive(1));
+	}
+
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
 	private static interface ControlBusGateway {
 
@@ -246,7 +270,7 @@ public class FileTests {
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.transform(Transformers.fileToString())
 					.aggregate(a -> a.correlationExpression("1")
-							.releaseStrategy(g -> g.size() == 25), null)
+							.releaseStrategy(g -> g.size() == 25))
 					.channel(MessageChannels.queue("fileReadingResultChannel"))
 					.get();
 		}
@@ -258,6 +282,18 @@ public class FileTests {
 							.header("directory", new File(tmpDir.getRoot(), "fileWritingFlow")))
 					.handleWithAdapter(a -> a.fileGateway(m -> m.getHeaders().get("directory")))
 					.channel(MessageChannels.queue("fileWritingResultChannel"))
+					.get();
+		}
+
+
+		@Bean
+		public IntegrationFlow fileSplitterFlow() {
+			return IntegrationFlows
+					.from(s -> s.file(tmpDir.getRoot())
+									.patternFilter("foo.tmp"),
+							e -> e.poller(p -> p.fixedDelay(100)))
+					.split(Files.splitter())
+					.channel(c -> c.queue("fileSplittingResultChannel"))
 					.get();
 		}
 

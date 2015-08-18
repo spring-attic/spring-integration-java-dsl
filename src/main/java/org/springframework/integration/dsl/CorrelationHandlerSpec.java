@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,12 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -24,15 +30,17 @@ import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStr
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.config.CorrelationStrategyFactoryBean;
 import org.springframework.integration.config.ReleaseStrategyFactoryBean;
+import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessageHandlerSpec} for an {@link AbstractCorrelatingMessageHandler}.
@@ -41,25 +49,14 @@ import org.springframework.util.StringUtils;
  */
 public abstract class
 		CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S, H>, H extends AbstractCorrelatingMessageHandler>
-		extends MessageHandlerSpec<S, H> {
+		extends ConsumerEndpointSpec<S, H> {
 
-	protected MessageGroupStore messageStore;
+	private final List<Advice> forceReleaseAdviceChain = new LinkedList<Advice>();
 
-	protected boolean sendPartialResultOnExpiry;
-
-	private long minimumTimeoutForEmptyGroups;
-
-	private Expression groupTimeoutExpression;
-
-	private TaskScheduler taskScheduler;
-
-	private MessageChannel discardChannel;
-
-	private String discardChannelName;
-
-	private CorrelationStrategy correlationStrategy;
-
-	private ReleaseStrategy releaseStrategy;
+	protected CorrelationHandlerSpec(H messageHandler) {
+		super(messageHandler);
+		messageHandler.setForceReleaseAdviceChain(this.forceReleaseAdviceChain);
+	}
 
 	/**
 	 * @param messageStore the message group store.
@@ -67,7 +64,8 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setMessageStore(MessageGroupStore)
 	 */
 	public S messageStore(MessageGroupStore messageStore) {
-		this.messageStore = messageStore;
+		Assert.notNull(messageStore);
+		this.target.getT2().setMessageStore(messageStore);
 		return _this();
 	}
 
@@ -77,7 +75,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setSendPartialResultOnExpiry(boolean)
 	 */
 	public S sendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
-		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
+		this.target.getT2().setSendPartialResultOnExpiry(sendPartialResultOnExpiry);
 		return _this();
 	}
 
@@ -87,7 +85,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setMinimumTimeoutForEmptyGroups(long)
 	 */
 	public S minimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
-		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
+		this.target.getT2().setMinimumTimeoutForEmptyGroups(minimumTimeoutForEmptyGroups);
 		return _this();
 	}
 
@@ -100,7 +98,7 @@ public abstract class
 	 * @see ValueExpression
 	 */
 	public S groupTimeout(long groupTimeout) {
-		this.groupTimeoutExpression = new ValueExpression<Long>(groupTimeout);
+		this.target.getT2().setGroupTimeoutExpression(new ValueExpression<Long>(groupTimeout));
 		return _this();
 	}
 
@@ -110,7 +108,8 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
 	 */
 	public S groupTimeoutExpression(String groupTimeoutExpression) {
-		this.groupTimeoutExpression = PARSER.parseExpression(groupTimeoutExpression);
+		Assert.hasText(groupTimeoutExpression);
+		this.target.getT2().setGroupTimeoutExpression(PARSER.parseExpression(groupTimeoutExpression));
 		return _this();
 	}
 
@@ -124,7 +123,8 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
 	 */
 	public S groupTimeout(Function<MessageGroup, Long> groupTimeoutFunction) {
-		this.groupTimeoutExpression = new FunctionExpression<MessageGroup>(groupTimeoutFunction);
+		Assert.notNull(groupTimeoutFunction);
+		this.target.getT2().setGroupTimeoutExpression(new FunctionExpression<MessageGroup>(groupTimeoutFunction));
 		return _this();
 	}
 
@@ -134,7 +134,8 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setTaskScheduler(TaskScheduler)
 	 */
 	public S taskScheduler(TaskScheduler taskScheduler) {
-		this.taskScheduler = taskScheduler;
+		Assert.notNull(taskScheduler);
+		this.target.getT2().setTaskScheduler(taskScheduler);
 		return _this();
 	}
 
@@ -144,7 +145,8 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setDiscardChannel(MessageChannel)
 	 */
 	public S discardChannel(MessageChannel discardChannel) {
-		this.discardChannel = discardChannel;
+		Assert.notNull(discardChannel);
+		this.target.getT2().setDiscardChannel(discardChannel);
 		return _this();
 	}
 
@@ -154,7 +156,8 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setDiscardChannelName(String)
 	 */
 	public S discardChannel(String discardChannelName) {
-		this.discardChannelName = discardChannelName;
+		Assert.hasText(discardChannelName);
+		this.target.getT2().setDiscardChannelName(discardChannelName);
 		return _this();
 	}
 
@@ -212,7 +215,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
 	 */
 	public S correlationStrategy(CorrelationStrategy correlationStrategy) {
-		this.correlationStrategy = correlationStrategy;
+		this.target.getT2().setCorrelationStrategy(correlationStrategy);
 		return _this();
 	}
 
@@ -251,36 +254,49 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
 	 */
 	public S releaseStrategy(ReleaseStrategy releaseStrategy) {
-		this.releaseStrategy = releaseStrategy;
+		this.target.getT2().setReleaseStrategy(releaseStrategy);
 		return _this();
 	}
 
-	protected H configure(H handler) {
-		if (this.discardChannel != null) {
-			handler.setDiscardChannel(this.discardChannel);
-		}
-		if (StringUtils.hasText(this.discardChannelName)) {
-			handler.setDiscardChannelName(this.discardChannelName);
-		}
-		if (this.messageStore != null) {
-			handler.setMessageStore(this.messageStore);
-		}
-		handler.setMinimumTimeoutForEmptyGroups(this.minimumTimeoutForEmptyGroups);
-		handler.setGroupTimeoutExpression(this.groupTimeoutExpression);
-		if (this.taskScheduler != null) {
-			handler.setTaskScheduler(this.taskScheduler);
-		}
-		handler.setSendPartialResultOnExpiry(this.sendPartialResultOnExpiry);
-		if (this.correlationStrategy != null) {
-			handler.setCorrelationStrategy(this.correlationStrategy);
-		}
-		if (this.releaseStrategy != null) {
-			handler.setReleaseStrategy(this.releaseStrategy);
-		}
-		return handler;
+	/**
+	 * Expire (completely remove) a group if it is completed due to timeout.
+	 * Default {@code true} for aggregator and {@code false} for resequencer.
+	 * @param expireGroupsUponTimeout the expireGroupsUponTimeout to set
+	 * @return the handler spec.
+	 * @see AbstractCorrelatingMessageHandler#setExpireGroupsUponTimeout
+	 * @since 1.1
+	 */
+	public S expireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
+		this.target.getT2().setExpireGroupsUponTimeout(expireGroupsUponTimeout);
+		return _this();
 	}
 
-	CorrelationHandlerSpec() {
+	/**
+	 * Configure a list of {@link Advice} objects to be applied to the
+	 * {@code forceComplete()} operation.
+	 * @param advice the advice chain.
+	 * @return the endpoint spec.
+	 * @since 1.1
+	 */
+	public S forceReleaseAdvice(Advice... advice) {
+		this.forceReleaseAdviceChain.addAll(Arrays.asList(advice));
+		return _this();
+	}
+
+	/**
+	 * Used to obtain a {@code Lock} based on the {@code groupId} for concurrent operations
+	 * on the {@code MessageGroup}.
+	 * By default, an internal {@code DefaultLockRegistry} is used.
+	 * Use of a distributed {@link LockRegistry}, such as the {@code RedisLockRegistry},
+	 * ensures only one instance of the aggregator will operate on a group concurrently.
+	 * @param lockRegistry the {@link LockRegistry} to use.
+	 * @return the endpoint spec.
+	 * @since 1.1
+	 */
+	public S lockRegistry(LockRegistry lockRegistry) {
+		Assert.notNull(lockRegistry);
+		this.target.getT2().setLockRegistry(lockRegistry);
+		return _this();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageSourceSpec;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.util.Assert;
 
 /**
  * A {@link MessageSourceSpec} for an {@link AbstractInboundFileSynchronizingMessageSource}.
@@ -40,7 +40,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 
 	protected final AbstractInboundFileSynchronizer<F> synchronizer;
 
-	private FileListFilter<F> filter;
+	private CompositeFileListFilter<F> filter;
 
 	protected RemoteFileInboundChannelAdapterSpec(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this.synchronizer = synchronizer;
@@ -137,10 +137,19 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * @return the spec.
 	 */
 	public S filter(FileListFilter<F> filter) {
-		Assert.isNull(this.filter,
-				"The 'filter' (" + this.filter + ") is already configured for the: " + this);
-		this.filter = filter;
-		this.synchronizer.setFilter(filter);
+		if (this.filter == null) {
+			if (filter instanceof CompositeFileListFilter) {
+				this.filter = (CompositeFileListFilter<F>) filter;
+			}
+			else {
+				this.filter = new CompositeFileListFilter<F>();
+				this.filter.addFilter(filter);
+			}
+			this.synchronizer.setFilter(this.filter);
+		}
+		else {
+			this.filter.addFilter(filter);
+		}
 		return _this();
 	}
 

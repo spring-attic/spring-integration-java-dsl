@@ -1694,6 +1694,18 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
 	 * flow position.
 	 * @param splitter the {@link AbstractMessageSplitter} to populate.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see SplitterEndpointSpec
+	 * @since 1.1
+	 */
+	public B split(AbstractMessageSplitter splitter) {
+		return split(splitter, (Consumer<SplitterEndpointSpec<AbstractMessageSplitter>>) null);
+	}
+
+	/**
+	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
+	 * flow position.
+	 * @param splitter the {@link AbstractMessageSplitter} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <S> the {@link AbstractMessageSplitter}
 	 * @return the current {@link IntegrationFlowDefinition}.

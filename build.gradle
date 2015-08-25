@@ -85,6 +85,7 @@ jacoco {
 
 dependencies {
 	compile("org.springframework.integration:spring-integration-core:$springIntegrationVersion")
+	compile "org.reactivestreams:reactive-streams:$reactiveStreamsVersion"
 
 	['spring-integration-amqp'
 	 , 'spring-integration-event'
@@ -123,8 +124,6 @@ dependencies {
 	}
 	compile("javax.jms:jms-api:$jmsApiVersion", provided)
 	compile("javax.mail:javax.mail-api:$mailVersion", provided)
-
-	compile("org.reactivestreams:reactive-streams:$reactiveStreamsVersion", optional)
 
 	testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 	testCompile("org.springframework.boot:spring-boot-starter:$springBootVersion") {

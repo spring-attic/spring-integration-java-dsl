@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -67,25 +68,6 @@ import de.flapdoodle.embed.process.runtime.Network;
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class MongoDbTests {
-
-	private static MongodExecutable mongodExe;
-
-	@BeforeClass
-	public static void setup() throws IOException {
-		int mongoPort = Network.getFreeServerPort();
-		mongodExe = MongodStarter.getDefaultInstance()
-				.prepare(new MongodConfigBuilder()
-						.version(Version.Main.PRODUCTION)
-						.net(new Net(mongoPort, Network.localhostIsIPv6()))
-						.build());
-		mongodExe.start();
-		System.setProperty("spring.data.mongodb.port", "" + mongoPort);
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		mongodExe.stop();
-	}
 
 	@Autowired
 	private ControlBusGateway controlBus;
@@ -163,7 +145,8 @@ public class MongoDbTests {
 
 
 	@Configuration
-	@Import({MongoAutoConfiguration.class, MongoDataAutoConfiguration.class, IntegrationAutoConfiguration.class})
+	@Import({EmbeddedMongoAutoConfiguration.class, MongoAutoConfiguration.class, MongoDataAutoConfiguration.class,
+			IntegrationAutoConfiguration.class})
 	@IntegrationComponentScan
 	public static class ContextConfiguration {
 

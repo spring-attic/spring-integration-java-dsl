@@ -1693,6 +1693,35 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	/**
 	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
 	 * flow position.
+	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
+	 * @param <S> the {@link AbstractMessageSplitter}
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see SplitterEndpointSpec
+	 * @since 1.1
+	 */
+	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec) {
+		return split(splitterMessageHandlerSpec, (Consumer<SplitterEndpointSpec<S>>) null);
+	}
+
+	/**
+	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
+	 * flow position.
+	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <S> the {@link AbstractMessageSplitter}
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see SplitterEndpointSpec
+	 * @since 1.1
+	 */
+	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
+	               Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
+		Assert.notNull(splitterMessageHandlerSpec);
+		return split(splitterMessageHandlerSpec.get(), endpointConfigurer);
+	}
+
+	/**
+	 * Populate the provided {@link AbstractMessageSplitter} to the current integration
+	 * flow position.
 	 * @param splitter the {@link AbstractMessageSplitter} to populate.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see SplitterEndpointSpec

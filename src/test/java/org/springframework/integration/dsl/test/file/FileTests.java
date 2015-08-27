@@ -292,7 +292,7 @@ public class FileTests {
 					.from(s -> s.file(tmpDir.getRoot())
 									.patternFilter("foo.tmp"),
 							e -> e.poller(p -> p.fixedDelay(100)))
-					.split(Files.splitter().get())
+					.split(Files.splitter())
 					.channel(c -> c.queue("fileSplittingResultChannel"))
 					.get();
 		}

@@ -57,7 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @SpringApplicationConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-@IntegrationTest("spring.main.show-banner=false")
+@IntegrationTest
 public class JdbcTests {
 
 	@Autowired
@@ -78,8 +78,8 @@ public class JdbcTests {
 	}
 
 	@Configuration
-	@EnableIntegration
 	@Import(DataSourceAutoConfiguration.class)
+	@EnableIntegration
 	public static class ContextConfiguration {
 
 		@Autowired

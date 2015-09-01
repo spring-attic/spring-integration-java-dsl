@@ -1,6 +1,14 @@
+server:
+  port: 0
 spring:
   jmx:
 #    enabled: false
   datasource:
     schema: classpath*:**/schema.sql
     data:   classpath*:**/data.sql
+  data:
+    mongodb:
+      port: 0
+  main:
+    show-banner: false
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,13 @@ import javax.jms.ConnectionFactory;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.amqp.Amqp;
 import org.springframework.integration.dsl.amqp.AmqpBaseInboundGatewaySpec;
 import org.springframework.integration.dsl.amqp.AmqpInboundGatewaySpec;
+import org.springframework.integration.dsl.http.Http;
+import org.springframework.integration.dsl.http.HttpControllerEndpointSpec;
+import org.springframework.integration.dsl.http.HttpRequestHandlerEndpointSpec;
 import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.dsl.jms.JmsInboundGatewaySpec;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -61,6 +65,18 @@ public class MessagingGateways {
 	public JmsInboundGatewaySpec<? extends JmsInboundGatewaySpec<?>> jms(
 			AbstractMessageListenerContainer listenerContainer) {
 		return Jms.inboundGateway(listenerContainer);
+	}
+
+	public HttpControllerEndpointSpec http(String viewName, String... path) {
+		return Http.inboundControllerGateway(viewName, path);
+	}
+
+	public HttpControllerEndpointSpec http(Expression viewExpression, String... path) {
+		return Http.inboundControllerGateway(viewExpression, path);
+	}
+
+	public HttpRequestHandlerEndpointSpec httpGateway(String... path) {
+		return Http.inboundGateway(path);
 	}
 
 	MessagingGateways() {

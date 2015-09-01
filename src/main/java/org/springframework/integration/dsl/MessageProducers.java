@@ -20,11 +20,15 @@ import java.io.File;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.amqp.Amqp;
 import org.springframework.integration.dsl.amqp.AmqpBaseInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.amqp.AmqpInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.file.Files;
 import org.springframework.integration.dsl.file.TailAdapterSpec;
+import org.springframework.integration.dsl.http.Http;
+import org.springframework.integration.dsl.http.HttpControllerEndpointSpec;
+import org.springframework.integration.dsl.http.HttpRequestHandlerEndpointSpec;
 import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.dsl.jms.JmsMessageDrivenChannelAdapterSpec;
 import org.springframework.integration.dsl.mail.ImapIdleChannelAdapterSpec;
@@ -75,10 +79,16 @@ public class MessageProducers {
 		return Jms.messageDriverChannelAdapter(connectionFactory, containerClass);
 	}
 
-	public
-	JmsMessageDrivenChannelAdapterSpec<? extends JmsMessageDrivenChannelAdapterSpec<?>> messageDriverChannelAdapter(
-			AbstractMessageListenerContainer listenerContainer) {
-		return Jms.messageDriverChannelAdapter(listenerContainer);
+	public HttpControllerEndpointSpec http(String viewName, String... path) {
+		return Http.inboundControllerAdapter(viewName, path);
+	}
+
+	public HttpControllerEndpointSpec http(Expression viewExpression, String... path) {
+		return Http.inboundControllerAdapter(viewExpression, path);
+	}
+
+	public HttpRequestHandlerEndpointSpec httpChannelAdapter(String... path) {
+		return Http.inboundChannelAdapter(path);
 	}
 
 	MessageProducers() {

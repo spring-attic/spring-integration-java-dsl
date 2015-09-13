@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -29,7 +30,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Artem Bilan
  */
-class GatewayMessageHandler extends AbstractReplyProducingMessageHandler {
+class GatewayMessageHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private final GatewayProxyFactoryBean gatewayProxyFactoryBean;
 
@@ -40,6 +41,8 @@ class GatewayMessageHandler extends AbstractReplyProducingMessageHandler {
 	private String replyChannel;
 
 	private String errorChannel;
+
+	private volatile boolean running;
 
 	GatewayMessageHandler() {
 		this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean();
@@ -117,6 +120,28 @@ class GatewayMessageHandler extends AbstractReplyProducingMessageHandler {
 		catch (Exception e) {
 			throw new BeanCreationException("Can't instantiate the GatewayProxyFactoryBean: " + this, e);
 		}
+		if (this.running) {
+			// We must stop gatewayProxyFactoryBean because after the normal start its "gatewayMap" is still empty
+			this.gatewayProxyFactoryBean.stop();
+			this.gatewayProxyFactoryBean.start();
+		}
+	}
+
+	@Override
+	public void start() {
+		this.gatewayProxyFactoryBean.start();
+		this.running = true;
+	}
+
+	@Override
+	public void stop() {
+		this.gatewayProxyFactoryBean.stop();
+		this.running = false;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
 	}
 
 }

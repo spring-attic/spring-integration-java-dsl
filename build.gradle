@@ -51,7 +51,7 @@ ext {
 	activeMqVersion = '5.11.1'
 	apacheSshdVersion = '0.14.0'
 	commonsDbcpVersion = '1.4'
-	embedMongoVersion = '1.47.1'
+	embedMongoVersion = '1.50.0'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.2'
 	jmsApiVersion = '1.1-rev-1'

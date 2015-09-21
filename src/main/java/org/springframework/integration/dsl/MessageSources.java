@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Comparator;
 
 import javax.jms.ConnectionFactory;
@@ -24,6 +25,8 @@ import javax.jms.ConnectionFactory;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.core.io.Resource;
+import org.springframework.integration.dsl.feed.Feed;
+import org.springframework.integration.dsl.feed.FeedEntryMessageSourceSpec;
 import org.springframework.integration.dsl.file.FileInboundChannelAdapterSpec;
 import org.springframework.integration.dsl.file.Files;
 import org.springframework.integration.dsl.ftp.Ftp;
@@ -212,6 +215,17 @@ public class MessageSources {
 	 */
 	public ScriptMessageSourceSpec script(String scriptLocation) {
 		return new ScriptMessageSourceSpec(scriptLocation);
+	}
+
+	/**
+	 * Factory for the {@link FeedEntryMessageSourceSpec} based on the {@code feedUrl} and {@code metadataKey}.
+	 * @param feedUrl the {@link URL} for Feed resource.
+	 * @param metadataKey the metadata key to the last entry after fetching.
+	 * @return the {@link FeedEntryMessageSourceSpec}
+	 * @since 1.1
+	 */
+	public FeedEntryMessageSourceSpec feed(URL feedUrl, String metadataKey) {
+		return Feed.inboundAdapter(feedUrl, metadataKey);
 	}
 
 	MessageSources() {

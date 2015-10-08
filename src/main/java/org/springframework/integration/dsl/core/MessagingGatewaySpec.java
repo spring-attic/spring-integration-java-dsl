@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,17 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * @param replyChannelName the name of replyChannel.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setReplyChannelName(String)
+	 * @since 1.1.1
+	 */
+	public S replyChannel(String replyChannelName) {
+		this.target.setReplyChannelName(replyChannelName);
+		return _this();
+	}
+
+	/**
 	 * @param requestChannel the requestChannel.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setRequestChannel(MessageChannel)
@@ -80,12 +91,34 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * @param requestChannelName the name of requestChannel.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setRequestChannelName(String)
+	 * @since 1.1.1
+	 */
+	public S requestChannel(String requestChannelName) {
+		target.setRequestChannelName(requestChannelName);
+		return _this();
+	}
+
+	/**
 	 * @param errorChannel the errorChannel.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setErrorChannel(MessageChannel)
 	 */
 	public S errorChannel(MessageChannel errorChannel) {
 		target.setErrorChannel(errorChannel);
+		return _this();
+	}
+
+	/**
+	 * @param errorChannelName the name of errorChannel.
+	 * @return the spec.
+	 * @see MessagingGatewaySupport#setErrorChannelName(String)
+	 * @since 1.1.1
+	 */
+	public S errorChannel(String errorChannelName) {
+		target.setErrorChannelName(errorChannelName);
 		return _this();
 	}
 

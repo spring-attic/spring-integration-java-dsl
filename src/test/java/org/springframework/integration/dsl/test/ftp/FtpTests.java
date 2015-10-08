@@ -57,6 +57,7 @@ import org.springframework.integration.dsl.ftp.Ftp;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
@@ -218,7 +219,8 @@ public class FtpTests {
 		@Bean
 		public IntegrationFlow ftpOutboundFlow() {
 			return IntegrationFlows.from("toFtpChannel")
-					.handle(Ftp.outboundAdapter(this.ftpSessionFactory)
+					// INTEXT-200
+					.handle(Ftp.outboundAdapter(this.ftpSessionFactory, FileExistsMode.FAIL)
 									.useTemporaryFileName(false)
 									.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
 									.remoteDirectory(this.ftpServer.getTargetFtpDirectory().getName())

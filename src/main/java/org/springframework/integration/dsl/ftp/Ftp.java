@@ -27,6 +27,7 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**
  * @author Artem Bilan
@@ -48,7 +49,7 @@ public abstract class Ftp {
 
 	public static FtpMessageHandlerSpec outboundAdapter(SessionFactory<FTPFile> sessionFactory,
 			FileExistsMode fileExistsMode) {
-		return outboundAdapter(new RemoteFileTemplate<FTPFile>(sessionFactory), fileExistsMode);
+		return outboundAdapter(new FtpRemoteFileTemplate(sessionFactory), fileExistsMode);
 	}
 
 	public static FtpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<FTPFile> remoteFileTemplate) {

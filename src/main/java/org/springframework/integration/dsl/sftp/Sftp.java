@@ -25,6 +25,7 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
+import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -48,7 +49,7 @@ public abstract class Sftp {
 
 	public static SftpMessageHandlerSpec outboundAdapter(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
 			FileExistsMode fileExistsMode) {
-		return outboundAdapter(new RemoteFileTemplate<ChannelSftp.LsEntry>(sessionFactory), fileExistsMode);
+		return outboundAdapter(new SftpRemoteFileTemplate(sessionFactory), fileExistsMode);
 	}
 
 	public static SftpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate) {

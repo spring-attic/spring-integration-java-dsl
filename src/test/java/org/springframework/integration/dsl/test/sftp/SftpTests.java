@@ -58,6 +58,7 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
@@ -240,7 +241,8 @@ public class SftpTests {
 		@Bean
 		public IntegrationFlow sftpOutboundFlow() {
 			return IntegrationFlows.from("toSftpChannel")
-					.handle(Sftp.outboundAdapter(this.sftpSessionFactory)
+					// INTEXT-200
+					.handle(Sftp.outboundAdapter(this.sftpSessionFactory, FileExistsMode.FAIL)
 									.useTemporaryFileName(false)
 									.remoteDirectory(this.sftpServer.getTargetSftpDirectory().getName())
 					).get();

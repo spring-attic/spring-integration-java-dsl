@@ -19,8 +19,12 @@ package org.springframework.integration.dsl.http;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 
 /**
+ * The {@link BaseHttpInboundEndpointSpec} implementation for the {@link HttpRequestHandlingController}.
+ *
  * @author Artem Bilan
+ *
  * @since 1.1
+ * @see HttpRequestHandlingController
  */
 public class HttpControllerEndpointSpec
 		extends BaseHttpInboundEndpointSpec<HttpControllerEndpointSpec, HttpRequestHandlingController> {

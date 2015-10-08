@@ -116,7 +116,24 @@ public class Adapters {
 		return Ftp.outboundGateway(sessionFactory, command, expression);
 	}
 
+	/**
+	 * The factory method for the {@link Sftp#outboundAdapter}.
+	 * @param sessionFactory the {@link SessionFactory} to use.
+	 * @return an {@link SftpMessageHandlerSpec} instance.
+	 * @deprecated in favor of {@link #sftp(SessionFactory)}
+	 */
+	@Deprecated
 	public SftpMessageHandlerSpec ftps(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
+		return sftp(sessionFactory);
+	}
+
+	/**
+	 * The factory method for the {@link Sftp#outboundAdapter}.
+	 * @param sessionFactory the {@link SessionFactory} to use.
+	 * @return an {@link SftpMessageHandlerSpec} instance.
+	 * @since 1.1.1
+	 */
+	public SftpMessageHandlerSpec sftp(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
 		return Sftp.outboundAdapter(sessionFactory);
 	}
 

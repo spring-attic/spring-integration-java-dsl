@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl.file;
 
-import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,7 +33,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Artem Bilan
@@ -55,27 +53,9 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 		this.target = new FileTransferringMessageHandler<F>(remoteFileTemplate);
 	}
 
-	@SuppressWarnings("unchecked")
 	protected FileTransferringMessageHandlerSpec(RemoteFileTemplate<F> remoteFileTemplate,
-			FileExistsMode fileExistsMode) {
-		Constructor<?> fileExistsModeConstructor =
-				ClassUtils.getConstructorIfAvailable(FileTransferringMessageHandler.class, RemoteFileTemplate.class,
-						FileExistsMode.class);
-		if (fileExistsModeConstructor == null) {
-			logger.warn("The 'FileExistsMode' constructor argument for the 'FileTransferringMessageHandler' is " +
-					"available since Spring Integration 4.1. Will be ignored for previous versions.");
-			this.target = new FileTransferringMessageHandler<F>(remoteFileTemplate);
-		}
-		else {
-			try {
-				this.target =
-						(FileTransferringMessageHandler<F>) fileExistsModeConstructor.newInstance(remoteFileTemplate,
-								fileExistsMode);
-			}
-			catch (Exception e) {
-				throw new IllegalStateException(e);
-			}
-		}
+	                                             FileExistsMode fileExistsMode) {
+		this.target = new FileTransferringMessageHandler<F>(remoteFileTemplate, fileExistsMode);
 	}
 
 	public S autoCreateDirectory(boolean autoCreateDirectory) {

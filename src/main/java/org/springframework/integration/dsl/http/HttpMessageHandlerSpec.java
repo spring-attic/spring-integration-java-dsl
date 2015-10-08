@@ -44,8 +44,12 @@ import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 /**
+ * The {@link MessageHandlerSpec} implementation for the {@link HttpRequestExecutingMessageHandler}.
+ *
  * @author Artem Bilan
+ *
  * @since 1.1
+ * @see HttpRequestExecutingMessageHandler
  */
 public class HttpMessageHandlerSpec
 		extends MessageHandlerSpec<HttpMessageHandlerSpec, HttpRequestExecutingMessageHandler>

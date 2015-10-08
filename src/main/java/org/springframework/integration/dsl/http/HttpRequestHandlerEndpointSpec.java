@@ -19,8 +19,12 @@ package org.springframework.integration.dsl.http;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 
 /**
+ * The {@link BaseHttpInboundEndpointSpec} implementation for the {@link HttpRequestHandlingMessagingGateway}.
+ *
  * @author Artem Bilan
+ *
  * @since 1.1
+ * @see HttpRequestHandlingMessagingGateway
  */
 public class HttpRequestHandlerEndpointSpec
 		extends BaseHttpInboundEndpointSpec<HttpRequestHandlerEndpointSpec, HttpRequestHandlingMessagingGateway> {

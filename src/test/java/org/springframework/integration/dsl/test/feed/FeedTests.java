@@ -21,7 +21,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.net.URL;
 import java.util.Properties;
@@ -38,7 +37,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.MessageSources;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.messaging.Message;
@@ -111,10 +109,9 @@ public class FeedTests {
 		@Bean
 		public IntegrationFlow feedFlow() {
 			return IntegrationFlows
-					.from((MessageSources s) -> s
-							.feed(this.feedUrl, "feedTest")
-							.feedFetcher(new FileUrlFeedFetcher())
-							.metadataStore(metadataStore()),
+					.from(s -> s.feed(this.feedUrl, "feedTest")
+									.feedFetcher(new FileUrlFeedFetcher())
+									.metadataStore(metadataStore()),
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.channel(c -> c.queue("entries"))
 					.get();

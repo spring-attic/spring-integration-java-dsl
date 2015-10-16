@@ -1583,31 +1583,25 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 		route(router, endpointConfigurer);
 
-		final MessageChannel afterRouterChannel = new DirectChannel();
-		boolean hasSubFlows = false;
+		final BridgeHandler bridgeHandler = new BridgeHandler();
+		boolean registerSubflowBridge = false;
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
 			for (Object component : componentsToRegister) {
 				if (component instanceof IntegrationFlowDefinition) {
-					hasSubFlows = true;
 					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
-					addComponent(flowBuilder.fixedSubscriberChannel()
-							.bridge(new Consumer<GenericEndpointSpec<BridgeHandler>>() {
-
-								@Override
-								public void accept(GenericEndpointSpec<BridgeHandler> bridge) {
-									bridge.get().getT2().setOutputChannel(afterRouterChannel);
-								}
-
-							})
-							.get());
+					if (flowBuilder.isOutputChannelRequired()) {
+						registerSubflowBridge = true;
+						flowBuilder.channel(new FixedSubscriberChannel(bridgeHandler));
+					}
+					addComponent(flowBuilder.get());
 				}
 				else {
 					addComponent(component);
 				}
 			}
 		}
-		if (hasSubFlows) {
-			channel(afterRouterChannel);
+		if (registerSubflowBridge) {
+			handle(bridgeHandler);
 		}
 		return _this();
 	}
@@ -1848,8 +1842,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 						messageProducer.setOutputChannel(outputChannel);
 					}
 				}
-				else if (this.currentComponent instanceof AbstractMessageRouter) {
-					AbstractMessageRouter router = (AbstractMessageRouter) this.currentComponent;
+				else if (currentComponent instanceof AbstractMessageRouter) {
+					AbstractMessageRouter router = (AbstractMessageRouter) currentComponent;
 					if (channelName != null) {
 						router.setDefaultOutputChannelName(channelName);
 					}
@@ -1866,6 +1860,22 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			}
 		}
 		return _this();
+	}
+
+	private boolean isOutputChannelRequired() {
+		if (this.currentComponent != null) {
+			Object currentComponent = this.currentComponent;
+
+			if (AopUtils.isAopProxy(currentComponent)) {
+				currentComponent = extractProxyTarget(currentComponent);
+			}
+
+			return currentComponent instanceof AbstractReplyProducingMessageHandler
+					|| currentComponent instanceof SourcePollingChannelAdapterSpec
+					|| currentComponent instanceof AbstractCorrelatingMessageHandler
+					|| currentComponent instanceof AbstractMessageRouter;
+		}
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")

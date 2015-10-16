@@ -87,6 +87,7 @@ import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -2321,7 +2322,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 		route(router, endpointConfigurer);
 
-		final MessageChannel afterRouterChannel = new DirectChannel();
+		final BridgeHandler bridgeHandler = new BridgeHandler();
 		boolean hasSubFlows = false;
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
 			for (Object component : componentsToRegister) {
@@ -2329,11 +2330,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					hasSubFlows = true;
 					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
 					addComponent(flowBuilder.fixedSubscriberChannel()
-							.bridge(new Consumer<GenericEndpointSpec<BridgeHandler>>() {
+							.handle(new MessageHandler() {
 
 								@Override
-								public void accept(GenericEndpointSpec<BridgeHandler> bridge) {
-									bridge.get().getT2().setOutputChannel(afterRouterChannel);
+								public void handleMessage(Message<?> message) throws MessagingException {
+									bridgeHandler.handleMessage(message);
 								}
 
 							})
@@ -2345,7 +2346,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			}
 		}
 		if (hasSubFlows) {
-			channel(afterRouterChannel);
+			handle(bridgeHandler);
 		}
 		return _this();
 	}

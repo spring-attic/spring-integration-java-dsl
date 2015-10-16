@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.test.file;
 
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -31,6 +32,8 @@ import java.io.FileOutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -43,16 +46,22 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.file.Files;
@@ -69,6 +78,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -222,8 +232,42 @@ public class FileTests {
 		assertNull(this.fileSplittingResultChannel.receive(1));
 	}
 
+	@Autowired
+	@Qualifier("dynamicAdaptersResult")
+	PollableChannel dynamicAdaptersResult;
+
+	@Autowired
+	private MyService myService;
+
+	@Test
+	public void testDynamicFileFlows() throws Exception {
+		File newFolder1 = tmpDir.newFolder();
+		FileOutputStream file = new FileOutputStream(new File(newFolder1, "foo"));
+		file.write(("foo").getBytes());
+		file.flush();
+		file.close();
+
+		File newFolder2 = tmpDir.newFolder();
+		file = new FileOutputStream(new File(newFolder2, "bar"));
+		file.write(("bar").getBytes());
+		file.flush();
+		file.close();
+
+		this.myService.pollDirectories(newFolder1, newFolder2);
+
+		Set<String> payloads = new TreeSet<>();
+		Message<?> receive = this.dynamicAdaptersResult.receive(10000);
+		assertNotNull(receive);
+		payloads.add((String) receive.getPayload());
+		receive = this.dynamicAdaptersResult.receive(10000);
+		assertNotNull(receive);
+		payloads.add((String) receive.getPayload());
+
+		assertArrayEquals(new String[]{"bar", "foo"}, payloads.toArray());
+	}
+
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
-	private static interface ControlBusGateway {
+	private interface ControlBusGateway {
 
 		void send(String command);
 
@@ -231,6 +275,7 @@ public class FileTests {
 
 	@Configuration
 	@EnableIntegration
+	@ComponentScan
 	@IntegrationComponentScan
 	public static class ContextConfiguration {
 
@@ -292,6 +337,39 @@ public class FileTests {
 					.split(Files.splitter())
 					.channel(c -> c.queue("fileSplittingResultChannel"))
 					.get();
+		}
+
+		@Bean
+		public PollableChannel dynamicAdaptersResult() {
+			return new QueueChannel();
+		}
+
+	}
+
+	@Service
+	public static class MyService {
+
+		@Autowired
+		private AutowireCapableBeanFactory beanFactory;
+
+		@Autowired
+		@Qualifier("dynamicAdaptersResult")
+		PollableChannel dynamicAdaptersResult;
+
+		public void pollDirectories(File... directories) {
+			for (File directory : directories) {
+				StandardIntegrationFlow integrationFlow = IntegrationFlows
+						.from(s -> s.file(directory),
+								e -> e.poller(p -> p.fixedDelay(1000))
+										.id(directory.getName() + ".adapter"))
+						.transform(Transformers.fileToString(),
+								e -> e.id(directory.getName() + ".transformer"))
+						.channel(this.dynamicAdaptersResult)
+						.get();
+				this.beanFactory.initializeBean(integrationFlow, directory.getName());
+				this.beanFactory.getBean(directory.getName() + ".transformer", Lifecycle.class).start();
+				this.beanFactory.getBean(directory.getName() + ".adapter", Lifecycle.class).start();
+			}
 		}
 
 	}

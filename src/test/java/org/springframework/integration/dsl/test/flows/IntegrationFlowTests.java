@@ -928,6 +928,24 @@ public class IntegrationFlowTests {
 		assertEquals(6, receive3.getPayload());
 	}
 
+
+	@Autowired
+	@Qualifier("routeSubflowToReplyChannelFlow.input")
+	private MessageChannel routeSubflowToReplyChannelFlowInput;
+
+	@Test
+	public void testRouterSubflowWithReplyChannelHeader() {
+		PollableChannel replyChannel = new QueueChannel();
+		this.routeSubflowToReplyChannelFlowInput.send(
+				MessageBuilder.withPayload("baz")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("BAZ", receive.getPayload());
+	}
+
 	@MessagingGateway(defaultRequestChannel = "controlBus")
 	private static interface ControlBusGateway {
 
@@ -1397,6 +1415,15 @@ public class IntegrationFlowTests {
 					.get();
 		}
 
+		@Bean
+		public IntegrationFlow routeSubflowToReplyChannelFlow() {
+			return f -> f
+					.<Integer, Boolean>route("true", m -> m
+							.subFlowMapping("true", sf -> sf
+									.<String>handle((p, h) -> p.toUpperCase())
+							)
+					);
+		}
 
 		@Bean
 		public IntegrationFlow routerTwoSubFlows() {

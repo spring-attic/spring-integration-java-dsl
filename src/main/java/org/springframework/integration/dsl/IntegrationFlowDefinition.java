@@ -2323,29 +2323,32 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		route(router, endpointConfigurer);
 
 		final BridgeHandler bridgeHandler = new BridgeHandler();
-		boolean hasSubFlows = false;
+		boolean registerSubflowBridge = false;
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
 			for (Object component : componentsToRegister) {
 				if (component instanceof IntegrationFlowDefinition) {
-					hasSubFlows = true;
 					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
-					addComponent(flowBuilder.fixedSubscriberChannel()
-							.handle(new MessageHandler() {
+					if (flowBuilder.isOutputChannelRequired()) {
+						registerSubflowBridge = true;
+						flowBuilder.channel(
+								new FixedSubscriberChannel(
+										new MessageHandler() {
 
-								@Override
-								public void handleMessage(Message<?> message) throws MessagingException {
-									bridgeHandler.handleMessage(message);
-								}
+											@Override
+											public void handleMessage(Message<?> message) throws MessagingException {
+												bridgeHandler.handleMessage(message);
+											}
 
-							})
-							.get());
+										}));
+					}
+					addComponent(flowBuilder.get());
 				}
 				else {
 					addComponent(component);
 				}
 			}
 		}
-		if (hasSubFlows) {
+		if (registerSubflowBridge) {
 			handle(bridgeHandler);
 		}
 		return _this();
@@ -2617,8 +2620,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 						messageProducer.setOutputChannel(outputChannel);
 					}
 				}
-				else if (this.currentComponent instanceof AbstractMessageRouter) {
-					AbstractMessageRouter router = (AbstractMessageRouter) this.currentComponent;
+				else if (currentComponent instanceof AbstractMessageRouter) {
+					AbstractMessageRouter router = (AbstractMessageRouter) currentComponent;
 					if (channelName != null) {
 						router.setDefaultOutputChannelName(channelName);
 					}
@@ -2635,6 +2638,22 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			}
 		}
 		return _this();
+	}
+
+	private boolean isOutputChannelRequired() {
+		if (this.currentComponent != null) {
+			Object currentComponent = this.currentComponent;
+
+			if (AopUtils.isAopProxy(currentComponent)) {
+				currentComponent = extractProxyTarget(currentComponent);
+			}
+
+			return currentComponent instanceof AbstractReplyProducingMessageHandler
+					|| currentComponent instanceof SourcePollingChannelAdapterSpec
+					|| currentComponent instanceof AbstractCorrelatingMessageHandler
+					|| currentComponent instanceof AbstractMessageRouter;
+		}
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")

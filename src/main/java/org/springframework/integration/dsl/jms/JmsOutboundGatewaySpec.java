@@ -427,6 +427,17 @@ public class JmsOutboundGatewaySpec extends MessageHandlerSpec<JmsOutboundGatewa
 			return _this();
 		}
 
+		/**
+		 * @param idleReplyContainerTimeout the timeout in seconds.
+		 * @return the current {ReplyContainerSpec}.
+		 * @since 1.1.1
+		 * @see JmsOutboundGateway#setIdleReplyContainerTimeout
+		 */
+		public ReplyContainerSpec idleReplyContainerTimeout(long idleReplyContainerTimeout) {
+			JmsOutboundGatewaySpec.this.target.setIdleReplyContainerTimeout(idleReplyContainerTimeout);
+			return this;
+		}
+
 		@Override
 		protected JmsOutboundGateway.ReplyContainerProperties doGet() {
 			throw new UnsupportedOperationException();

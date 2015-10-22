@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageSourceSpec;
 import org.springframework.integration.dsl.support.Function;
@@ -127,6 +128,17 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 */
 	public S remoteDirectory(String remoteDirectory) {
 		this.synchronizer.setRemoteDirectory(remoteDirectory);
+		return _this();
+	}
+
+	/**
+	 * Specify an expression that evaluates to the full path to the remote directory.
+	 * @param remoteDirectoryExpression The remote directory expression.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public S remoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		this.synchronizer.setRemoteDirectoryExpression(remoteDirectoryExpression);
 		return _this();
 	}
 

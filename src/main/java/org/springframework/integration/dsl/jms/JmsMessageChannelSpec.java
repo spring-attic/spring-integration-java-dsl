@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.concurrent.Executor;
 
 import javax.jms.ConnectionFactory;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
@@ -35,8 +34,6 @@ import org.springframework.util.ErrorHandler;
  * @author Artem Bilan
  */
 public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends JmsPollableMessageChannelSpec<S> {
-
-	private Integer cacheLevel;
 
 	JmsMessageChannelSpec(ConnectionFactory connectionFactory) {
 		super(new JmsChannelFactoryBean(true), connectionFactory);
@@ -214,23 +211,19 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setCacheLevel(int)
 	 */
 	public S cacheLevel(Integer cacheLevel) {
-		this.cacheLevel = cacheLevel;
+		this.jmsChannelFactoryBean.setCacheLevel(cacheLevel);
 		return _this();
 	}
 
-	@Override
-	protected AbstractJmsChannel doGet() {
-		AbstractJmsChannel jmsChannel = super.doGet();
-		if (this.cacheLevel != null) {
-			//TODO till INT-3435
-			DirectFieldAccessor dfa = new DirectFieldAccessor(jmsChannel);
-			Object container = dfa.getPropertyValue("container");
-			if (container instanceof DefaultMessageListenerContainer) {
-				((DefaultMessageListenerContainer) container).setCacheLevel(this.cacheLevel);
-			}
-
-		}
-		return jmsChannel;
+	/**
+	 * @param subscriptionShared the subscription shared {@code boolean} flag.
+	 * @return the current {@link JmsMessageChannelSpec}.
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setSubscriptionShared
+	 * @since 1.1.1
+	 */
+	public S subscriptionShared(boolean subscriptionShared) {
+		this.jmsChannelFactoryBean.setSubscriptionShared(subscriptionShared);
+		return _this();
 	}
 
 }

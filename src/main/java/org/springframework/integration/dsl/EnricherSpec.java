@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,7 +176,6 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 	 * @see FunctionExpression
 	 */
 	public <P> EnricherSpec propertyFunction(String key, Function<Message<P>, Object> function) {
-		Assert.notNull(key);
 		this.propertyExpressions.put(key, new FunctionExpression<Message<P>>(function));
 		return _this();
 	}
@@ -254,7 +253,6 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 	 * @see FunctionExpression
 	 */
 	public <P> EnricherSpec headerFunction(String name, Function<Message<P>, Object> function, Boolean overwrite) {
-		Assert.notNull(function);
 		return headerExpression(name, new FunctionExpression<Message<P>>(function), overwrite);
 	}
 

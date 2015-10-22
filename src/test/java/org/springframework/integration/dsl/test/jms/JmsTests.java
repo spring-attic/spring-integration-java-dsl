@@ -57,9 +57,11 @@ import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
@@ -107,6 +109,10 @@ public class JmsTests {
 
 	@Autowired
 	private PollableChannel jmsPubSubBridgeChannel;
+
+	@Autowired
+	@Qualifier("jmsOutboundGateway.handler")
+	private MessageHandler jmsOutboundGatewayHandler;
 
 	@Test
 	public void testPollingFlow() {
@@ -157,6 +163,8 @@ public class JmsTests {
 
 	@Test
 	public void testJmsPipelineFlow() {
+		assertEquals(new Long(10000),
+				TestUtils.getPropertyValue(this.jmsOutboundGatewayHandler, "idleReplyContainerTimeout", Long.class));
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("hello through the jms pipeline")
 				.setReplyChannel(replyChannel)
@@ -283,8 +291,9 @@ public class JmsTests {
 		public IntegrationFlow jmsOutboundGatewayFlow() {
 			return f -> f.handleWithAdapter(a ->
 					a.jmsGateway(this.jmsConnectionFactory)
-							.replyContainer()
-							.requestDestination("jmsPipelineTest"));
+							.replyContainer(c -> c.idleReplyContainerTimeout(10))
+							.requestDestination("jmsPipelineTest"),
+					e -> e.id("jmsOutboundGateway"));
 		}
 
 		@Bean

@@ -24,10 +24,13 @@ import java.util.Properties;
 
 import org.apache.kafka.clients.producer.Producer;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
@@ -61,13 +64,35 @@ public class KafkaProducerMessageHandlerSpec
 	}
 
 	/**
-	 * Configure s SpEL expression to determine the Kafka topic at runtime against
+	 * Configure the Kafka topic to send messages.
+	 * @param topic the Kafka topic name.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public KafkaProducerMessageHandlerSpec topic(String topic) {
+		return topicExpression(new LiteralExpression(topic));
+	}
+
+
+	/**
+	 * Configure a SpEL expression to determine the Kafka topic at runtime against
 	 * request Message as a root object of evaluation context.
 	 * @param topicExpression the topic SpEL expression.
 	 * @return the spec.
 	 */
 	public KafkaProducerMessageHandlerSpec topicExpression(String topicExpression) {
-		this.target.setTopicExpression(PARSER.parseExpression(topicExpression));
+		return topicExpression(PARSER.parseExpression(topicExpression));
+	}
+
+	/**
+	 * Configure an {@link Expression} to determine the Kafka topic at runtime against
+	 * request Message as a root object of evaluation context.
+	 * @param topicExpression the topic expression.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public KafkaProducerMessageHandlerSpec topicExpression(Expression topicExpression) {
+		this.target.setTopicExpression(topicExpression);
 		return _this();
 	}
 
@@ -85,18 +110,38 @@ public class KafkaProducerMessageHandlerSpec
 	 * @see FunctionExpression
 	 */
 	public <P> KafkaProducerMessageHandlerSpec topic(Function<Message<P>, String> topicFunction) {
-		this.target.setTopicExpression(new FunctionExpression<Message<P>>(topicFunction));
-		return _this();
+		return topicExpression(new FunctionExpression<Message<P>>(topicFunction));
 	}
 
 	/**
-	 * Configure s SpEL expression to determine the Kafka message key to store at runtime against
+	 * Configure a SpEL expression to determine the Kafka message key to store at runtime against
 	 * request Message as a root object of evaluation context.
 	 * @param messageKeyExpression the message key SpEL expression.
 	 * @return the spec.
 	 */
 	public KafkaProducerMessageHandlerSpec messageKeyExpression(String messageKeyExpression) {
-		target.setMessageKeyExpression(PARSER.parseExpression(messageKeyExpression));
+		return messageKeyExpression(PARSER.parseExpression(messageKeyExpression));
+	}
+
+	/**
+	 * Configure the message key to store message in Kafka topic.
+	 * @param messageKey the message key to use.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public KafkaProducerMessageHandlerSpec messageKey(String messageKey) {
+		return messageKeyExpression(new LiteralExpression(messageKey));
+	}
+
+	/**
+	 * Configure an {@link Expression} to determine the Kafka message key to store at runtime against
+	 * request Message as a root object of evaluation context.
+	 * @param messageKeyExpression the message key expression.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public KafkaProducerMessageHandlerSpec messageKeyExpression(Expression messageKeyExpression) {
+		target.setMessageKeyExpression(messageKeyExpression);
 		return _this();
 	}
 
@@ -114,7 +159,57 @@ public class KafkaProducerMessageHandlerSpec
 	 * @see FunctionExpression
 	 */
 	public <P> KafkaProducerMessageHandlerSpec messageKey(Function<Message<P>, ?> messageKeyFunction) {
-		this.target.setMessageKeyExpression(new FunctionExpression<Message<P>>(messageKeyFunction));
+		return messageKeyExpression(new FunctionExpression<Message<P>>(messageKeyFunction));
+	}
+
+	/**
+	 * Configure a partitionId of Kafka topic.
+	 * @param partitionId the partitionId to use.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public KafkaProducerMessageHandlerSpec partitionId(Integer partitionId) {
+		return partitionIdExpression(new ValueExpression<Integer>(partitionId));
+	}
+
+	/**
+	 * Configure a SpEL expression to determine the topic partitionId at runtime against
+	 * request Message as a root object of evaluation context.
+	 * @param partitionIdExpression the partitionId expression to use.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public KafkaProducerMessageHandlerSpec partitionIdExpression(String partitionIdExpression) {
+		return partitionIdExpression(PARSER.parseExpression(partitionIdExpression));
+	}
+
+	/**
+	 * Configure a {@link Function} that will be invoked at run time to determine the partition id under
+	 * which a message will be stored in the topic. Typically used with a Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 * .partitionId(m -> m.getHeaders().get("partitionId", Integer.class))
+	 * }
+	 * </pre>
+	 * @param partitionIdFunction the partitionId function.
+	 * @param <P> the expected payload type.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public <P> KafkaProducerMessageHandlerSpec partitionId(Function<Message<P>, Integer> partitionIdFunction) {
+		return partitionIdExpression(new FunctionExpression<Message<P>>(partitionIdFunction));
+	}
+
+	/**
+	 * Configure an {@link Expression} to determine the topic partitionId at runtime against
+	 * request Message as a root object of evaluation context.
+	 * @param partitionIdExpression the partitionId expression to use.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	@SuppressWarnings("deprecation")
+	public KafkaProducerMessageHandlerSpec partitionIdExpression(Expression partitionIdExpression) {
+		this.target.setPartitionExpression(partitionIdExpression);
 		return _this();
 	}
 

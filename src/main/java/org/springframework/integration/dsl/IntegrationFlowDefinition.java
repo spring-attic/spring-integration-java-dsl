@@ -1225,7 +1225,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B delay(String groupId, Function<Message<P>, Object> function,
 			Consumer<DelayerEndpointSpec> endpointConfigurer) {
-		Assert.notNull(function);
 		return this.delay(groupId, new FunctionExpression<Message<P>>(function), endpointConfigurer);
 	}
 

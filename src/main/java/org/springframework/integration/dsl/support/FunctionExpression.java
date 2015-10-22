@@ -23,6 +23,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.common.ExpressionUtils;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.util.Assert;
 
 /**
  * An {@link Expression} that simply invokes {@link Function#apply(Object)} on its
@@ -51,6 +52,7 @@ public class FunctionExpression<S> implements Expression {
 	private final EvaluationException readOnlyException;
 
 	public FunctionExpression(Function<S, ?> function) {
+		Assert.notNull(function, "'function' must not be null.");
 		this.function = function;
 		this.readOnlyException = new EvaluationException(getExpressionString(),
 				"FunctionExpression is a 'read only' Expression implementation");

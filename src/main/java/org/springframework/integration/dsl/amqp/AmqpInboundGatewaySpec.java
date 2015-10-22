@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.amqp.core.AcknowledgeMode;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
@@ -40,7 +41,18 @@ public class AmqpInboundGatewaySpec extends AmqpBaseInboundGatewaySpec<AmqpInbou
 	AmqpInboundGatewaySpec(SimpleMessageListenerContainer listenerContainer) {
 		super(new AmqpInboundGateway(listenerContainer));
 		this.listenerContainer = listenerContainer;
-		this.target.setHeaderMapper(headerMapper);
+	}
+
+	/**
+	 * Instantiate {@link AmqpInboundGateway} based on the provided {@link SimpleMessageListenerContainer}
+	 * and {@link AmqpTemplate}.
+	 * @param listenerContainer the {@link SimpleMessageListenerContainer} to use.
+	 * @param amqpTemplate the {@link AmqpTemplate} to use.
+	 * @since 1.1.1
+	 */
+	AmqpInboundGatewaySpec(SimpleMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
+		super(new AmqpInboundGateway(listenerContainer, amqpTemplate));
+		this.listenerContainer = listenerContainer;
 	}
 
 	/**

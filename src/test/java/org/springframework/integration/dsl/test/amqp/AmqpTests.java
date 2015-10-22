@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,6 +74,11 @@ public class AmqpTests {
 	public void testAmqpInboundGatewayFlow() throws Exception {
 		Object result = this.amqpTemplate.convertSendAndReceive(this.amqpQueue.getName(), "world");
 		assertEquals("HELLO WORLD", result);
+
+		this.amqpTemplate.convertAndSend(this.amqpQueue.getName(), "world");
+		((RabbitTemplate) this.amqpTemplate).setReceiveTimeout(10000);
+		result = this.amqpTemplate.receiveAndConvert("defaultReplyTo");
+		assertEquals("HELLO WORLD", result);
 	}
 
 	@Autowired
@@ -97,7 +103,8 @@ public class AmqpTests {
 			}
 			Thread.sleep(100);
 			i++;
-		} while (i < 10);
+		}
+		while (i < 10);
 
 		assertNotNull(receive);
 		assertEquals("HELLO THROUGH THE AMQP", receive.getPayload());
@@ -128,8 +135,15 @@ public class AmqpTests {
 		}
 
 		@Bean
+		public Queue defaultReplyTo() {
+			return new Queue("defaultReplyTo");
+		}
+
+		@Bean
 		public IntegrationFlow amqpFlow(ConnectionFactory rabbitConnectionFactory) {
-			return IntegrationFlows.from(Amqp.inboundGateway(rabbitConnectionFactory, queue()))
+			return IntegrationFlows
+					.from(Amqp.inboundGateway(rabbitConnectionFactory, queue())
+							.defaultReplyTo(defaultReplyTo().getName()))
 					.transform("hello "::concat)
 					.transform(String.class, String::toUpperCase)
 					.get();

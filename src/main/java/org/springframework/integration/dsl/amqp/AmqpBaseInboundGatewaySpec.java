@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,18 @@ import org.springframework.integration.dsl.core.MessagingGatewaySpec;
 
 /**
  * A base {@link MessagingGatewaySpec} implementation for {@link AmqpInboundGateway} endpoint options.
+ * Doesn't allow to specify {@code listenerContainer} options.
  *
  * @author Artem Bilan
  */
 public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 		extends MessagingGatewaySpec<S, AmqpInboundGateway> {
 
-	protected final DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+	private final DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
 	AmqpBaseInboundGatewaySpec(AmqpInboundGateway gateway) {
 		super(gateway);
+		this.target.setHeaderMapper(this.headerMapper);
 	}
 
 	/**
@@ -78,6 +80,28 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 */
 	public S mappedReplyHeaders(String... headers) {
 		this.headerMapper.setReplyHeaderNames(headers);
+		return _this();
+	}
+
+	/**
+	 * The {@code defaultReplyTo} address with the form
+	 * <pre class="code">
+	 * (exchange)/(routingKey)
+	 * </pre>
+	 * or
+	 * <pre class="code">
+	 * (queueName)
+	 * </pre>
+	 * if the request message doesn't have a {@code replyTo} property.
+	 * The second form uses the default exchange ("") and the queue name as
+	 * the routing key.
+	 * @param defaultReplyTo the default {@code replyTo} address to use.
+	 * @return the spec.
+	 * @since 1.1.1
+	 * @see AmqpInboundGateway#setDefaultReplyTo
+	 */
+	public S defaultReplyTo(String defaultReplyTo) {
+		this.target.setDefaultReplyTo(defaultReplyTo);
 		return _this();
 	}
 

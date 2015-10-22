@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,18 @@ public class MessageProducers {
 		return Amqp.inboundAdapter(connectionFactory, queues);
 	}
 
+	/**
+	 * @deprecated {@code since 1.1.1} in favor of {@link #amqp(SimpleMessageListenerContainer)}
+	 * as factory method with an inconvenient name.
+	 * @param listenerContainer the {@link SimpleMessageListenerContainer} to use.
+	 * @return the {@link AmqpBaseInboundChannelAdapterSpec} instance.
+	 */
+	@Deprecated
 	public AmqpBaseInboundChannelAdapterSpec<?> inboundAdapter(SimpleMessageListenerContainer listenerContainer) {
+		return amqp(listenerContainer);
+	}
+
+	public AmqpBaseInboundChannelAdapterSpec<?> amqp(SimpleMessageListenerContainer listenerContainer) {
 		return Amqp.inboundAdapter(listenerContainer);
 	}
 

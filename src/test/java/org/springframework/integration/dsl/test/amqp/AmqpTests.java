@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.test.amqp;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -30,13 +31,13 @@ import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
@@ -44,6 +45,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.amqp.Amqp;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -70,6 +72,9 @@ public class AmqpTests {
 	@Qualifier("queue")
 	private Queue amqpQueue;
 
+	@Autowired
+	private AmqpInboundGateway amqpInboundGateway;
+
 	@Test
 	public void testAmqpInboundGatewayFlow() throws Exception {
 		Object result = this.amqpTemplate.convertSendAndReceive(this.amqpQueue.getName(), "world");
@@ -79,6 +84,7 @@ public class AmqpTests {
 		((RabbitTemplate) this.amqpTemplate).setReceiveTimeout(10000);
 		result = this.amqpTemplate.receiveAndConvert("defaultReplyTo");
 		assertEquals("HELLO WORLD", result);
+		assertSame(this.amqpTemplate, TestUtils.getPropertyValue(this.amqpInboundGateway, "amqpTemplate"));
 	}
 
 	@Autowired
@@ -140,9 +146,10 @@ public class AmqpTests {
 		}
 
 		@Bean
-		public IntegrationFlow amqpFlow(ConnectionFactory rabbitConnectionFactory) {
+		public IntegrationFlow amqpFlow(ConnectionFactory rabbitConnectionFactory, AmqpTemplate amqpTemplate) {
 			return IntegrationFlows
-					.from(Amqp.inboundGateway(rabbitConnectionFactory, queue())
+					.from(Amqp.inboundGateway(rabbitConnectionFactory, amqpTemplate, queue())
+							.id("amqpInboundGateway")
 							.defaultReplyTo(defaultReplyTo().getName()))
 					.transform("hello "::concat)
 					.transform(String.class, String::toUpperCase)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,22 @@ public abstract class Amqp {
 	/**
 	 * Create an initial {@link AmqpInboundGatewaySpec}.
 	 * @param connectionFactory the connectionFactory.
+	 * @param amqpTemplate the {@link AmqpTemplate} to use.
+	 * @param queueNames the queueNames.
+	 * @return the AmqpInboundGatewaySpec.
+	 * @since 1.1.1
+	 */
+	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
+	                                                    String... queueNames) {
+		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
+		listenerContainer.setQueueNames(queueNames);
+		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer, amqpTemplate);
+	}
+
+
+	/**
+	 * Create an initial {@link AmqpInboundGatewaySpec}.
+	 * @param connectionFactory the connectionFactory.
 	 * @param queues the queues.
 	 * @return the AmqpInboundGatewaySpec.
 	 */
@@ -50,6 +66,21 @@ public abstract class Amqp {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
 		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer);
+	}
+
+	/**
+	 * Create an initial {@link AmqpInboundGatewaySpec}.
+	 * @param connectionFactory the connectionFactory.
+	 * @param amqpTemplate the {@link AmqpTemplate} to use.
+	 * @param queues the queues.
+	 * @return the AmqpInboundGatewaySpec.
+	 * @since 1.1.1
+	 */
+	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
+	                                                    Queue... queues) {
+		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
+		listenerContainer.setQueues(queues);
+		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer, amqpTemplate);
 	}
 
 	/**
@@ -61,8 +92,24 @@ public abstract class Amqp {
 	 * @param listenerContainer the listenerContainer
 	 * @return the AmqpBaseInboundGatewaySpec.
 	 */
-	public static  AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer) {
+	public static AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer) {
 		return new AmqpInboundGatewaySpec(listenerContainer);
+	}
+
+	/**
+	 * Create an initial {@link AmqpBaseInboundGatewaySpec}
+	 * with provided {@link SimpleMessageListenerContainer}.
+	 * Note: only endpoint options are available from spec.
+	 * The {@code listenerContainer} options should be specified
+	 * on the provided {@link SimpleMessageListenerContainer}.
+	 * @param listenerContainer the listenerContainer
+	 * @param amqpTemplate the {@link AmqpTemplate} to use.
+	 * @return the AmqpBaseInboundGatewaySpec.
+	 * @since 1.1.1
+	 */
+	public static  AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer,
+	                                                            AmqpTemplate amqpTemplate) {
+		return new AmqpInboundGatewaySpec(listenerContainer, amqpTemplate);
 	}
 
 	/**

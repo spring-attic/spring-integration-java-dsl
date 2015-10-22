@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.amqp.core.AcknowledgeMode;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
@@ -39,6 +40,18 @@ public class AmqpInboundGatewaySpec extends AmqpBaseInboundGatewaySpec<AmqpInbou
 
 	AmqpInboundGatewaySpec(SimpleMessageListenerContainer listenerContainer) {
 		super(new AmqpInboundGateway(listenerContainer));
+		this.listenerContainer = listenerContainer;
+	}
+
+	/**
+	 * Instantiate {@link AmqpInboundGateway} based on the provided {@link SimpleMessageListenerContainer}
+	 * and {@link AmqpTemplate}.
+	 * @param listenerContainer the {@link SimpleMessageListenerContainer} to use.
+	 * @param amqpTemplate the {@link AmqpTemplate} to use.
+	 * @since 1.1.1
+	 */
+	AmqpInboundGatewaySpec(SimpleMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
+		super(new AmqpInboundGateway(listenerContainer, amqpTemplate));
 		this.listenerContainer = listenerContainer;
 	}
 

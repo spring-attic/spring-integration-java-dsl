@@ -27,6 +27,8 @@ import org.springframework.integration.dsl.core.MessagingGatewaySpec;
  * Doesn't allow to specify {@code listenerContainer} options.
  *
  * @author Artem Bilan
+ *
+ * @see AmqpInboundGateway
  */
 public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 		extends MessagingGatewaySpec<S, AmqpInboundGateway> {

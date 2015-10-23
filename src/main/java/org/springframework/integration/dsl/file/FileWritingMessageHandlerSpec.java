@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,17 @@ public class FileWritingMessageHandlerSpec
 	public FileWritingMessageHandlerSpec charset(String charset) {
 		this.target.setCharset(charset);
 		return _this();
+	}
+
+	/**
+	 * @param appendNewLine true if a new-line should be written to the file after payload is written.
+	 * @return the spec.
+	 * @since 1.1.1
+	 * @see FileWritingMessageHandler#setAppendNewLine(boolean)
+	 */
+	public FileWritingMessageHandlerSpec appendNewLine(boolean appendNewLine) {
+		this.target.setAppendNewLine(appendNewLine);
+		return this;
 	}
 
 	@Override

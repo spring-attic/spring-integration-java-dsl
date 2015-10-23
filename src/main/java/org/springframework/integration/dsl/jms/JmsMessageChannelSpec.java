@@ -35,8 +35,6 @@ import org.springframework.util.ErrorHandler;
  */
 public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends JmsPollableMessageChannelSpec<S> {
 
-	private Integer cacheLevel;
-
 	JmsMessageChannelSpec(ConnectionFactory connectionFactory) {
 		super(new JmsChannelFactoryBean(true), connectionFactory);
 	}

@@ -123,7 +123,6 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
 	 */
 	public S groupTimeout(Function<MessageGroup, Long> groupTimeoutFunction) {
-		Assert.notNull(groupTimeoutFunction);
 		this.target.getT2().setGroupTimeoutExpression(new FunctionExpression<MessageGroup>(groupTimeoutFunction));
 		return _this();
 	}

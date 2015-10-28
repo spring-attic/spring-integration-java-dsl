@@ -87,7 +87,6 @@ import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -2330,16 +2329,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
 					if (flowBuilder.isOutputChannelRequired()) {
 						registerSubflowBridge = true;
-						flowBuilder.channel(
-								new FixedSubscriberChannel(
-										new MessageHandler() {
-
-											@Override
-											public void handleMessage(Message<?> message) throws MessagingException {
-												bridgeHandler.handleMessage(message);
-											}
-
-										}));
+						flowBuilder.channel(new FixedSubscriberChannel(bridgeHandler));
 					}
 					addComponent(flowBuilder.get());
 				}

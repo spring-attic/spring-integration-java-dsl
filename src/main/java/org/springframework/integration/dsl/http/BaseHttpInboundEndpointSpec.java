@@ -91,6 +91,7 @@ public abstract class
 	}
 
 	public S headerExpressions(Map<String, Expression> headerExpressions) {
+		Assert.notNull(headerExpressions, "'headerExpressions' must not be null");
 		this.headerExpressions.clear();
 		this.headerExpressions.putAll(headerExpressions);
 		return _this();
@@ -99,6 +100,10 @@ public abstract class
 	public S headerExpression(String header, Expression expression) {
 		this.headerExpressions.put(header, expression);
 		return _this();
+	}
+
+	public S headerExpression(String header, String expression) {
+		return headerExpression(header, PARSER.parseExpression(expression));
 	}
 
 	public S messageConverters(HttpMessageConverter<?>... messageConverters) {

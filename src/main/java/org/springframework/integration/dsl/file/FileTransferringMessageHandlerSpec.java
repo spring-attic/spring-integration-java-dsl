@@ -124,8 +124,8 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	}
 
 	public S charset(Charset charset) {
-		this.target.setCharset(charset.name());
-		return _this();
+		Assert.notNull(charset, "'charset' must not be null.");
+		return charset(charset.name());
 	}
 
 	public S temporaryFileSuffix(String temporaryFileSuffix) {

@@ -182,9 +182,53 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * @param variable the uri template variable.
+	 * @param value the expression to evaluate value for te uri template variable.
+	 * @return the current Spec.
+	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
+	 * @since 1.1.1
+	 */
+	public HttpMessageHandlerSpec uriVariable(String variable, String value) {
+		return uriVariable(variable, PARSER.parseExpression(value));
+	}
+
+	/**
+	 * @param variable the uri template variable.
+	 * @param valueFunction the function to evaluate value for te uri template variable.
+	 * @param <P> the payload type.
+	 * @return the current Spec.
+	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
+	 * @since 1.1.1
+	 */
+	public <P> HttpMessageHandlerSpec uriVariable(String variable, Function<Message<P>, ?> valueFunction) {
+		return uriVariable(variable, new FunctionExpression<Message<P>>(valueFunction));
+	}
+
 	public HttpMessageHandlerSpec uriVariablesExpression(Expression uriVariablesExpression) {
 		this.messageHandler.setUriVariablesExpression(uriVariablesExpression);
 		return this;
+	}
+
+	/**
+	 * @param uriVariablesExpression to use.
+	 * @return the current Spec.
+	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
+	 * @since 1.1.1
+	 */
+	public HttpMessageHandlerSpec uriVariablesExpression(String uriVariablesExpression) {
+		return uriVariablesExpression(PARSER.parseExpression(uriVariablesExpression));
+	}
+
+	/**
+	 * @param uriVariablesFunction to use.
+	 * @param <P> the payload type.
+	 * @return the current Spec.
+	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
+	 * @since 1.1.1
+	 */
+	public <P> HttpMessageHandlerSpec uriVariablesFunction(Function<Message<P>, Map<String, ?>> uriVariablesFunction) {
+		return uriVariablesExpression(new FunctionExpression<Message<P>>(uriVariablesFunction));
 	}
 
 	public HttpMessageHandlerSpec transferCookies(boolean transferCookies) {

@@ -94,8 +94,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * @return the spec.
 	 */
 	public S localFilenameExpression(String localFilenameExpression) {
-		this.synchronizer.setLocalFilenameGeneratorExpression(PARSER.parseExpression(localFilenameExpression));
-		return _this();
+		return localFilenameExpression(PARSER.parseExpression(localFilenameExpression));
 	}
 
 	/**
@@ -106,9 +105,21 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * @see FunctionExpression
 	 */
 	public S localFilename(Function<String, String> localFilenameFunction) {
-		this.synchronizer.setLocalFilenameGeneratorExpression(new FunctionExpression<String>(localFilenameFunction));
+		return localFilenameExpression(new FunctionExpression<String>(localFilenameFunction));
+	}
+
+	/**
+	 * Configure a SpEL expression to generate the local file name; the root object for
+	 * the evaluation is the remote file name.
+	 * @param localFilenameExpression the localFilenameExpression.
+	 * @return the spec.
+	 * @since 1.1.1
+	 */
+	public S localFilenameExpression(Expression localFilenameExpression) {
+		this.synchronizer.setLocalFilenameGeneratorExpression(localFilenameExpression);
 		return _this();
 	}
+
 
 	/**
 	 * Configure a suffix to temporarily apply to the local filename; when copied the

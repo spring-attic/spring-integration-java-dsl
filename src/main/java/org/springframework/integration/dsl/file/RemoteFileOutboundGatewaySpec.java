@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.file;
 
 import java.io.File;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
@@ -70,12 +71,20 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	public S localDirectoryExpression(String localDirectoryExpression) {
-		this.target.setLocalDirectoryExpression(PARSER.parseExpression(localDirectoryExpression));
-		return _this();
+		return localDirectoryExpression(PARSER.parseExpression(localDirectoryExpression));
 	}
 
 	public <P> S localDirectory(Function<Message<P>, String> localDirectoryFunction) {
-		this.target.setLocalDirectoryExpression(new FunctionExpression<Message<P>>(localDirectoryFunction));
+		return localDirectoryExpression(new FunctionExpression<Message<P>>(localDirectoryFunction));
+	}
+
+	/**
+	 * @param localDirectoryExpression a SpEL expression to evaluate the local directory.
+	 * @return the Spec.
+	 * @since 1.1.1
+	 */
+	public S localDirectoryExpression(Expression localDirectoryExpression) {
+		this.target.setLocalDirectoryExpression(localDirectoryExpression);
 		return _this();
 	}
 
@@ -143,12 +152,20 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	public S localFilenameExpression(String localFilenameExpression) {
-		this.target.setLocalFilenameGeneratorExpression(PARSER.parseExpression(localFilenameExpression));
-		return _this();
+		return localFilenameExpression(PARSER.parseExpression(localFilenameExpression));
 	}
 
 	public <P> S localFilename(Function<Message<P>, String> localFilenameFunction) {
-		this.target.setLocalFilenameGeneratorExpression(new FunctionExpression<Message<P>>(localFilenameFunction));
+		return localFilenameExpression(new FunctionExpression<Message<P>>(localFilenameFunction));
+	}
+
+	/**
+	 * @param localFilenameExpression a SpEL expression to evaluate the local file name.
+	 * @return the Spec.
+	 * @since 1.1.1
+	 */
+	public S localFilenameExpression(Expression localFilenameExpression) {
+		this.target.setLocalFilenameGeneratorExpression(localFilenameExpression);
 		return _this();
 	}
 

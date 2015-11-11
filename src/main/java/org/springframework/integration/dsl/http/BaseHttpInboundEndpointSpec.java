@@ -106,6 +106,17 @@ public abstract class
 		return headerExpression(header, PARSER.parseExpression(expression));
 	}
 
+	/**
+	 * @param header the header name to add.
+	 * @param headerFunction the function to evaluate the header value against {@link HttpEntity}.
+	 * @return the current Spec.
+	 * @see HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
+	 * @since 1.1.1
+	 */
+	public S headerFunction(String header, Function<HttpEntity<?>, ?> headerFunction) {
+		return headerExpression(header, new FunctionExpression<HttpEntity<?>>(headerFunction));
+	}
+
 	public S messageConverters(HttpMessageConverter<?>... messageConverters) {
 		this.target.setMessageConverters(Arrays.asList(messageConverters));
 		return _this();

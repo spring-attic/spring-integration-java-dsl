@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Function;
@@ -47,11 +48,15 @@ public class FileWritingMessageHandlerSpec
 	}
 
 	FileWritingMessageHandlerSpec(String directoryExpression) {
-		this.target = new FileWritingMessageHandler(PARSER.parseExpression(directoryExpression));
+		this(PARSER.parseExpression(directoryExpression));
 	}
 
 	<P> FileWritingMessageHandlerSpec(Function<Message<P>, ?> directoryFunction) {
-		this.target = new FileWritingMessageHandler(new FunctionExpression<Message<P>>(directoryFunction));
+		this(new FunctionExpression<Message<P>>(directoryFunction));
+	}
+
+	FileWritingMessageHandlerSpec(Expression directoryExpression) {
+		this.target = new FileWritingMessageHandler(directoryExpression);
 	}
 
 	FileWritingMessageHandlerSpec expectReply(boolean expectReply) {

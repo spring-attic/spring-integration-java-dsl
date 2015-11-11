@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.file;
 import java.io.File;
 import java.util.Comparator;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.messaging.Message;
 
@@ -46,6 +47,15 @@ public abstract class Files {
 		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(false);
 	}
 
+	/**
+	 * @param directoryExpression an expression to evaluate the target directory.
+	 * @return the FileWritingMessageHandlerSpec instance.
+	 * @since 1.1.1
+	 */
+	public static FileWritingMessageHandlerSpec outboundAdapter(Expression directoryExpression) {
+		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(false);
+	}
+
 	public static <P> FileWritingMessageHandlerSpec outboundAdapter(Function<Message<P>, ?> directoryFunction) {
 		return new FileWritingMessageHandlerSpec(directoryFunction).expectReply(false);
 	}
@@ -55,6 +65,15 @@ public abstract class Files {
 	}
 
 	public static FileWritingMessageHandlerSpec outboundGateway(String directoryExpression) {
+		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(true);
+	}
+
+	/**
+	 * @param directoryExpression an expression to evaluate the target directory.
+	 * @return the FileWritingMessageHandlerSpec instance.
+	 * @since 1.1.1
+	 */
+	public static FileWritingMessageHandlerSpec outboundGateway(Expression directoryExpression) {
 		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(true);
 	}
 

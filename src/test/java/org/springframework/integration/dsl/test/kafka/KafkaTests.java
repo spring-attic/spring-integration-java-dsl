@@ -127,7 +127,7 @@ public class KafkaTests {
 			assertThat(e.getMessage(), containsString("is not in the range [0...1]"));
 		}
 
-		kafkaProducer.setPartitionIdExpression(new ValueExpression<>(0));
+		kafkaProducer.setPartitionExpression(new ValueExpression<>(0));
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo"));
 
 		for (int i = 0; i < 100; i++) {

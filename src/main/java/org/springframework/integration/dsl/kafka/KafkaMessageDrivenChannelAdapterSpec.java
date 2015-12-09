@@ -37,6 +37,7 @@ import kafka.serializer.Decoder;
  * A {@link MessageProducerSpec} implementation for the {@link KafkaMessageDrivenChannelAdapter}.
  *
  * @author Artem Bilan
+ * @author Björn Häuser
  * @since 1.1
  */
 public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenChannelAdapterSpec<S>>
@@ -247,6 +248,20 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 			this.container.setMaxFetch(maxFetch);
 			return this;
 		}
+
+		/**
+		 * Specify an {@link Executor} for MessageListener tasks for the {@link KafkaMessageListenerContainer}.
+		 * @param dispatcherTaskExecutor the {@link Executor}.
+		 * @return the spec.
+		 * @see KafkaMessageListenerContainer#setDispatcherTaskExecutor(Executor)
+		 * @since 1.1.2
+		 */
+		public KafkaMessageListenerContainerSpec dispatcherTaskExecutor(Executor dispatcherTaskExecutor) {
+			this.container.setDispatcherTaskExecutor(dispatcherTaskExecutor);
+			return this;
+		}
+
+
 
 	}
 

@@ -80,6 +80,10 @@ public class AmqpTests {
 		Object result = this.amqpTemplate.convertSendAndReceive(this.amqpQueue.getName(), "world");
 		assertEquals("HELLO WORLD", result);
 
+		this.amqpInboundGateway.stop();
+		//INTEXT-209
+		this.amqpInboundGateway.start();
+
 		this.amqpTemplate.convertAndSend(this.amqpQueue.getName(), "world");
 		((RabbitTemplate) this.amqpTemplate).setReceiveTimeout(10000);
 		result = this.amqpTemplate.receiveAndConvert("defaultReplyTo");

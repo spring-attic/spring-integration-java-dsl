@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl.amqp;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
@@ -24,6 +26,7 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
+import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageProducerSpec;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ErrorHandler;
@@ -33,7 +36,8 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  */
-public class AmqpInboundChannelAdapterSpec extends AmqpBaseInboundChannelAdapterSpec<AmqpInboundChannelAdapterSpec> {
+public class AmqpInboundChannelAdapterSpec extends AmqpBaseInboundChannelAdapterSpec<AmqpInboundChannelAdapterSpec>
+		implements ComponentsRegistration {
 
 	private final SimpleMessageListenerContainer listenerContainer;
 
@@ -251,6 +255,11 @@ public class AmqpInboundChannelAdapterSpec extends AmqpBaseInboundChannelAdapter
 	public AmqpInboundChannelAdapterSpec defaultRequeueRejected(boolean defaultRequeueRejected) {
 		this.listenerContainer.setDefaultRequeueRejected(defaultRequeueRejected);
 		return this;
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		return Collections.<Object>singleton(this.listenerContainer);
 	}
 
 }

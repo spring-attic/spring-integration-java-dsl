@@ -228,6 +228,17 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 		}
 
 		/**
+		 * Specify an {@link Executor} for MessageListener tasks for the {@link KafkaMessageListenerContainer}.
+		 * @param dispatcherTaskExecutor the {@link Executor}.
+		 * @return the spec.
+		 * @see KafkaMessageListenerContainer#setDispatcherTaskExecutor(Executor)
+		 */
+		public KafkaMessageListenerContainerSpec dispatcherTaskExecutor(Executor dispatcherTaskExecutor) {
+			this.container.setDispatcherTaskExecutor(dispatcherTaskExecutor);
+			return this;
+		}
+
+		/**
 		 * Specify a queue size for the {@link KafkaMessageListenerContainer}.
 		 * @param queueSize the queue size.
 		 * @return the spec.

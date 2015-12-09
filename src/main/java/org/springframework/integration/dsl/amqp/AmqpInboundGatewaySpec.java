@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl.amqp;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
@@ -24,6 +26,7 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
+import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ErrorHandler;
 
@@ -33,7 +36,8 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  */
-public class AmqpInboundGatewaySpec extends AmqpBaseInboundGatewaySpec<AmqpInboundGatewaySpec> {
+public class AmqpInboundGatewaySpec extends AmqpBaseInboundGatewaySpec<AmqpInboundGatewaySpec>
+		implements ComponentsRegistration {
 
 	private final SimpleMessageListenerContainer listenerContainer;
 
@@ -253,5 +257,11 @@ public class AmqpInboundGatewaySpec extends AmqpBaseInboundGatewaySpec<AmqpInbou
 		this.listenerContainer.setDefaultRequeueRejected(defaultRequeueRejected);
 		return this;
 	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		return Collections.<Object>singleton(this.listenerContainer);
+	}
+
 
 }

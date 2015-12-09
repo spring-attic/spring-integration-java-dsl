@@ -10,3 +10,4 @@
 build
 hostkey.ser
 /bin/
+.springBeans

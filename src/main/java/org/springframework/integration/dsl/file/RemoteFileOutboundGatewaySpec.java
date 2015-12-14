@@ -147,7 +147,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 
 	@SuppressWarnings("deprecation")
 	public S renameExpression(String expression) {
-		this.target.setRenameExpression(expression);
+		this.target.setExpressionRename(PARSER.parseExpression(expression));
 		return _this();
 	}
 

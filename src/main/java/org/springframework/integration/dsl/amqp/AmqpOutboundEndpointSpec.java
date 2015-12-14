@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 
 	@SuppressWarnings("deprecation")
 	public AmqpOutboundEndpointSpec routingKeyExpression(String routingKeyExpression) {
-		endpoint.setRoutingKeyExpression(routingKeyExpression);
+		endpoint.setExpressionRoutingKey(PARSER.parseExpression(routingKeyExpression));
 		return this;
 	}
 
@@ -84,7 +84,7 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 
 	@SuppressWarnings("deprecation")
 	public AmqpOutboundEndpointSpec exchangeNameExpression(String exchangeNameExpression) {
-		endpoint.setExchangeNameExpression(exchangeNameExpression);
+		endpoint.setExpressionExchangeName(PARSER.parseExpression(exchangeNameExpression));
 		return this;
 	}
 
@@ -95,7 +95,7 @@ public class AmqpOutboundEndpointSpec extends MessageHandlerSpec<AmqpOutboundEnd
 
 	@SuppressWarnings("deprecation")
 	public AmqpOutboundEndpointSpec confirmCorrelationExpression(String confirmCorrelationExpression) {
-		endpoint.setConfirmCorrelationExpression(confirmCorrelationExpression);
+		endpoint.setExpressionConfirmCorrelation(PARSER.parseExpression(confirmCorrelationExpression));
 		return this;
 	}
 

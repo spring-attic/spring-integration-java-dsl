@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,8 @@ public class KafkaTests {
 
 	private static final String TEST_TOPIC2 = "test-topic2";
 
+	private static final String TEST_TOPIC3 = "test-topic3";
+
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
 	private MessageChannel sendToKafkaFlowInput;
@@ -115,6 +117,10 @@ public class KafkaTests {
 	@Qualifier("kafkaProducer.handler")
 	private KafkaProducerMessageHandler kafkaProducer;
 
+	@Autowired
+	@Qualifier("kafkaProducer3.handler")
+	private KafkaProducerMessageHandler kafkaProducer3;
+
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -127,7 +133,8 @@ public class KafkaTests {
 			assertThat(e.getMessage(), containsString("is not in the range [0...1]"));
 		}
 
-		kafkaProducer.setPartitionExpression(new ValueExpression<>(0));
+		this.kafkaProducer.setPartitionExpression(new ValueExpression<>(0));
+		this.kafkaProducer3.setPartitionExpression(new ValueExpression<>(0));
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo"));
 
 		for (int i = 0; i < 100; i++) {
@@ -190,7 +197,7 @@ public class KafkaTests {
 		                                     List<KafkaServer> kafkaServers) {
 			return new InitializingBean() {
 
-				private final List<String> topics = Arrays.asList(TEST_TOPIC, TEST_TOPIC2);
+				private final List<String> topics = Arrays.asList(TEST_TOPIC, TEST_TOPIC2, TEST_TOPIC3);
 
 				@Override
 				public void afterPropertiesSet() throws Exception {
@@ -240,11 +247,16 @@ public class KafkaTests {
 		@Bean
 		public IntegrationFlow sendToKafkaFlow(String serverAddress) {
 			return f -> f.<String>split(p -> FastList.newWithNValues(100, () -> p), null)
-					.handle(kafkaMessageHandler(serverAddress), e -> e.id("kafkaProducer"));
+					.publishSubscribeChannel(c -> c
+							.subscribe(sf -> sf.handle(kafkaMessageHandler(serverAddress, TEST_TOPIC),
+									e -> e.id("kafkaProducer")))
+							.subscribe(sf -> sf.handle(kafkaMessageHandler(serverAddress, TEST_TOPIC3),
+									e -> e.id("kafkaProducer3")))
+							);
 		}
 
 		@SuppressWarnings("unchecked")
-		private KafkaProducerMessageHandlerSpec kafkaMessageHandler(String serverAddress) {
+		private KafkaProducerMessageHandlerSpec kafkaMessageHandler(String serverAddress, String topic) {
 			Encoder<?> intEncoder = new IntEncoder(null);
 			return Kafka
 					.outboundChannelAdapter(props -> props
@@ -254,7 +266,7 @@ public class KafkaTests {
 							.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
 					.partitionId(m -> 1)
 					.addProducer(
-							new ProducerMetadata<>(TEST_TOPIC, Integer.class, String.class,
+							new ProducerMetadata<>(topic, Integer.class, String.class,
 									new EncoderAdaptingSerializer<>((Encoder<Integer>) intEncoder),
 									new StringSerializer()),
 							serverAddress);

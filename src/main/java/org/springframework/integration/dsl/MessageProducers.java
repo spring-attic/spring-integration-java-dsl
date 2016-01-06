@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,19 +75,19 @@ public class MessageProducers {
 
 	public JmsMessageDrivenChannelAdapterSpec<? extends JmsMessageDrivenChannelAdapterSpec<?>> jms(
 			AbstractMessageListenerContainer listenerContainer) {
-		return Jms.messageDriverChannelAdapter(listenerContainer);
+		return Jms.messageDrivenChannelAdapter(listenerContainer);
 	}
 
 	public JmsMessageDrivenChannelAdapterSpec<? extends JmsMessageDrivenChannelAdapterSpec<?>> jms(
 			javax.jms.ConnectionFactory connectionFactory) {
-		return Jms.messageDriverChannelAdapter(connectionFactory);
+		return Jms.messageDrivenChannelAdapter(connectionFactory);
 	}
 
 	public <C extends AbstractMessageListenerContainer>
 	JmsMessageDrivenChannelAdapterSpec<? extends JmsMessageDrivenChannelAdapterSpec<?>> jms(
 			javax.jms.ConnectionFactory connectionFactory,
 			Class<C> containerClass) {
-		return Jms.messageDriverChannelAdapter(connectionFactory, containerClass);
+		return Jms.messageDrivenChannelAdapter(connectionFactory, containerClass);
 	}
 
 	public HttpControllerEndpointSpec http(String viewName, String... path) {

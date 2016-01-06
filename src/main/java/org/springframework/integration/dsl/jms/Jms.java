@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,10 +194,53 @@ public abstract class Jms {
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to build on
 	 * @param <S>               the {@link JmsMessageDrivenChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
+	 * @deprecated - use {@link #messageDrivenChannelAdapter(AbstractMessageListenerContainer)}.
 	 */
+	@Deprecated
 	public static <S extends JmsMessageDrivenChannelAdapterSpec<S>>
 	JmsMessageDrivenChannelAdapterSpec<S> messageDriverChannelAdapter(
 			AbstractMessageListenerContainer listenerContainer) {
+		return messageDrivenChannelAdapter(listenerContainer);
+	}
+
+	/**
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * @param connectionFactory the JMS ConnectionFactory to build on
+	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
+	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory)}.
+	 */
+	@Deprecated
+	public static JmsMessageDrivenChannelAdapterSpec
+			.JmsMessageDrivenChannelAdapterListenerContainerSpec<DefaultMessageListenerContainer>
+				messageDriverChannelAdapter(ConnectionFactory connectionFactory) {
+		return messageDrivenChannelAdapter(connectionFactory);
+	}
+
+	/**
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * @param connectionFactory the JMS ConnectionFactory to build on
+	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
+	 *                          to instantiate listener container
+	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
+	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
+	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory, Class)}.
+	 */
+	@Deprecated
+	public static <C extends AbstractMessageListenerContainer>
+			JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<C>
+				messageDriverChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
+		return messageDrivenChannelAdapter(connectionFactory, containerClass);
+	}
+
+	/**
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to build on
+	 * @param <S>               the {@link JmsMessageDrivenChannelAdapterSpec} inheritor type
+	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
+	 */
+	public static <S extends JmsMessageDrivenChannelAdapterSpec<S>>
+			JmsMessageDrivenChannelAdapterSpec<S> messageDrivenChannelAdapter(
+					AbstractMessageListenerContainer listenerContainer) {
 		return new JmsMessageDrivenChannelAdapterSpec<S>(listenerContainer);
 	}
 
@@ -206,9 +249,10 @@ public abstract class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
-	public static JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<DefaultMessageListenerContainer>
-	messageDriverChannelAdapter(ConnectionFactory connectionFactory) {
-		return messageDriverChannelAdapter(connectionFactory, DefaultMessageListenerContainer.class);
+	public static JmsMessageDrivenChannelAdapterSpec
+			.JmsMessageDrivenChannelAdapterListenerContainerSpec<DefaultMessageListenerContainer>
+				messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
+		return messageDrivenChannelAdapter(connectionFactory, DefaultMessageListenerContainer.class);
 	}
 
 	/**
@@ -221,7 +265,7 @@ public abstract class Jms {
 	 */
 	public static <C extends AbstractMessageListenerContainer>
 	JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<C>
-	messageDriverChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
+			messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
 		try {
 			JmsListenerContainerSpec<C> spec = new JmsListenerContainerSpec<C>(containerClass)
 					.connectionFactory(connectionFactory);

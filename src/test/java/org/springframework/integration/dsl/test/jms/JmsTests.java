@@ -266,9 +266,9 @@ public class JmsTests {
 		}
 
 		@Bean
-		public IntegrationFlow jmsMessageDriverFlow() {
+		public IntegrationFlow jmsMessageDrivenFlow() {
 			return IntegrationFlows
-					.from(Jms.messageDriverChannelAdapter(this.jmsConnectionFactory)
+					.from(Jms.messageDrivenChannelAdapter(this.jmsConnectionFactory)
 							.destination("jmsMessageDriver"))
 					.<String, String>transform(String::toLowerCase)
 					.channel(jmsOutboundInboundReplyChannel())
@@ -278,7 +278,7 @@ public class JmsTests {
 		@Bean
 		public IntegrationFlow jmsMessageDrivenFlowWithContainer() {
 			return IntegrationFlows
-					.from(Jms.messageDriverChannelAdapter(
+					.from(Jms.messageDrivenChannelAdapter(
 							Jms.container(this.jmsConnectionFactory, "containerSpecDestination")
 									.pubSubDomain(false)
 									.get()))

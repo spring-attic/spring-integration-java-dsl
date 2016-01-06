@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.I0Itec.zkclient.ZkClient;
@@ -58,6 +59,7 @@ import org.springframework.integration.kafka.listener.Acknowledgment;
 import org.springframework.integration.kafka.listener.MetadataStoreOffsetManager;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.support.KafkaHeaders;
+import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;

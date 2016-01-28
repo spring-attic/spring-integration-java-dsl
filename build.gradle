@@ -48,7 +48,7 @@ compileTestJava {
 }
 
 ext {
-	activeMqVersion = '5.12.1'
+	activeMqVersion = '5.12.2'
 	apacheSshdVersion = '0.14.0'
 	commonsDbcpVersion = '1.4'
 	embedMongoVersion = '1.50.0'
@@ -148,9 +148,9 @@ dependencies {
 	}
 	testCompile "io.projectreactor:reactor-stream:$reactorVersion"
 	testCompile "org.testng:testng:$testNgVersion"
+	testCompile "org.apache.activemq:activemq-broker:$activeMqVersion"
 
 	testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
-	testRuntime "org.apache.activemq:activemq-broker:$activeMqVersion"
 	testRuntime "com.sun.mail:javax.mail:$mailVersion"
 	testRuntime "com.sun.mail:smtp:$mailVersion"
 	testRuntime "com.sun.mail:pop3:$mailVersion"

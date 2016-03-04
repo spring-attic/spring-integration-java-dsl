@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package org.springframework.integration.dsl.test.event;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,8 +36,11 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -48,11 +53,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class EventTests {
 
+	private static MessageGroupStore messageGroupStore = new SimpleMessageStore();
+
+	private static String GROUP_ID = "testGroup";
+
+	@BeforeClass
+	public static void setup() {
+		messageGroupStore.addMessageToGroup(GROUP_ID, new GenericMessage<>("foo"));
+	}
+
+
 	@Autowired
 	private ApplicationContext applicationContext;
 
 	@Autowired
 	private PollableChannel resultsChannel;
+
+	@Autowired
+	private PollableChannel delayedResults;
 
 	@Test
 	public void testRawApplicationEventListeningMessageProducer() {
@@ -66,6 +84,16 @@ public class EventTests {
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(TestApplicationEvent2.class));
 	}
+
+	@Test
+	public void testDelayRescheduling() {
+		Message<?> receive = this.delayedResults.receive(10000);
+		assertNotNull(receive);
+		assertEquals("foo", receive.getPayload());
+		assertEquals(1, messageGroupStore.getMessageGroupCount());
+		assertEquals(0, messageGroupStore.getMessageCountForAllMessageGroups());
+	}
+
 
 	@Configuration
 	@EnableIntegration
@@ -97,6 +125,15 @@ public class EventTests {
 					.channel(resultsChannel())
 					.get();
 		}
+
+		@Bean
+		public IntegrationFlow delayFlow() {
+			return flow ->
+					flow.delay(GROUP_ID, (String) null,
+							e -> e.messageStore(messageGroupStore).id("delayer"))
+							.channel(c -> c.queue("delayedResults"));
+		}
+
 
 	}
 

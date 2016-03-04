@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 package org.springframework.integration.dsl.config;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationListener;
@@ -57,7 +60,10 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  */
-public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
+public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware,
+		SmartInitializingSingleton {
+
+	private final Set<ApplicationListener<?>> applicationListeners = new HashSet<ApplicationListener<?>>();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -86,6 +92,18 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 			return bean;
 		}
 		return bean;
+	}
+
+	@Override
+	public void afterSingletonsInstantiated() {
+		if (this.beanFactory.containsBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)){
+			ApplicationEventMulticaster multicaster =
+					(ApplicationEventMulticaster) this.beanFactory.getBean(
+							AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
+			for (ApplicationListener<?> applicationListener : this.applicationListeners) {
+				multicaster.addApplicationListener(applicationListener);
+			}
+		}
 	}
 
 	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String beanName) {
@@ -186,15 +204,6 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 						.values()
 						.contains(component)) {
 					registerComponent(component, generateBeanName(component));
-					if (ApplicationListener.class.isAssignableFrom(
-							AopUtils.getTargetClass(component))
-							&& this.beanFactory.containsBean(
-							AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
-						ApplicationEventMulticaster multicaster =
-								(ApplicationEventMulticaster) this.beanFactory.getBean(
-										AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
-						multicaster.addApplicationListener((ApplicationListener<?>) component);
-					}
 				}
 			}
 		}
@@ -216,6 +225,9 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 					.setIntegrationEvaluationContext(evaluationContext);
 		}
 		this.beanFactory.initializeBean(component, beanName);
+		if (ApplicationListener.class.isAssignableFrom(AopUtils.getTargetClass(component))) {
+			this.applicationListeners.add((ApplicationListener<?>) component);
+		}
 	}
 
 	private String generateBeanName(Object instance) {

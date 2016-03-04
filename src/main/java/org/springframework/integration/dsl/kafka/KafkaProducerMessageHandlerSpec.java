@@ -238,6 +238,20 @@ public class KafkaProducerMessageHandlerSpec
 		return _this();
 	}
 
+	/**
+	 * Add Kafka Producer to this {@link KafkaProducerMessageHandler}
+	 * for the provided {@link ProducerConfiguration}.
+	 * @param producerConfiguration the {@link ProducerConfiguration} - options for Kafka {@link Producer}.
+	 * @return the spec.
+	 * @since 1.1.3
+	 */
+	public KafkaProducerMessageHandlerSpec addProducer(ProducerConfiguration producerConfiguration) {
+		Assert.notNull(producerConfiguration);
+		this.producerConfigurations.put(producerConfiguration.getProducerMetadata().getTopic(),
+					producerConfiguration);
+		return _this();
+	}
+
 	@Override
 	public Collection<Object> getComponentsToRegister() {
 		this.kafkaProducerContext.setProducerConfigurations(this.producerConfigurations);

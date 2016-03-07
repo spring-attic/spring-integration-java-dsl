@@ -221,9 +221,9 @@ public class FtpTests {
 			return IntegrationFlows.from("toFtpChannel")
 					// INTEXT-200
 					.handle(Ftp.outboundAdapter(this.ftpSessionFactory, FileExistsMode.FAIL)
-									.useTemporaryFileName(false)
-									.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
-									.remoteDirectory(this.ftpServer.getTargetFtpDirectory().getName())
+							.useTemporaryFileName(false)
+							.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+							.remoteDirectory(this.ftpServer.getTargetFtpDirectory().getName())
 					).get();
 		}
 
@@ -234,8 +234,8 @@ public class FtpTests {
 
 		@Bean
 		public MessageHandler ftpOutboundGateway() {
-			return Ftp.outboundGateway(this.ftpSessionFactory, AbstractRemoteFileOutboundGateway.Command.MGET,
-					"payload")
+			return Ftp.outboundGateway(this.ftpSessionFactory,
+					AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
 					.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
 					.regexFileNameFilter("(subFtpSource|.*1.txt)")
 					.localDirectoryExpression("@ftpServer.targetLocalDirectoryName + #remoteDirectory")

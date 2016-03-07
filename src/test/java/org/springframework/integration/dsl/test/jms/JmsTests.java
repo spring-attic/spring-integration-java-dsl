@@ -40,9 +40,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.GlobalChannelInterceptor;
@@ -117,14 +120,14 @@ public class JmsTests {
 
 	@Test
 	public void testPollingFlow() {
-		this.controlBus.send("@integerEndpoint.start()");
+		this.controlBus.send("@'jmsTests.ContextConfiguration.integerMessageSource.inboundChannelAdapter'.start()");
 		assertThat(this.beanFactory.getBean("integerChannel"), instanceOf(FixedSubscriberChannel.class));
 		for (int i = 0; i < 5; i++) {
 			Message<?> message = this.outputChannel.receive(20000);
 			assertNotNull(message);
 			assertEquals("" + i, message.getPayload());
 		}
-		this.controlBus.send("@integerEndpoint.stop()");
+		this.controlBus.send("@'jmsTests.ContextConfiguration.integerMessageSource.inboundChannelAdapter'.stop()");
 
 		assertTrue(((ChannelInterceptorAware) this.outputChannel).getChannelInterceptors()
 				.contains(this.testChannelInterceptor));
@@ -222,6 +225,7 @@ public class JmsTests {
 		}
 
 		@Bean
+		@InboundChannelAdapter(value = "flow1.input", autoStartup = "false", poller = @Poller(fixedRate = "100"))
 		public MessageSource<?> integerMessageSource() {
 			MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 			source.setObject(new AtomicInteger());
@@ -231,15 +235,11 @@ public class JmsTests {
 
 		@Bean
 		public IntegrationFlow flow1() {
-			return IntegrationFlows.from(integerMessageSource(),
-					c -> c.poller(p -> p.fixedRate(100))
-							.id("integerEndpoint")
-							.autoStartup(false))
+			return f -> f
 					.fixedSubscriberChannel("integerChannel")
 					.transform("payload.toString()")
 					.channel(Jms.pollableChannel("flow1QueueChannel", this.jmsConnectionFactory)
-							.destination("flow1QueueChannel"))
-					.get();
+							.destination("flow1QueueChannel"));
 		}
 
 		@Bean

@@ -110,10 +110,6 @@ public class KafkaTests {
 	private PollableChannel listeningFromKafkaResults;
 
 	@Autowired
-	private PollableChannel pollKafkaResults;
-
-
-	@Autowired
 	@Qualifier("kafkaProducer.handler")
 	private KafkaProducerMessageHandler kafkaProducer;
 
@@ -133,8 +129,8 @@ public class KafkaTests {
 			assertThat(e.getMessage(), containsString("is not in the range [0...1]"));
 		}
 
-		this.kafkaProducer.setPartitionExpression(new ValueExpression<>(0));
-		this.kafkaProducer3.setPartitionExpression(new ValueExpression<>(0));
+		this.kafkaProducer.setPartitionIdExpression(new ValueExpression<>(0));
+		this.kafkaProducer3.setPartitionIdExpression(new ValueExpression<>(0));
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo"));
 
 		for (int i = 0; i < 100; i++) {
@@ -149,20 +145,11 @@ public class KafkaTests {
 			assertEquals(i + 1, headers.get(KafkaHeaders.MESSAGE_KEY));
 			assertEquals((long) (i + 1), headers.get(KafkaHeaders.NEXT_OFFSET));
 		}
-		assertNull(this.pollKafkaResults.receive(10));
 
 		Message<String> message = MessageBuilder.withPayload("BAR").setHeader(KafkaHeaders.TOPIC, TEST_TOPIC2).build();
 
 		this.sendToKafkaFlowInput.send(message);
 
-		for (int i = 0; i < 10; i++) {
-			Message<?> receive = this.pollKafkaResults.receive(10000);
-			assertNotNull(receive);
-			assertThat(receive.getPayload(), instanceOf(List.class));
-			List<String> messages = (List<String>) receive.getPayload();
-			assertEquals(10, messages.size());
-			messages.forEach(m -> assertEquals("bar", m));
-		}
 		assertNull(this.listeningFromKafkaResults.receive(10));
 	}
 
@@ -270,32 +257,6 @@ public class KafkaTests {
 									new EncoderAdaptingSerializer<>((Encoder<Integer>) intEncoder),
 									new StringSerializer()),
 							serverAddress);
-		}
-
-		@Bean
-		public IntegrationFlow pollKafkaFlow(EmbeddedZookeeper zookeeper) {
-			return IntegrationFlows
-					.from(Kafka.inboundChannelAdapter(new ZookeeperConnect(zookeeper.connectString()))
-									.consumerProperties(props ->
-											props.put("auto.offset.reset", "smallest")
-													.put("auto.commit.interval.ms", "100"))
-									.addConsumer("myGroup", metadata -> metadata.consumerTimeout(100)
-											.topicStreamMap(m -> m.put(TEST_TOPIC2, 1))
-											.maxMessages(10)
-											.valueDecoder(String::new)),
-							e -> e.poller(p -> p.fixedDelay(100)))
-					.<Map<String, Map<Integer, List<String>>>, List<String>>transform(p ->
-							p.values()
-									.iterator()
-									.next()
-									.values()
-									.iterator()
-									.next()
-									.stream()
-									.map(String::toLowerCase)
-									.collect(Collectors.toList()))
-					.channel(c -> c.queue("pollKafkaResults"))
-					.get();
 		}
 
 		@Override

@@ -21,12 +21,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.Command;
+import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.sftp.SftpSubsystem;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.factory.DisposableBean;
@@ -125,9 +125,9 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 
 		this.server.setPasswordAuthenticator((username, password, session) -> true);
 		this.server.setPort(this.port);
-		this.server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-		this.server.setSubsystemFactories(Arrays.<NamedFactory<Command>>asList(new SftpSubsystem.Factory()));
-		this.server.setFileSystemFactory(new VirtualFileSystemFactory(sftpRootFolder.getAbsolutePath()));
+		this.server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+		this.server.setSubsystemFactories(Arrays.<NamedFactory<Command>>asList(new SftpSubsystemFactory()));
+		this.server.setFileSystemFactory(new VirtualFileSystemFactory(sftpRootFolder.toPath()));
 		this.server.start();
 	}
 

@@ -48,24 +48,25 @@ compileTestJava {
 }
 
 ext {
-	activeMqVersion = '5.12.2'
-	apacheSshdVersion = '0.14.0'
+	activeMqVersion = '5.13.2'
+	apacheSshdVersion = '1.1.0'
 	commonsDbcpVersion = '1.4'
-	embedMongoVersion = '1.50.0'
+	embedMongoVersion = '1.50.2'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.3'
 	jmsApiVersion = '1.1-rev-1'
-	jrubyVersion = '1.7.19'
-	jythonVersion = '2.5.3'
+	jrubyVersion = '9.0.5.0'
+	jythonVersion = '2.7.0'
 	kafkaVersion = '0.8.2.2'
-	mailVersion = '1.5.4'
+	mailVersion = '1.5.5'
 	reactiveStreamsVersion = '1.0.0'
 	reactorVersion = '2.0.7.RELEASE'
 	scalaVersion = '2.10'
-	slf4jVersion = '1.7.12'
-	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.2.4.RELEASE'
-	springIntegrationKafkaVersion = '1.2.1.RELEASE'
-	springBootVersion = '1.3.0.RELEASE'
+	slf4jVersion = '1.7.18'
+	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.0.BUILD-SNAPSHOT'
+	springIntegrationKafkaVersion = '1.3.0.RELEASE'
+	springKafkaVersion = '1.0.0.BUILD-SNAPSHOT'
+	springBootVersion = '1.4.0.BUILD-SNAPSHOT'
 	testNgVersion = '6.8.21'
 	tomcatVersion = '8.0.28'
 
@@ -111,6 +112,7 @@ dependencies {
 	 , 'spring-integration-xmpp'].each {
 		compile("org.springframework.integration:$it:$springIntegrationVersion", optional)
 	}
+
 	compile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
 		optional it
 		exclude group: 'org.apache.avro', module: 'avro'
@@ -121,6 +123,8 @@ dependencies {
 		exclude group: 'log4j', module: 'log4j'
 		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 	}
+
+	compile("org.springframework.kafka:spring-kafka:$springKafkaVersion", optional)
 
 	compile("org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion") {
 		optional it
@@ -139,10 +143,12 @@ dependencies {
 	testCompile "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embedMongoVersion"
 	testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
+
 	testCompile("org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test") {
 		exclude group: 'log4j', module: 'log4j'
 		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 	}
+
 	testCompile("org.reactivestreams:reactive-streams-tck:$reactiveStreamsVersion") {
 		exclude group: 'org.reactivestreams', module: 'reactive-streams-examples'
 	}
@@ -302,10 +308,4 @@ artifacts {
 task dist(dependsOn: assemble) {
 	group = 'Distribution'
 	description = 'Builds -dist, -docs and distribution archives.'
-}
-
-task wrapper(type: Wrapper) {
-	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '2.5'
-	distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }

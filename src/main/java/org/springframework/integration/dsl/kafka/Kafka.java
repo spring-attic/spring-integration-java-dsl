@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,9 @@ public abstract class Kafka {
 	 * Create an initial {@link KafkaHighLevelConsumerMessageSourceSpec}.
 	 * @param zookeeperConnect the zookeeperConnect.
 	 * @return the KafkaHighLevelConsumerMessageSourceSpec.
+	 * @deprecated since Spring Integration Kafka 1.3
 	 */
+	@Deprecated
 	public static KafkaHighLevelConsumerMessageSourceSpec inboundChannelAdapter(ZookeeperConnect zookeeperConnect) {
 		return new KafkaHighLevelConsumerMessageSourceSpec(zookeeperConnect);
 	}
@@ -80,14 +82,14 @@ public abstract class Kafka {
 	 * @param messageListenerContainer the {@link KafkaMessageListenerContainer}.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
-	@SuppressWarnings("rawtypes")
 	public static KafkaMessageDrivenChannelAdapterSpec messageDriverChannelAdapter(
 			KafkaMessageListenerContainer messageListenerContainer) {
 		return new KafkaMessageDrivenChannelAdapterSpec(messageListenerContainer);
 	}
 
 	/**
-	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
+	 * Create an initial
+	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param connectionFactory the {@link ConnectionFactory}.
 	 * @param partitions the {@link Partition} vararg.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
@@ -95,11 +97,13 @@ public abstract class Kafka {
 	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
 	messageDriverChannelAdapter(ConnectionFactory connectionFactory, Partition... partitions) {
 		return messageDriverChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(connectionFactory, partitions));
+				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(connectionFactory,
+						partitions));
 	}
 
 	/**
-	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
+	 * Create an initial
+	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param connectionFactory the {@link ConnectionFactory}.
 	 * @param topics the Kafka topic name vararg.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.

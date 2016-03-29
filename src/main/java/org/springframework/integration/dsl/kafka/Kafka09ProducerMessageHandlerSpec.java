@@ -53,7 +53,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param topic the Kafka topic name.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec topic(String topic) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> topic(String topic) {
 		return topicExpression(new LiteralExpression(topic));
 	}
 
@@ -64,7 +64,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param topicExpression the topic SpEL expression.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec topicExpression(String topicExpression) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> topicExpression(String topicExpression) {
 		return topicExpression(PARSER.parseExpression(topicExpression));
 	}
 
@@ -74,7 +74,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param topicExpression the topic expression.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec topicExpression(Expression topicExpression) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> topicExpression(Expression topicExpression) {
 		this.target.setTopicExpression(topicExpression);
 		return _this();
 	}
@@ -92,7 +92,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @return the current {@link Kafka09ProducerMessageHandlerSpec}.
 	 * @see FunctionExpression
 	 */
-	public <P> Kafka09ProducerMessageHandlerSpec topic(Function<Message<P>, String> topicFunction) {
+	public <P> Kafka09ProducerMessageHandlerSpec<K, V> topic(Function<Message<P>, String> topicFunction) {
 		return topicExpression(new FunctionExpression<Message<P>>(topicFunction));
 	}
 
@@ -102,7 +102,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param messageKeyExpression the message key SpEL expression.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec messageKeyExpression(String messageKeyExpression) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> messageKeyExpression(String messageKeyExpression) {
 		return messageKeyExpression(PARSER.parseExpression(messageKeyExpression));
 	}
 
@@ -111,7 +111,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param messageKey the message key to use.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec messageKey(String messageKey) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> messageKey(String messageKey) {
 		return messageKeyExpression(new LiteralExpression(messageKey));
 	}
 
@@ -121,7 +121,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param messageKeyExpression the message key expression.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec messageKeyExpression(Expression messageKeyExpression) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> messageKeyExpression(Expression messageKeyExpression) {
 		target.setMessageKeyExpression(messageKeyExpression);
 		return _this();
 	}
@@ -139,7 +139,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @return the current {@link Kafka09ProducerMessageHandlerSpec}.
 	 * @see FunctionExpression
 	 */
-	public <P> Kafka09ProducerMessageHandlerSpec messageKey(Function<Message<P>, ?> messageKeyFunction) {
+	public <P> Kafka09ProducerMessageHandlerSpec<K, V> messageKey(Function<Message<P>, ?> messageKeyFunction) {
 		return messageKeyExpression(new FunctionExpression<Message<P>>(messageKeyFunction));
 	}
 
@@ -148,7 +148,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param partitionId the partitionId to use.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec partitionId(Integer partitionId) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> partitionId(Integer partitionId) {
 		return partitionIdExpression(new ValueExpression<Integer>(partitionId));
 	}
 
@@ -158,7 +158,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param partitionIdExpression the partitionId expression to use.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec partitionIdExpression(String partitionIdExpression) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> partitionIdExpression(String partitionIdExpression) {
 		return partitionIdExpression(PARSER.parseExpression(partitionIdExpression));
 	}
 
@@ -174,7 +174,7 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param <P> the expected payload type.
 	 * @return the spec.
 	 */
-	public <P> Kafka09ProducerMessageHandlerSpec partitionId(Function<Message<P>, Integer> partitionIdFunction) {
+	public <P> Kafka09ProducerMessageHandlerSpec<K, V> partitionId(Function<Message<P>, Integer> partitionIdFunction) {
 		return partitionIdExpression(new FunctionExpression<Message<P>>(partitionIdFunction));
 	}
 
@@ -184,13 +184,13 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 	 * @param partitionIdExpression the partitionId expression to use.
 	 * @return the spec.
 	 */
-	public Kafka09ProducerMessageHandlerSpec partitionIdExpression(Expression partitionIdExpression) {
+	public Kafka09ProducerMessageHandlerSpec<K, V> partitionIdExpression(Expression partitionIdExpression) {
 		this.target.setPartitionIdExpression(partitionIdExpression);
 		return _this();
 	}
 
 	@Override
-	protected Kafka09ProducerMessageHandler doGet() {
+	protected Kafka09ProducerMessageHandler<K, V> doGet() {
 		throw new UnsupportedOperationException();
 	}
 

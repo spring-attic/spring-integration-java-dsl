@@ -82,6 +82,7 @@ public abstract class Kafka {
 	 * @param messageListenerContainer the {@link KafkaMessageListenerContainer}.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
+	@SuppressWarnings("rawtypes")
 	public static KafkaMessageDrivenChannelAdapterSpec messageDriverChannelAdapter(
 			KafkaMessageListenerContainer messageListenerContainer) {
 		return new KafkaMessageDrivenChannelAdapterSpec(messageListenerContainer);

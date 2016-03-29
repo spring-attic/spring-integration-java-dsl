@@ -36,6 +36,8 @@ public abstract class Kafka09 {
 	/**
 	 * Create an initial {@link Kafka09ProducerMessageHandlerSpec}.
 	 * @param kafkaTemplate the {@link KafkaTemplate} to use
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the Kafka09ProducerMessageHandlerSpec.
 	 */
 	public static <K, V> Kafka09ProducerMessageHandlerSpec<K, V>
@@ -46,10 +48,12 @@ public abstract class Kafka09 {
 	/**
 	 * Create an initial {@link Kafka09ProducerMessageHandlerSpec} with ProducerFactory.
 	 * @param producerFactory the {@link ProducerFactory} Java 8 Lambda.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the KafkaProducerMessageHandlerSpec.
 	 * @see <a href="https://kafka.apache.org/documentation.html#producerconfigs">Kafka Producer Configs</a>
 	 */
-	public static <K, V> Kafka09ProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec
+	public static <K, V> Kafka09ProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec<K, V>
 	outboundChannelAdapter(ProducerFactory<K, V> producerFactory) {
 		return new Kafka09ProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec<K, V>(producerFactory);
 	}
@@ -57,11 +61,15 @@ public abstract class Kafka09 {
 	/**
 	 * Create an initial {@link Kafka09MessageDrivenChannelAdapterSpec}.
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer}.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @param <A> the {@link Kafka09MessageDrivenChannelAdapterSpec} extension type.
 	 * @return the Kafka09MessageDrivenChannelAdapterSpec.
 	 */
-	public static Kafka09MessageDrivenChannelAdapterSpec messageDriverChannelAdapter(
-			AbstractMessageListenerContainer<?, ?> listenerContainer) {
-		return new Kafka09MessageDrivenChannelAdapterSpec(listenerContainer);
+	public static <K, V, A extends Kafka09MessageDrivenChannelAdapterSpec<K, V, A>>
+	Kafka09MessageDrivenChannelAdapterSpec<K, V, A> messageDriverChannelAdapter(
+			AbstractMessageListenerContainer<K, V> listenerContainer) {
+		return new Kafka09MessageDrivenChannelAdapterSpec<K, V, A>(listenerContainer);
 	}
 
 	/**
@@ -69,12 +77,15 @@ public abstract class Kafka09 {
 	 * {@link Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param consumerFactory the {@link ConsumerFactory}.
 	 * @param topicPartitions the {@link TopicPartition} vararg.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
-	public static Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDriverChannelAdapter(ConsumerFactory<?, ?> consumerFactory, TopicPartition... topicPartitions) {
+	public static <K, V>
+	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, TopicPartition... topicPartitions) {
 		return messageDriverChannelAdapter(
-				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(consumerFactory,
+				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						topicPartitions));
 	}
 
@@ -83,12 +94,15 @@ public abstract class Kafka09 {
 	 * {@link Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param consumerFactory the {@link ConsumerFactory}.
 	 * @param topics the topics vararg.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
-	public static Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDriverChannelAdapter(ConsumerFactory<?, ?> consumerFactory, String... topics) {
+	public static <K, V>
+	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, String... topics) {
 		return messageDriverChannelAdapter(
-				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(consumerFactory,
+				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						topics));
 	}
 
@@ -97,18 +111,23 @@ public abstract class Kafka09 {
 	 * {@link Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param consumerFactory the {@link ConsumerFactory}.
 	 * @param topicPattern the topicPattern vararg.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
-	public static Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDriverChannelAdapter(ConsumerFactory<?, ?> consumerFactory, Pattern topicPattern) {
+	public static <K, V>
+	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
 		return messageDriverChannelAdapter(
-				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(consumerFactory,
+				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						topicPattern));
 	}
 
-	private static Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDriverChannelAdapter(Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec spec) {
-		return new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec(spec);
+	private static <K, V>
+	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDriverChannelAdapter(Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V> spec) {
+		return new Kafka09MessageDrivenChannelAdapterSpec
+				.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>(spec);
 	}
 
 }

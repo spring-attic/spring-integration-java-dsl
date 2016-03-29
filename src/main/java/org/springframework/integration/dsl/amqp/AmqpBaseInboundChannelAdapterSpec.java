@@ -30,7 +30,7 @@ import org.springframework.integration.dsl.core.MessageProducerSpec;
 public class AmqpBaseInboundChannelAdapterSpec<S extends AmqpBaseInboundChannelAdapterSpec<S>>
 		extends MessageProducerSpec<S, AmqpInboundChannelAdapter> {
 
-	private final DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+	private final DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	AmqpBaseInboundChannelAdapterSpec(AmqpInboundChannelAdapter producer) {
 		super(producer);

@@ -39,10 +39,10 @@ import org.springframework.util.Assert;
  *
  * @since 1.2
  */
-public class Kafka09MessageDrivenChannelAdapterSpec<S extends Kafka09MessageDrivenChannelAdapterSpec<S>>
-		extends MessageProducerSpec<S, Kafka09MessageDrivenChannelAdapter> {
+public class Kafka09MessageDrivenChannelAdapterSpec<K, V, S extends Kafka09MessageDrivenChannelAdapterSpec<K, V, S>>
+		extends MessageProducerSpec<S, Kafka09MessageDrivenChannelAdapter<K, V>> {
 
-	<K, V> Kafka09MessageDrivenChannelAdapterSpec(AbstractMessageListenerContainer<K, V> messageListenerContainer) {
+	Kafka09MessageDrivenChannelAdapterSpec(AbstractMessageListenerContainer<K, V> messageListenerContainer) {
 		super(new Kafka09MessageDrivenChannelAdapter<K, V>(messageListenerContainer));
 	}
 
@@ -81,13 +81,13 @@ public class Kafka09MessageDrivenChannelAdapterSpec<S extends Kafka09MessageDriv
 	 * A {@link ConcurrentMessageListenerContainer} configuration {@link Kafka09MessageDrivenChannelAdapterSpec}
 	 * extension.
 	 */
-	public static class KafkaMessageDrivenChannelAdapterListenerContainerSpec extends
-			Kafka09MessageDrivenChannelAdapterSpec<KafkaMessageDrivenChannelAdapterListenerContainerSpec>
+	public static class KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> extends
+			Kafka09MessageDrivenChannelAdapterSpec<K, V, KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>>
 			implements ComponentsRegistration {
 
-		private KafkaMessageListenerContainerSpec spec;
+		private KafkaMessageListenerContainerSpec<K, V> spec;
 
-		KafkaMessageDrivenChannelAdapterListenerContainerSpec(KafkaMessageListenerContainerSpec spec) {
+		KafkaMessageDrivenChannelAdapterListenerContainerSpec(KafkaMessageListenerContainerSpec<K, V> spec) {
 			super(spec.container);
 			this.spec = spec;
 		}
@@ -98,8 +98,8 @@ public class Kafka09MessageDrivenChannelAdapterSpec<S extends Kafka09MessageDriv
 		 * @param configurer the configurer Java 8 Lambda.
 		 * @return the spec.
 		 */
-		public KafkaMessageDrivenChannelAdapterListenerContainerSpec configureListenerContainer(
-				Consumer<KafkaMessageListenerContainerSpec> configurer) {
+		public KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> configureListenerContainer(
+				Consumer<KafkaMessageListenerContainerSpec<K, V>> configurer) {
 			Assert.notNull(configurer);
 			configurer.accept(this.spec);
 			return _this();
@@ -116,20 +116,20 @@ public class Kafka09MessageDrivenChannelAdapterSpec<S extends Kafka09MessageDriv
 	 * A helper class in the Builder pattern style to delegate options to the
 	 * {@link ConcurrentMessageListenerContainer}.
 	 */
-	public static class KafkaMessageListenerContainerSpec {
+	public static class KafkaMessageListenerContainerSpec<K, V> {
 
-		private final ConcurrentMessageListenerContainer<?, ?> container;
+		private final ConcurrentMessageListenerContainer<K, V> container;
 
-		<K, V> KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory,
+		KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory,
 				TopicPartition... topicPartitions) {
 			this.container = new ConcurrentMessageListenerContainer<K, V>(consumerFactory, topicPartitions);
 		}
 
-		<K, V> KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory, String... topics) {
+		KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory, String... topics) {
 			this.container = new ConcurrentMessageListenerContainer<K, V>(consumerFactory, topics);
 		}
 
-		<K, V> KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
+		KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
 			this.container = new ConcurrentMessageListenerContainer<K, V>(consumerFactory, topicPattern);
 		}
 
@@ -139,7 +139,7 @@ public class Kafka09MessageDrivenChannelAdapterSpec<S extends Kafka09MessageDriv
 		 * @return the spec.
 		 * @see ErrorHandler
 		 */
-		public KafkaMessageListenerContainerSpec errorHandler(ErrorHandler errorHandler) {
+		public KafkaMessageListenerContainerSpec<K, V> errorHandler(ErrorHandler errorHandler) {
 			this.container.setErrorHandler(errorHandler);
 			return this;
 		}
@@ -150,37 +150,37 @@ public class Kafka09MessageDrivenChannelAdapterSpec<S extends Kafka09MessageDriv
 		 * @return the spec.
 		 * @see ConcurrentMessageListenerContainer#setConcurrency(int)
 		 */
-		public KafkaMessageListenerContainerSpec concurrency(int concurrency) {
+		public KafkaMessageListenerContainerSpec<K, V> concurrency(int concurrency) {
 			this.container.setConcurrency(concurrency);
 			return this;
 		}
 
-		public KafkaMessageListenerContainerSpec ackMode(AbstractMessageListenerContainer.AckMode ackMode) {
+		public KafkaMessageListenerContainerSpec<K, V> ackMode(AbstractMessageListenerContainer.AckMode ackMode) {
 			this.container.setAckMode(ackMode);
 			return this;
 		}
 
-		public KafkaMessageListenerContainerSpec pollTimeout(long pollTimeout) {
+		public KafkaMessageListenerContainerSpec<K, V> pollTimeout(long pollTimeout) {
 			this.container.setPollTimeout(pollTimeout);
 			return this;
 		}
 
-		public KafkaMessageListenerContainerSpec ackCount(int count) {
+		public KafkaMessageListenerContainerSpec<K, V> ackCount(int count) {
 			this.container.setAckCount(count);
 			return this;
 		}
 
-		public KafkaMessageListenerContainerSpec ackTime(long millis) {
+		public KafkaMessageListenerContainerSpec<K, V> ackTime(long millis) {
 			this.container.setAckTime(millis);
 			return this;
 		}
 
-		public KafkaMessageListenerContainerSpec taskExecutor(Executor taskExecutor) {
+		public KafkaMessageListenerContainerSpec<K, V> taskExecutor(Executor taskExecutor) {
 			this.container.setTaskExecutor(taskExecutor);
 			return this;
 		}
 
-		public KafkaMessageListenerContainerSpec recentOffset(long recentOffset) {
+		public KafkaMessageListenerContainerSpec<K, V> recentOffset(long recentOffset) {
 			this.container.setRecentOffset(recentOffset);
 			return this;
 		}

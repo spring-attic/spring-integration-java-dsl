@@ -28,35 +28,31 @@ import org.springframework.integration.dsl.core.MessageSourceSpec;
 import org.springframework.integration.dsl.support.Consumer;
 import org.springframework.integration.dsl.support.MapBuilder;
 import org.springframework.integration.dsl.support.PropertiesBuilder;
-import org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource;
-import org.springframework.integration.kafka.support.ConsumerConfigFactoryBean;
-import org.springframework.integration.kafka.support.ConsumerConfiguration;
-import org.springframework.integration.kafka.support.ConsumerConnectionProvider;
-import org.springframework.integration.kafka.support.ConsumerMetadata;
-import org.springframework.integration.kafka.support.KafkaConsumerContext;
-import org.springframework.integration.kafka.support.MessageLeftOverTracker;
-import org.springframework.integration.kafka.support.TopicFilterConfiguration;
-import org.springframework.integration.kafka.support.ZookeeperConnect;
+//TODO This asterisk import to avoid 'deprecated' compiler warning. This class will be removed in the next major release.
+import org.springframework.integration.kafka.support.*;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import kafka.serializer.Decoder;
 
 /**
- * A {@link MessageSourceSpec} for {@link KafkaHighLevelConsumerMessageSource}.
+ * A {@link MessageSourceSpec}
+ * for {@link org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource}.
  *
  * @author Artem Bilan
  * @since 1.1
  */
 @SuppressWarnings({"rawtypes", "unchecked", "deprecation"})
 public class KafkaHighLevelConsumerMessageSourceSpec
-		extends MessageSourceSpec<KafkaHighLevelConsumerMessageSourceSpec, KafkaHighLevelConsumerMessageSource<?, ?>>
+		extends MessageSourceSpec<KafkaHighLevelConsumerMessageSourceSpec,
+		org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource<?, ?>>
 		implements ComponentsRegistration {
 
 	private final KafkaConsumerContext consumerContext = new KafkaConsumerContext();
 
-	private final KafkaHighLevelConsumerMessageSource kafkaHighLevelConsumerMessageSource =
-			new KafkaHighLevelConsumerMessageSource(this.consumerContext);
+	private final org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource
+			kafkaHighLevelConsumerMessageSource =
+			new org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource(this.consumerContext);
 
 	private final Map<String, ConsumerConfiguration> consumerConfigurations =
 			new HashMap<String, ConsumerConfiguration>();
@@ -91,7 +87,8 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 	}
 
 	/**
-	 * Add Kafka High Level Consumer to this {@link KafkaHighLevelConsumerMessageSource}
+	 * Add Kafka High Level Consumer to this
+	 * {@link org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource}
 	 * under provided {@code groupId}.
 	 * @param groupId the Consumer group id.
 	 * @param consumerMetadataSpec the Consumer metadata Java 8 Lambda.
@@ -119,7 +116,7 @@ public class KafkaHighLevelConsumerMessageSourceSpec
 	}
 
 	@Override
-	protected KafkaHighLevelConsumerMessageSource<?, ?> doGet() {
+	protected org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource<?, ?> doGet() {
 		Assert.state(!this.consumerConfigurations.isEmpty(), "At least one 'Consumer' must be specified.");
 		return this.kafkaHighLevelConsumerMessageSource;
 	}

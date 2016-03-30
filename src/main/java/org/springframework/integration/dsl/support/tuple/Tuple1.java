@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,68 @@ package org.springframework.integration.dsl.support.tuple;
  * @param <T1> The type held by this tuple
  *
  * @author Jon Brisbin
+ * @author Artem Bilan
  */
 public class Tuple1<T1> extends Tuple {
 
 	private static final long serialVersionUID = -1467756857377152573L;
 
-	Tuple1(Object... values) {
-		super(values);
+	public final T1 t1;
+
+	Tuple1(int size, T1 t1) {
+		super(1);
+		this.t1 = t1;
 	}
 
 	/**
 	 * Type-safe way to get the first object of this {@link Tuple}.
-	 *
 	 * @return The first object, cast to the correct type.
 	 */
-	@SuppressWarnings("unchecked")
 	public T1 getT1() {
-		return (T1) get(0);
+		return this.t1;
+	}
+
+	@Override
+	public Object get(int index) {
+		switch (index) {
+			case 0:
+				return t1;
+			default:
+				return null;
+		}
+	}
+
+	@Override
+	public Object[] toArray() {
+		return new Object[] {this.t1};
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o))
+			return false;
+
+		Tuple1<?> tuple1 = (Tuple1<?>) o;
+
+		return this.t1 != null ? this.t1.equals(tuple1.t1) : tuple1.t1 == null;
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + (this.t1 != null ? t1.hashCode() : 0);
+		return result;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() +
+				(t1 != null ? "," + t1.toString() : "");
 	}
 
 }

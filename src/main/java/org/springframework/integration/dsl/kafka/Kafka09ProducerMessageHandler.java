@@ -24,6 +24,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The copy of {@code org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler}
@@ -33,15 +34,12 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Marius Bogoevici
- * @since 0.5
  */
 public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler {
 
 	private final KafkaTemplate<K, V> kafkaTemplate;
 
 	private EvaluationContext evaluationContext;
-
-	private boolean enableHeaderRouting = true;
 
 	private volatile Expression topicExpression;
 
@@ -54,34 +52,12 @@ public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler 
 		this.kafkaTemplate = kafkaTemplate;
 	}
 
-	/**
-	 * Enable the use of headers for determining the target topic and partition of outbound messages. By default it is
-	 * set to true, but it can be disabled when those values are produced by upstream components that read messages
-	 * from Kafka sources themselves.
-	 * @param enableHeaderRouting whether the topic and destination headers should be considered
-	 * @since 1.3
-	 * @see KafkaHeaders#TOPIC
-	 * @see KafkaHeaders#PARTITION_ID
-	 */
-	public void setEnableHeaderRouting(boolean enableHeaderRouting) {
-		this.enableHeaderRouting = enableHeaderRouting;
-	}
-
 	public void setTopicExpression(Expression topicExpression) {
 		this.topicExpression = topicExpression;
 	}
 
 	public void setMessageKeyExpression(Expression messageKeyExpression) {
 		this.messageKeyExpression = messageKeyExpression;
-	}
-
-	/**
-	 * @param partitionExpression an expression that returns a partition id
-	 * @deprecated as of 1.3, {@link #setPartitionIdExpression(Expression)} should be used instead
-	 */
-	@Deprecated
-	public void setPartitionExpression(Expression partitionExpression) {
-		setPartitionIdExpression(partitionExpression);
 	}
 
 	public void setPartitionIdExpression(Expression partitionIdExpression) {
@@ -103,23 +79,33 @@ public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler 
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
 		String topic = this.topicExpression != null ?
 				this.topicExpression.getValue(this.evaluationContext, message, String.class)
-				//TODO revise the headers fallback behavior in favor of just expression
-				: (this.enableHeaderRouting ? message.getHeaders().get(KafkaHeaders.TOPIC, String.class) : null);
+				: message.getHeaders().get(KafkaHeaders.TOPIC, String.class);
+
+		Assert.state(StringUtils.hasText(topic), "The 'topic' can not be empty or null.");
 
 		Integer partitionId = this.partitionIdExpression != null ?
 				this.partitionIdExpression.getValue(this.evaluationContext, message, Integer.class)
-				: (this.enableHeaderRouting ? message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class) : null);
+				: message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class);
 
 		Object messageKey = this.messageKeyExpression != null
 				? this.messageKeyExpression.getValue(this.evaluationContext, message)
 				: message.getHeaders().get(KafkaHeaders.MESSAGE_KEY);
 
-		// TODO: Add KafkaTemplate method with topic, partition, data only (no key)
 		if (partitionId == null) {
-			this.kafkaTemplate.convertAndSend(topic, (K) messageKey, ((V) message.getPayload()));
+			if (messageKey == null) {
+				this.kafkaTemplate.send(topic, (V) message.getPayload());
+			}
+			else {
+				this.kafkaTemplate.send(topic, (K) messageKey, (V) message.getPayload());
+			}
 		}
 		else {
-			this.kafkaTemplate.convertAndSend(topic, partitionId, (K) messageKey, ((V) message.getPayload()));
+			if (messageKey == null) {
+				this.kafkaTemplate.send(topic, partitionId, (V) message.getPayload());
+			}
+			else {
+				this.kafkaTemplate.send(topic, partitionId, (K) messageKey, (V) message.getPayload());
+			}
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public abstract class Tuples {
 	 * @return The new {@link Tuple1}.
 	 */
 	public static <T1> Tuple1<T1> of(T1 t1) {
-		return new Tuple1<T1>(t1);
+		return new Tuple1<T1>(1, t1);
 	}
 
 	/**
@@ -41,7 +41,15 @@ public abstract class Tuples {
 	 * @return The new {@link Tuple2}.
 	 */
 	public static <T1, T2> Tuple2<T1, T2> of(T1 t1, T2 t2) {
-		return new Tuple2<T1, T2>(t1, t2);
+		return new Tuple2<T1, T2>(2, t1, t2);
 	}
+
+	/**
+	 * @return An empty tuple
+	 */
+	public static Tuple empty() {
+		return Tuple.empty;
+	}
+
 
 }

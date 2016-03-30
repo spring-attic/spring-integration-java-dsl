@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,8 @@ package org.springframework.integration.dsl.support.tuple;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
-
-import org.springframework.util.Assert;
+import java.util.List;
 
 /**
  * A {@literal Tuple} is an immutable {@link java.util.Collection} of objects,
@@ -29,60 +27,49 @@ import org.springframework.util.Assert;
  *
  * @author Jon Brisbin
  * @author Stephane Maldini
+ * @author Artem Bilan
  */
-@SuppressWarnings({"rawtypes"})
-public class Tuple implements Iterable, Serializable {
+public class Tuple implements Iterable<Object>, Serializable {
 
 	private static final long serialVersionUID = 8777121214502020842L;
 
-	protected final Object[] entries;
+	static final Object[] emptyArray       = new Object[0];
+	static final Tuple    empty            = new Tuple(0);
+
 
 	protected final int size;
 
 	/**
 	 * Creates a new {@code Tuple} that holds the given {@code values}.
-	 *
-	 * @param values The values to hold
+	 * @param size The number of values to hold
 	 */
-	public Tuple(Collection<Object> values) {
-		Assert.notEmpty(values);
-		this.entries = values.toArray();
-		this.size = entries.length;
-	}
-
-	/**
-	 * Creates a new {@code Tuple} that holds the given {@code values}.
-	 *
-	 * @param values The values to hold
-	 */
-	public Tuple(Object... values) {
-		this.entries = Arrays.copyOf(values, values.length);
-		this.size = values.length;
+	protected Tuple(int size) {
+		this.size = size;
 	}
 
 
-	/**
-	 * Get the object at the given index.
-	 *
-	 * @param index The index of the object to retrieve. Starts at 0.
-	 * @return The object. Might be {@literal null}.
-	 */
 	public Object get(int index) {
-		return (size > 0 && size > index ? entries[index] : null);
+		return null;
 	}
 
 	/**
 	 * Turn this {@literal Tuple} into a plain Object array.
-	 *
 	 * @return A new Object array.
 	 */
 	public Object[] toArray() {
-		return entries;
+		return emptyArray;
+	}
+
+	/**
+	 * Turn this {@literal Tuple} into a plain Object list.
+	 * @return A new Object list.
+	 */
+	public List<Object> toList() {
+		return Arrays.asList(toArray());
 	}
 
 	/**
 	 * Return the number of elements in this {@literal Tuple}.
-	 *
 	 * @return The size of this {@literal Tuple}.
 	 */
 	public int size() {
@@ -90,44 +77,26 @@ public class Tuple implements Iterable, Serializable {
 	}
 
 	@Override
-	public Iterator<?> iterator() {
-		return Arrays.asList(entries).iterator();
-	}
-
-
-	@Override
-	public int hashCode() {
-		if (this.size == 0) {
-			return 0;
-		}
-		else if (this.size == 1) {
-			return this.entries[0].hashCode();
-		}
-		else {
-			int hashCode = 1;
-			for (Object entry : this.entries) {
-				hashCode = hashCode ^ entry.hashCode();
-			}
-			return hashCode;
-		}
+	public Iterator<Object> iterator() {
+		return toList().iterator();
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (o == null) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-		if (!(o instanceof Tuple)) return false;
+		Tuple tuple = (Tuple) o;
 
-		Tuple cast = (Tuple) o;
+		return this.size == tuple.size;
 
-		if (this.size != cast.size) return false;
+	}
 
-		for (int i = 0; i < this.size; i++) {
-			if (!this.entries[i].equals(cast.entries[i])) {
-				return false;
-			}
-		}
-		return true;
+	@Override
+	public int hashCode() {
+		return this.size;
 	}
 
 }

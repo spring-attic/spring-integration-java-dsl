@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
+import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -2502,6 +2503,225 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		addComponent(flowBuilder.get());
 		return gateway(requestChannel, endpointConfigurer);
 	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO}
+	 * logging level and {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category.
+	 * <p> The full request {@link Message} will be logged.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log() {
+		return log(LoggingHandler.Level.INFO);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for provided {@link LoggingHandler.Level}
+	 * logging level and {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category.
+	 * <p> The full request {@link Message} will be logged.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(LoggingHandler.Level level) {
+		return log(level, (String) null);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided logging category
+	 * and {@code INFO} logging level.
+	 * <p> The full request {@link Message} will be logged.
+	 * @param category the logging category to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(String category) {
+		return log(LoggingHandler.Level.INFO, category);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level and logging category.
+	 * <p> The full request {@link Message} will be logged.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(LoggingHandler.Level level, String category) {
+		return log(level, category, (Expression) null);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level, logging category
+	 * and SpEL expression for the log message.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category.
+	 * @param logExpression the SpEL expression to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(LoggingHandler.Level level, String category, String logExpression) {
+		Assert.hasText(logExpression);
+		return log(level, category, PARSER.parseExpression(logExpression));
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and {@link Function} for the log message.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public <P> B log(Function<Message<P>, Object> function) {
+		Assert.notNull(function);
+		return log(new FunctionExpression<Message<P>>(function));
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and SpEL expression to evaluate
+	 * logger message at runtime against the request {@link Message}.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(Expression logExpression) {
+		return log(LoggingHandler.Level.INFO, logExpression);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and SpEL expression to evaluate
+	 * logger message at runtime against the request {@link Message}.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(LoggingHandler.Level level, Expression logExpression) {
+		return log(level, null, logExpression);
+	}
+
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO}
+	 * {@link LoggingHandler.Level} logging level,
+	 * the provided logging category and SpEL expression to evaluate
+	 * logger message at runtime against the request {@link Message}.
+	 * @param category the logging category.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(String category, Expression logExpression) {
+		return log(LoggingHandler.Level.INFO, category, logExpression);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and {@link Function} for the log message.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public <P> B log(LoggingHandler.Level level, Function<Message<P>, Object> function) {
+		return log(level, null, function);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level,
+	 * the provided logging category and {@link Function} for the log message.
+	 * @param category the logging category.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public <P> B log(String category, Function<Message<P>, Object> function) {
+		return log(LoggingHandler.Level.INFO, category, function);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level, logging category
+	 * and {@link Function} for the log message.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
+		Assert.notNull(function);
+		return log(level, category, new FunctionExpression<Message<P>>(function));
+	}
+
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level, logging category
+	 * and SpEL expression for the log message.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B log(LoggingHandler.Level level, String category, Expression logExpression) {
+		LoggingHandler loggingHandler = new LoggingHandler(level);
+		if (StringUtils.hasText(category)) {
+			loggingHandler.setLoggerName(category);
+		}
+
+		if (logExpression != null) {
+			loggingHandler.setLogExpression(logExpression);
+		}
+		else {
+			loggingHandler.setShouldLogFullMessage(true);
+		}
+
+		addComponent(loggingHandler);
+		MessageChannel loggerChannel = new FixedSubscriberChannel(loggingHandler);
+		return wireTap(loggerChannel);
+	}
+
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.

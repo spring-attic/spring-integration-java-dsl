@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,27 @@
 package org.springframework.integration.dsl.test.xml;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import java.util.UUID;
+
+import org.apache.commons.logging.Log;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.internal.stubbing.answers.DoesNothing;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +45,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -38,12 +53,15 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.dsl.support.Transformers;
 import org.springframework.integration.dsl.support.tuple.Tuples;
+import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.router.XPathRouter;
 import org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,8 +92,31 @@ public class XmlTests {
 	@Autowired
 	private PollableChannel receivedChannel;
 
+	@Autowired
+	private FixedSubscriberChannel loggingChannel;
+
 	@Test
 	public void testXpathFlow() {
+		assertNotNull(this.loggingChannel);
+		MessageHandler handler = TestUtils.getPropertyValue(this.loggingChannel, "handler", MessageHandler.class);
+		assertThat(handler, instanceOf(LoggingHandler.class));
+		assertEquals(LoggingHandler.Level.ERROR,
+				TestUtils.getPropertyValue(handler, "level", LoggingHandler.Level.class));
+
+		Log messageLogger = TestUtils.getPropertyValue(handler, "messageLogger", Log.class);
+		assertEquals("test.category", TestUtils.getPropertyValue(messageLogger, "name"));
+
+		messageLogger = spy(messageLogger);
+
+		ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+		willAnswer(new DoesNothing()).given(messageLogger).error(argumentCaptor.capture());
+
+		for (String log : argumentCaptor.getAllValues()) {
+			assertNotNull(UUID.fromString(log));
+		}
+
+		new DirectFieldAccessor(handler).setPropertyValue("messageLogger", messageLogger);
+
 		this.inputChannel.send(new GenericMessage<>("<foo/>"));
 		assertNotNull(this.wrongMessagesChannel.receive(10000));
 
@@ -87,6 +128,8 @@ public class XmlTests {
 
 		this.inputChannel.send(new GenericMessage<>("<Tag xmlns=\"my:namespace\"/>"));
 		assertNotNull(this.receivedChannel.receive(10000));
+
+		verify(messageLogger, times(3)).error(anyString());
 	}
 
 	@Test
@@ -122,6 +165,7 @@ public class XmlTests {
 			return IntegrationFlows.from("inputChannel")
 					.filter(new StringValueTestXPathMessageSelector("namespace-uri(/*)", "my:namespace"),
 							e -> e.discardChannel(wrongMessagesChannel()))
+					.log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
 					.route(xpathRouter())
 					.get();
 		}

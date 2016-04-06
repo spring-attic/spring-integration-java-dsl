@@ -27,9 +27,14 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.UUID;
+
 import org.apache.commons.logging.Log;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.internal.stubbing.answers.DoesNothing;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -103,7 +108,12 @@ public class XmlTests {
 
 		messageLogger = spy(messageLogger);
 
-		willAnswer(new DoesNothing()).given(messageLogger).error(anyString());
+		ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+		willAnswer(new DoesNothing()).given(messageLogger).error(argumentCaptor.capture());
+
+		for (String log : argumentCaptor.getAllValues()) {
+			assertNotNull(UUID.fromString(log));
+		}
 
 		new DirectFieldAccessor(handler).setPropertyValue("messageLogger", messageLogger);
 
@@ -155,8 +165,7 @@ public class XmlTests {
 			return IntegrationFlows.from("inputChannel")
 					.filter(new StringValueTestXPathMessageSelector("namespace-uri(/*)", "my:namespace"),
 							e -> e.discardChannel(wrongMessagesChannel()))
-					.log(LoggingHandler.Level.ERROR, "test.category",
-							m -> m.getHeaders().getId() + ": " + m.getPayload())
+					.log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
 					.route(xpathRouter())
 					.get();
 		}

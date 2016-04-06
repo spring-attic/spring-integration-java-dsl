@@ -2705,14 +2705,13 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.2
 	 */
 	public B log(LoggingHandler.Level level, String category, Expression logExpression) {
-		Assert.notNull(level);
-		LoggingHandler loggingHandler = new LoggingHandler(level.name());
+		LoggingHandler loggingHandler = new LoggingHandler(level);
 		if (StringUtils.hasText(category)) {
 			loggingHandler.setLoggerName(category);
 		}
 
 		if (logExpression != null) {
-			// TODO loggingHandler.setExpression(logExpression);
+			loggingHandler.setLogExpression(logExpression);
 		}
 		else {
 			loggingHandler.setShouldLogFullMessage(true);

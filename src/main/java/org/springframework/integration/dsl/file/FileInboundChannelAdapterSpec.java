@@ -19,10 +19,13 @@ package org.springframework.integration.dsl.file;
 import java.io.File;
 import java.util.Comparator;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.integration.dsl.core.MessageSourceSpec;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileLocker;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.config.FileListFilterFactoryBean;
+import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -40,7 +43,7 @@ import org.springframework.util.Assert;
 public class FileInboundChannelAdapterSpec
 		extends MessageSourceSpec<FileInboundChannelAdapterSpec, FileReadingMessageSource> {
 
-	private CompositeFileListFilter<File> filter;
+	private final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean();
 
 	private FileLocker locker;
 
@@ -49,7 +52,20 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	FileInboundChannelAdapterSpec(Comparator<File> receptionOrderComparator) {
-		this.target = new FileReadingMessageSource(receptionOrderComparator);
+		this.target = new FileReadingMessageSource(receptionOrderComparator) {
+
+			@Override
+			protected void onInit() {
+				try {
+					setFilter(FileInboundChannelAdapterSpec.this.fileListFilterFactoryBean.getObject());
+				}
+				catch (Exception e) {
+					throw new BeanCreationException("The bean for the [" + this + "] can not be instantiated.", e);
+				}
+				super.onInit();
+			}
+
+		};
 	}
 
 	/**
@@ -89,19 +105,7 @@ public class FileInboundChannelAdapterSpec
 	 * @see FileReadingMessageSource#setFilter(FileListFilter)
 	 */
 	public FileInboundChannelAdapterSpec filter(FileListFilter<File> filter) {
-		if (this.filter == null) {
-			if (filter instanceof CompositeFileListFilter) {
-				this.filter = (CompositeFileListFilter<File>) filter;
-			}
-			else {
-				this.filter = new CompositeFileListFilter<File>();
-				this.filter.addFilter(filter);
-			}
-			this.target.setFilter(this.filter);
-		}
-		else {
-			this.filter.addFilter(filter);
-		}
+		this.fileListFilterFactoryBean.setFilter(filter);
 		return _this();
 	}
 
@@ -117,10 +121,8 @@ public class FileInboundChannelAdapterSpec
 	 */
 	@Deprecated
 	public FileInboundChannelAdapterSpec filter(FileListFilter<File> filter, boolean preventDuplicates) {
-		if (preventDuplicates) {
-			filter(new AcceptOnceFileListFilter<File>());
-		}
-		return filter(filter);
+		return filter(filter)
+				.preventDuplicates(preventDuplicates);
 	}
 
 	/**
@@ -133,9 +135,18 @@ public class FileInboundChannelAdapterSpec
 	 */
 	@Deprecated
 	public FileInboundChannelAdapterSpec preventDuplicatesFilter(boolean preventDuplicates) {
-		if (preventDuplicates) {
-			return filter(new AcceptOnceFileListFilter<File>());
-		}
+		return preventDuplicates(preventDuplicates);
+	}
+
+	/**
+	 * Configure an {@link AcceptOnceFileListFilter} if {@code preventDuplicates == true},
+	 * otherwise - {@link AcceptAllFileListFilter}.
+	 * @param preventDuplicates true to configure an {@link AcceptOnceFileListFilter}.
+	 * @return the spec.
+	 * @since 1.1.3
+	 */
+	public FileInboundChannelAdapterSpec preventDuplicates(boolean preventDuplicates) {
+		this.fileListFilterFactoryBean.setPreventDuplicates(preventDuplicates);
 		return _this();
 	}
 
@@ -143,7 +154,9 @@ public class FileInboundChannelAdapterSpec
 	 * Configure an {@link AcceptOnceFileListFilter}.
 	 * @return the spec.
 	 * @since 1.1
+	 * @deprecated since 1.1.3 in favor of {@link #preventDuplicates(boolean)}
 	 */
+	@Deprecated
 	public FileInboundChannelAdapterSpec preventDuplicates() {
 		return filter(new AcceptOnceFileListFilter<File>());
 	}
@@ -152,9 +165,22 @@ public class FileInboundChannelAdapterSpec
 	 * Configure an {@link IgnoreHiddenFileListFilter}.
 	 * @return the spec.
 	 * @since 1.1
+	 * @deprecated since 1.1.3 in favor of {@link #ignoreHidden(boolean)}
 	 */
+	@Deprecated
 	public FileInboundChannelAdapterSpec ignoreHidden() {
 		return filter(new IgnoreHiddenFileListFilter());
+	}
+
+	/**
+	 /**
+	 * Configure an {@link IgnoreHiddenFileListFilter} if {@code ignoreHidden == true}.
+	 * @return the spec.
+	 * @since 1.1.3
+	 */
+	public FileInboundChannelAdapterSpec ignoreHidden(boolean ignoreHidden) {
+		this.fileListFilterFactoryBean.setIgnoreHidden(ignoreHidden);
+		return _this();
 	}
 
 	/**
@@ -165,7 +191,8 @@ public class FileInboundChannelAdapterSpec
 	 * @see #filter(FileListFilter, boolean)
 	 */
 	public FileInboundChannelAdapterSpec patternFilter(String pattern) {
-		return filter(new SimplePatternFileListFilter(pattern));
+		this.fileListFilterFactoryBean.setFilenamePattern(pattern);
+		return _this();
 	}
 
 	/**
@@ -180,10 +207,8 @@ public class FileInboundChannelAdapterSpec
 	 */
 	@Deprecated
 	public FileInboundChannelAdapterSpec patternFilter(String pattern, boolean preventDuplicates) {
-		if (preventDuplicates) {
-			preventDuplicates();
-		}
-		return patternFilter(pattern);
+		return patternFilter(pattern)
+				.preventDuplicates(preventDuplicates);
 	}
 
 	/**
@@ -194,7 +219,8 @@ public class FileInboundChannelAdapterSpec
 	 * @see #filter(FileListFilter, boolean)
 	 */
 	public FileInboundChannelAdapterSpec regexFilter(String regex) {
-		return filter(new RegexPatternFileListFilter(regex));
+		this.fileListFilterFactoryBean.setFilenameRegex(regex);
+		return _this();
 	}
 
 	/**
@@ -209,10 +235,8 @@ public class FileInboundChannelAdapterSpec
 	 */
 	@Deprecated
 	public FileInboundChannelAdapterSpec regexFilter(String regex, boolean preventDuplicates) {
-		if (preventDuplicates) {
-			preventDuplicates();
-		}
-		return regexFilter(regex);
+		return regexFilter(regex)
+				.preventDuplicates(preventDuplicates);
 	}
 
 	/**

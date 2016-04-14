@@ -360,9 +360,8 @@ public class IntegrationFlowTests {
 			fail("BeanCreationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalArgumentException.class));
-			assertThat(e.getCause(), instanceOf(BeanCreationException.class));
-			assertThat(e.getCause().getMessage(),
+			assertThat(e, instanceOf(BeanCreationException.class));
+			assertThat(e.getMessage(),
 					containsString("must be populated to target objects via 'get()' method call"));
 		}
 		finally {

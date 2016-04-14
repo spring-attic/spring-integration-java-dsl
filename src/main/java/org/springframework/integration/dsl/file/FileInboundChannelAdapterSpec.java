@@ -175,6 +175,7 @@ public class FileInboundChannelAdapterSpec
 	/**
 	 /**
 	 * Configure an {@link IgnoreHiddenFileListFilter} if {@code ignoreHidden == true}.
+	 * @param ignoreHidden true to configure an {@link IgnoreHiddenFileListFilter}.
 	 * @return the spec.
 	 * @since 1.1.3
 	 */

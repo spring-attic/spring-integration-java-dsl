@@ -37,6 +37,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -655,6 +656,23 @@ public class IntegrationFlowTests {
 	}
 
 
+	@Autowired
+	@Qualifier("publishSubscribeFlow.input")
+	private MessageChannel subscriberAggregateFlowInput;
+
+	@Autowired
+	private PollableChannel subscriberAggregateResult;
+
+	@Test
+	public void testSubscriberAggregateFlow() {
+		this.subscriberAggregateFlowInput.send(new GenericMessage<>("test"));
+
+		Message<?> receive1 = this.subscriberAggregateResult.receive(10000);
+		assertNotNull(receive1);
+		assertEquals("Hello World!", receive1.getPayload());
+	}
+
+
 	@MessagingGateway(defaultRequestChannel = "controlBus")
 	private interface ControlBusGateway {
 
@@ -664,7 +682,7 @@ public class IntegrationFlowTests {
 	@Configuration
 	@EnableIntegration
 	@IntegrationComponentScan
-	@EnableMessageHistory({"recipientListOrder*", "recipient1*", "recipient2*"})
+	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
 	public static class ContextConfiguration {
 
 		@Bean
@@ -764,6 +782,31 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
+		public IntegrationFlow publishSubscribeFlow() {
+			return flow -> flow
+					.publishSubscribeChannel(s -> s
+							.applySequence(true)
+							.subscribe(f -> f
+									.handle((p, h) -> "Hello")
+									.channel("publishSubscribeAggregateFlow.input"))
+							.subscribe(f -> f
+									.handle((p, h) -> "World!")
+									.channel("publishSubscribeAggregateFlow.input"))
+					);
+		}
+
+		@Bean
+		public IntegrationFlow publishSubscribeAggregateFlow() {
+			return flow -> flow
+					.aggregate(a -> a.outputProcessor(g -> g.getMessages()
+							.stream()
+							.<String>map(m -> (String) m.getPayload())
+							.collect(Collectors.joining(" "))))
+					.channel(c -> c.queue("subscriberAggregateResult"));
+		}
+
+
+		@Bean
 		public IntegrationFlow wireTapFlow1() {
 			return IntegrationFlows.from("tappedChannel1")
 					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
@@ -853,9 +896,11 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from("flow3Input")
 					.handle(Integer.class, new GenericHandler<Integer>() {
 
-						public void setFoo(String foo) {}
+						public void setFoo(String foo) {
+						}
 
-						public void setFoo(Integer foo) {}
+						public void setFoo(Integer foo) {
+						}
 
 						@Override
 						public Object handle(Integer p, Map<String, Object> h) {
@@ -976,11 +1021,11 @@ public class IntegrationFlowTests {
 		public IntegrationFlow enricherFlow() {
 			return IntegrationFlows.from("enricherInput", true)
 					.enrich(e -> e.requestChannel("enrichChannel")
-									.requestPayloadExpression("payload")
-									.shouldClonePayload(false)
-									.propertyExpression("name", "payload['name']")
-									.propertyFunction("date", m -> new Date())
-									.headerExpression("foo", "payload['name']")
+							.requestPayloadExpression("payload")
+							.shouldClonePayload(false)
+							.propertyExpression("name", "payload['name']")
+							.propertyFunction("date", m -> new Date())
+							.headerExpression("foo", "payload['name']")
 					)
 					.get();
 		}
@@ -990,10 +1035,10 @@ public class IntegrationFlowTests {
 		public IntegrationFlow enricherFlow2() {
 			return IntegrationFlows.from("enricherInput2", true)
 					.enrich(e -> e.requestChannel("enrichChannel")
-									.requestPayloadExpression("payload")
-									.shouldClonePayload(false)
-									.propertyExpression("name", "payload['name']")
-									.propertyExpression("date", "new java.util.Date()")
+							.requestPayloadExpression("payload")
+							.shouldClonePayload(false)
+							.propertyExpression("name", "payload['name']")
+							.propertyExpression("date", "new java.util.Date()")
 					)
 					.get();
 		}

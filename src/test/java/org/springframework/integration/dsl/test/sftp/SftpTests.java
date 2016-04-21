@@ -47,11 +47,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.dsl.channel.QueueChannelSpec;
+import org.springframework.integration.dsl.core.PollerSpec;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.sftp.Sftp;
 import org.springframework.integration.file.FileHeaders;
@@ -215,8 +216,8 @@ public class SftpTests {
 		private DefaultSftpSessionFactory sftpSessionFactory;
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
-		public PollerMetadata poller() {
-			return Pollers.fixedRate(500).get();
+		public PollerSpec poller() {
+			return Pollers.fixedRate(500);
 		}
 
 		@Bean
@@ -249,8 +250,8 @@ public class SftpTests {
 		}
 
 		@Bean
-		public PollableChannel remoteFileOutputChannel() {
-			return new QueueChannel();
+		public QueueChannelSpec remoteFileOutputChannel() {
+			return MessageChannels.queue();
 		}
 
 		@Bean
@@ -263,7 +264,7 @@ public class SftpTests {
 									.regexFileNameFilter("(subSftpSource|.*1.txt)")
 									.localDirectoryExpression("@sftpServer.targetLocalDirectoryName + #remoteDirectory")
 									.localFilenameExpression("#remoteFileName.replaceFirst('sftpSource', 'localTarget')"))
-					.channel(remoteFileOutputChannel())
+					.channel("remoteFileOutputChannel")
 					.get();
 		}
 

@@ -354,25 +354,6 @@ public class IntegrationFlowTests {
 	}
 
 	@Test
-	public void testWrongConfigurationWithSpecBean() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new AnnotationConfigApplicationContext(InvalidConfigurationWithSpec.class);
-			fail("BeanCreationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e, instanceOf(BeanCreationException.class));
-			assertThat(e.getMessage(),
-					containsString("must be populated to target objects via 'get()' method call"));
-		}
-		finally {
-			if (context != null) {
-				context.close();
-			}
-		}
-	}
-
-	@Test
 	public void testContentEnricher() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload(new TestPojo("Bar"))
@@ -1171,16 +1152,6 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from(MessageChannels.direct())
 					.fixedSubscriberChannel()
 					.get();
-		}
-
-	}
-
-	@EnableIntegration
-	public static class InvalidConfigurationWithSpec {
-
-		@Bean
-		public DirectChannelSpec invalidBean() {
-			return MessageChannels.direct();
 		}
 
 	}

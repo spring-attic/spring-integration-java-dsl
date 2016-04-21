@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,19 @@ import org.springframework.integration.dsl.core.MessageSourceSpec;
 import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
 import org.springframework.integration.metadata.MetadataStore;
 
-import com.rometools.fetcher.FeedFetcher;
-
 /**
  * A {@link MessageSourceSpec} for a {@link FeedEntryMessageSource}.
  * @author Artem Bilan
  * @since 1.1
  */
+@SuppressWarnings("deprecation")
 public class FeedEntryMessageSourceSpec extends MessageSourceSpec<FeedEntryMessageSourceSpec, FeedEntryMessageSource> {
 
 	private final URL feedUrl;
 
 	private final String metadataKey;
 
-	private FeedFetcher feedFetcher;
+	private com.rometools.fetcher.FeedFetcher feedFetcher;
 
 	private MetadataStore metadataStore;
 
@@ -44,7 +43,7 @@ public class FeedEntryMessageSourceSpec extends MessageSourceSpec<FeedEntryMessa
 		this.metadataKey = metadataKey;
 	}
 
-	public FeedEntryMessageSourceSpec feedFetcher(FeedFetcher feedFetcher) {
+	public FeedEntryMessageSourceSpec feedFetcher(com.rometools.fetcher.FeedFetcher feedFetcher) {
 		this.feedFetcher = feedFetcher;
 		return this;
 	}

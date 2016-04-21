@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,15 @@ package org.springframework.integration.dsl.channel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.IntegrationComponentSpec;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
@@ -31,7 +35,10 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  */
 public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C extends AbstractMessageChannel>
-		extends IntegrationComponentSpec<S, C> {
+		extends IntegrationComponentSpec<S, C>
+		implements ComponentsRegistration {
+
+	private final List<Object> componentsToRegister = new ArrayList<Object>();
 
 	protected C channel;
 
@@ -58,9 +65,52 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 		return _this();
 	}
 
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation.
+	 * @param wireTapChannel the {@link MessageChannel} bean name to wire-tap.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @since 1.2
+	 * @see WireTapSpec
+	 */
+	public S wireTap(String wireTapChannel) {
+		return wireTap(new WireTapSpec(wireTapChannel));
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation.
+	 * @param wireTapChannel the {@link MessageChannel} instance to wire-tap.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @since 1.2
+	 * @see WireTapSpec
+	 */
+	public S wireTap(MessageChannel wireTapChannel) {
+		return wireTap(new WireTapSpec(wireTapChannel));
+	}
+
+	/**
+	 * Populate the {@code Wire Tap} EI Pattern specific
+	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation.
+	 * @param wireTapSpec the {@link WireTapSpec} to build {@link WireTap} instance.
+	 * @return the current {@link MessageChannelSpec}.
+	 * @since 1.2
+	 * @see WireTap
+	 */
+	public S wireTap(WireTapSpec wireTapSpec) {
+		WireTap interceptor = wireTapSpec.get();
+		this.componentsToRegister.add(interceptor);
+		return interceptor(interceptor);
+	}
+
 	public S messageConverter(MessageConverter messageConverter) {
 		this.messageConverter = messageConverter;
 		return _this();
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		return this.componentsToRegister;
 	}
 
 	@Override

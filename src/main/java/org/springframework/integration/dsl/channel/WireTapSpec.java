@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl;
+package org.springframework.integration.dsl.channel;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
@@ -40,18 +41,37 @@ public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, WireTap> 
 
 	private final MessageChannel channel;
 
+	private final String channelName;
+
 	private MessageSelector selector;
 
 	private Long timeout;
 
-	WireTapSpec(MessageChannel channel) {
+	public WireTapSpec(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
 		this.channel = channel;
+		this.channelName = null;
+	}
+
+	public WireTapSpec(String channelName) {
+		Assert.notNull(channelName, "'channelName' must not be null");
+		this.channelName = channelName;
+		this.channel = null;
 	}
 
 	public WireTapSpec selector(String selectorExpression) {
-		this.selector = new ExpressionEvaluatingSelector(PARSER.parseExpression(selectorExpression));
-		return this;
+		return selector(new ExpressionEvaluatingSelector(selectorExpression));
+	}
+
+	/**
+	 * Specify an {@link Expression} for selector.
+	 * @param selectorExpression the expression for selector.
+	 * @return the current {@link WireTapSpec}
+	 * @since 1.2
+	 * @see WireTap#WireTap(MessageChannel, MessageSelector)
+	 */
+	public WireTapSpec selector(Expression selectorExpression) {
+		return selector(new ExpressionEvaluatingSelector(selectorExpression));
 	}
 
 	public WireTapSpec selector(MessageSelector selector) {
@@ -66,7 +86,14 @@ public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, WireTap> 
 
 	@Override
 	protected WireTap doGet() {
-		WireTap wireTap = new WireTap(this.channel, this.selector);
+		WireTap wireTap;
+		if (this.channel != null) {
+			wireTap = new WireTap(this.channel, this.selector);
+		}
+		else {
+			wireTap = new WireTap(this.channelName, this.selector);
+		}
+
 		if (this.timeout != null) {
 			wireTap.setTimeout(this.timeout);
 		}

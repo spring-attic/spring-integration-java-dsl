@@ -30,9 +30,7 @@ import static org.mockito.Mockito.verify;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.internal.stubbing.answers.DoesNothing;
@@ -50,6 +48,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.dsl.channel.QueueChannelSpec;
 import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.dsl.support.Transformers;
 import org.springframework.integration.dsl.support.tuple.Tuples;
@@ -95,6 +95,9 @@ public class XmlTests {
 	@Autowired
 	private FixedSubscriberChannel loggingChannel;
 
+	@Autowired
+	private PollableChannel wrongMessagesWireTapChannel;
+
 	@Test
 	public void testXpathFlow() {
 		assertNotNull(this.loggingChannel);
@@ -130,6 +133,9 @@ public class XmlTests {
 		assertNotNull(this.receivedChannel.receive(10000));
 
 		verify(messageLogger, times(3)).error(anyString());
+
+		assertNotNull(this.wrongMessagesWireTapChannel.receive(10000));
+		assertNotNull(this.wrongMessagesWireTapChannel.receive(10000));
 	}
 
 	@Test
@@ -156,17 +162,24 @@ public class XmlTests {
 		private Resource xslt;
 
 		@Bean
-		public PollableChannel wrongMessagesChannel() {
+		public QueueChannelSpec wrongMessagesChannel() {
+			return MessageChannels
+					.queue()
+					.wireTap("wrongMessagesWireTapChannel");
+		}
+
+		@Bean
+		public PollableChannel wrongMessagesWireTapChannel() {
 			return new QueueChannel();
 		}
 
 		@Bean
-		public IntegrationFlow xpathFlow() {
+		public IntegrationFlow xpathFlow(MessageChannel wrongMessagesChannel) {
 			return IntegrationFlows.from("inputChannel")
 					.filter(new StringValueTestXPathMessageSelector("namespace-uri(/*)", "my:namespace"),
-							e -> e.discardChannel(wrongMessagesChannel()))
+							e -> e.discardChannel(wrongMessagesChannel))
 					.log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
-					.route(xpathRouter())
+					.route(xpathRouter(wrongMessagesChannel))
 					.get();
 		}
 
@@ -181,11 +194,11 @@ public class XmlTests {
 		}
 
 		@Bean
-		public AbstractMappingMessageRouter xpathRouter() {
+		public AbstractMappingMessageRouter xpathRouter(MessageChannel wrongMessagesChannel) {
 			XPathRouter router = new XPathRouter("local-name(/*)");
 			router.setEvaluateAsString(true);
 			router.setResolutionRequired(false);
-			router.setDefaultOutputChannel(wrongMessagesChannel());
+			router.setDefaultOutputChannel(wrongMessagesChannel);
 			router.setChannelMapping("Tags", "splittingChannel");
 			router.setChannelMapping("Tag", "receivedChannel");
 			return router;

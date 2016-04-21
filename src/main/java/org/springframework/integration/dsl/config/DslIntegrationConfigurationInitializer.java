@@ -16,11 +16,7 @@
 
 package org.springframework.integration.dsl.config;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -49,22 +45,10 @@ public class DslIntegrationConfigurationInitializer implements IntegrationConfig
 						"'BeanDefinitionRegistry'. Consider using 'GenericApplicationContext' implementation."
 		);
 
-		checkSpecBeans(configurableListableBeanFactory);
-
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) configurableListableBeanFactory;
 		if (!registry.containsBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME)) {
 			registry.registerBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME,
 					new RootBeanDefinition(IntegrationFlowBeanPostProcessor.class));
-		}
-	}
-
-	private void checkSpecBeans(ConfigurableListableBeanFactory beanFactory) {
-		List<String> specBeanNames = Arrays.asList(beanFactory.getBeanNamesForType(IntegrationComponentSpec.class,
-				true, false));
-		if (!specBeanNames.isEmpty()) {
-			throw new BeanCreationException("'IntegrationComponentSpec' beans: '" + specBeanNames +
-					"' must be populated to target objects via 'get()' method call. It is important for " +
-					"@Autowired injections.");
 		}
 	}
 

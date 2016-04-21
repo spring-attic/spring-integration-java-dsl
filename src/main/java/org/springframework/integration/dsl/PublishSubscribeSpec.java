@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,11 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.dsl.channel.PublishSubscribeChannelSpec;
-import org.springframework.integration.dsl.core.ComponentsRegistration;
 
 /**
  * @author Artem Bilan
  */
-public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSubscribeSpec>
-		implements ComponentsRegistration {
+public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSubscribeSpec> {
 
 	private final List<Object> subscriberFlows = new ArrayList<Object>();
 
@@ -54,7 +52,10 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return this.subscriberFlows;
+		List<Object> objects = new ArrayList<Object>();
+		objects.addAll(super.getComponentsToRegister());
+		objects.addAll(this.subscriberFlows);
+		return objects;
 	}
 
 }

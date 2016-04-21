@@ -45,7 +45,9 @@ import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.SourcePollingChannelAdapterSpec;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
+import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
+import org.springframework.integration.dsl.core.IntegrationComponentSpec;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
@@ -89,14 +91,16 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		}
 		else if (bean instanceof IntegrationFlow) {
 			processIntegrationFlowImpl((IntegrationFlow) bean, beanName);
-			return bean;
+		}
+		if (bean instanceof IntegrationComponentSpec) {
+			return processIntegrationComponentSpec((IntegrationComponentSpec<?, ?>) bean, beanName);
 		}
 		return bean;
 	}
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		if (this.beanFactory.containsBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)){
+		if (this.beanFactory.containsBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
 			ApplicationEventMulticaster multicaster =
 					(ApplicationEventMulticaster) this.beanFactory.getBean(
 							AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
@@ -123,7 +127,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 				if (!messageHandlers.contains(messageHandler)) {
 					String handlerBeanName = generateBeanName(messageHandler);
 					String[] handlerAlias = id != null
-							? new String[] {id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX}
+							? new String[] { id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX }
 							: null;
 
 					registerComponent(messageHandler, handlerBeanName);
@@ -214,6 +218,21 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(beanName + ".input");
 		flow.configure(flowBuilder);
 		return processStandardIntegrationFlow(flowBuilder.get(), beanName);
+	}
+
+	private Object processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean, String beanName) {
+		if (bean instanceof ComponentsRegistration) {
+			Collection<Object> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
+			for (Object component : componentsToRegister) {
+				if (!this.beanFactory
+						.getBeansOfType(AopUtils.getTargetClass(component), false, false)
+						.values()
+						.contains(component)) {
+					registerComponent(component, generateBeanName(component));
+				}
+			}
+		}
+		return bean.get();
 	}
 
 	@SuppressWarnings("deprecation")

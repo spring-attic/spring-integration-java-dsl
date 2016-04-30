@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,6 @@ import java.util.zip.GZIPInputStream;
 
 import org.springframework.util.Assert;
 
-import com.rometools.fetcher.FeedFetcher;
-import com.rometools.fetcher.FetcherEvent;
-import com.rometools.fetcher.FetcherException;
-import com.rometools.fetcher.impl.AbstractFeedFetcher;
-import com.rometools.fetcher.impl.SyndFeedInfo;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
@@ -41,28 +36,27 @@ import com.rometools.rome.io.XmlReader;
  * @author Artem Bilan
  * @since 1.1
  */
-class FileUrlFeedFetcher extends AbstractFeedFetcher {
+@SuppressWarnings("deprecation")
+class FileUrlFeedFetcher extends com.rometools.fetcher.impl.AbstractFeedFetcher {
 
-	/**
-	 * Retrieve a SyndFeed for the given URL.
-	 * @see FeedFetcher#retrieveFeed(URL)
-	 */
 	@Override
-	public SyndFeed retrieveFeed(URL feedUrl) throws IOException, FeedException, FetcherException {
+	public SyndFeed retrieveFeed(URL feedUrl)
+			throws IOException, FeedException, com.rometools.fetcher.FetcherException {
 		Assert.notNull(feedUrl, "feedUrl must not be null");
 		URLConnection connection = feedUrl.openConnection();
-		SyndFeedInfo syndFeedInfo = new SyndFeedInfo();
+		com.rometools.fetcher.impl.SyndFeedInfo syndFeedInfo = new com.rometools.fetcher.impl.SyndFeedInfo();
 		this.refreshFeedInfo(feedUrl, syndFeedInfo, connection);
 		return syndFeedInfo.getSyndFeed();
 	}
 
 	@Override
 	public SyndFeed retrieveFeed(String userAgent, URL url)
-			throws IllegalArgumentException, IOException, FeedException, FetcherException {
+			throws IllegalArgumentException, IOException, FeedException, com.rometools.fetcher.FetcherException {
 		return retrieveFeed(url);
 	}
 
-	private void refreshFeedInfo(URL feedUrl, SyndFeedInfo syndFeedInfo, URLConnection connection)
+	private void refreshFeedInfo(URL feedUrl, com.rometools.fetcher.impl.SyndFeedInfo syndFeedInfo,
+			URLConnection connection)
 			throws IOException, FeedException {
 		// need to always set the URL because this may have changed due to 3xx redirects
 		syndFeedInfo.setUrl(connection.getURL());
@@ -111,7 +105,7 @@ class FileUrlFeedFetcher extends AbstractFeedFetcher {
 		SyndFeedInput syndFeedInput = new SyndFeedInput();
 		syndFeedInput.setPreserveWireFeed(isPreserveWireFeed());
 		SyndFeed feed = syndFeedInput.build(reader);
-		fireEvent(FetcherEvent.EVENT_TYPE_FEED_RETRIEVED, connection, feed);
+		fireEvent(com.rometools.fetcher.FetcherEvent.EVENT_TYPE_FEED_RETRIEVED, connection, feed);
 		return feed;
 	}
 

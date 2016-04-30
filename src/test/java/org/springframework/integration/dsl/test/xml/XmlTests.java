@@ -174,7 +174,7 @@ public class XmlTests {
 		}
 
 		@Bean
-		public IntegrationFlow xpathFlow(MessageChannel wrongMessagesChannel) {
+		public IntegrationFlow xpathFlow(@Qualifier("wrongMessagesChannel") MessageChannel wrongMessagesChannel) {
 			return IntegrationFlows.from("inputChannel")
 					.filter(new StringValueTestXPathMessageSelector("namespace-uri(/*)", "my:namespace"),
 							e -> e.discardChannel(wrongMessagesChannel))
@@ -193,8 +193,7 @@ public class XmlTests {
 			return new QueueChannel();
 		}
 
-		@Bean
-		public AbstractMappingMessageRouter xpathRouter(MessageChannel wrongMessagesChannel) {
+		private AbstractMappingMessageRouter xpathRouter(MessageChannel wrongMessagesChannel) {
 			XPathRouter router = new XPathRouter("local-name(/*)");
 			router.setEvaluateAsString(true);
 			router.setResolutionRequired(false);

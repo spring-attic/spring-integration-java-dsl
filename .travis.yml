@@ -2,9 +2,6 @@ language: java
 jdk: oraclejdk8
 services:
   - rabbitmq
-  - redis-server
-before_install:
-  - sudo rabbitmq-plugins enable rabbitmq_mqtt
 install: true
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock

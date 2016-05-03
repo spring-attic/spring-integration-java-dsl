@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -26,7 +27,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  *
  * @author Artem Bilan
  */
-public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpec<S, T>, T> {
+public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpec<S, T>, T>
+		implements FactoryBean<T> {
 
 	protected final static SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -59,6 +61,21 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 			this.target = this.doGet();
 		}
 		return this.target;
+	}
+
+	@Override
+	public T getObject() throws Exception {
+		return get();
+	}
+
+	@Override
+	public Class<?> getObjectType() {
+		return get().getClass();
+	}
+
+	@Override
+	public boolean isSingleton() {
+		return true;
 	}
 
 	protected abstract T doGet();

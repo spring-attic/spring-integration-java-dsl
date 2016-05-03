@@ -93,7 +93,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 			processIntegrationFlowImpl((IntegrationFlow) bean, beanName);
 		}
 		if (bean instanceof IntegrationComponentSpec) {
-			return processIntegrationComponentSpec((IntegrationComponentSpec<?, ?>) bean, beanName);
+			processIntegrationComponentSpec((IntegrationComponentSpec<?, ?>) bean);
 		}
 		return bean;
 	}
@@ -220,7 +220,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		return processStandardIntegrationFlow(flowBuilder.get(), beanName);
 	}
 
-	private Object processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean, String beanName) {
+	private void processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean) {
 		if (bean instanceof ComponentsRegistration) {
 			Collection<Object> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
 			for (Object component : componentsToRegister) {
@@ -232,7 +232,6 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 				}
 			}
 		}
-		return bean.get();
 	}
 
 	@SuppressWarnings("deprecation")

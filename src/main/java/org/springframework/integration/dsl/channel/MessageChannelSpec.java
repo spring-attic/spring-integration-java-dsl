@@ -99,7 +99,7 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 	 */
 	public S wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
-		this.componentsToRegister.add(wireTapSpec);
+		this.componentsToRegister.add(interceptor);
 		return interceptor(interceptor);
 	}
 

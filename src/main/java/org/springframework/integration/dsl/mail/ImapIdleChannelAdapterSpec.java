@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.mail;
 
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.aopalliance.aop.Advice;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageProducerSpec;
 import org.springframework.integration.dsl.support.Consumer;
@@ -63,7 +65,19 @@ public class ImapIdleChannelAdapterSpec
 	 * @return the spec.
 	 */
 	public ImapIdleChannelAdapterSpec selectorExpression(String selectorExpression) {
-		this.receiver.setSelectorExpression(PARSER.parseExpression(selectorExpression));
+		return selectorExpression(PARSER.parseExpression(selectorExpression));
+	}
+
+	/**
+	 * Configure an {@link Expression} to select messages. The root object for the expression
+	 * evaluation is a {@link javax.mail.internet.MimeMessage} which should return a boolean
+	 * result (true means select the message).
+	 * @param selectorExpression the selectorExpression.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public ImapIdleChannelAdapterSpec selectorExpression(Expression selectorExpression) {
+		this.receiver.setSelectorExpression(selectorExpression);
 		return this;
 	}
 
@@ -76,8 +90,7 @@ public class ImapIdleChannelAdapterSpec
 	 * @see FunctionExpression
 	 */
 	public ImapIdleChannelAdapterSpec selector(Function<MimeMessage, Boolean> selectorFunction) {
-		this.receiver.setSelectorExpression(new FunctionExpression<MimeMessage>(selectorFunction));
-		return this;
+		return selectorExpression(new FunctionExpression<MimeMessage>(selectorFunction));
 	}
 
 	/**

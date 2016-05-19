@@ -55,6 +55,7 @@ ext {
 	activeMqVersion = '5.13.2'
 	apacheSshdVersion = '1.1.0'
 	commonsDbcpVersion = '1.4'
+	commonsHttpClientVersion = '4.5.2'
 	embedMongoVersion = '1.50.2'
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.3'
@@ -134,6 +135,8 @@ dependencies {
 		optional it
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-jasper'
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-logging-juli'
+		exclude group: 'org.apache.logging.log4j', module: 'log4j-api'
+		exclude group: 'org.apache.logging.log4j', module: 'log4j-core'
 	}
 
 	compile("javax.jms:jms-api:$jmsApiVersion", provided)
@@ -170,6 +173,7 @@ dependencies {
 	testRuntime "org.jruby:jruby:$jrubyVersion"
 	testRuntime "org.python:jython-standalone:$jythonVersion"
 	testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
+	testRuntime "org.apache.httpcomponents:httpclient:$commonsHttpClientVersion"
 }
 
 // enable all compiler warnings; individual projects may customize further

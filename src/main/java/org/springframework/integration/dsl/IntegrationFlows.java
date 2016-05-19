@@ -331,13 +331,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway) {
-		DirectFieldAccessor dfa = new DirectFieldAccessor(inboundGateway);
-		MessageChannel outputChannel = (MessageChannel) dfa.getPropertyValue("requestChannel");
-		if (outputChannel == null) {
-			outputChannel = new DirectChannel();
-			inboundGateway.setRequestChannel(outputChannel);
-		}
-		return from(outputChannel).addComponent(inboundGateway);
+		return from(inboundGateway, (IntegrationFlowBuilder) null);
 	}
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
@@ -369,15 +363,19 @@ public final class IntegrationFlows {
 	}
 
 	public interface ChannelsFunction extends Function<Channels, MessageChannelSpec<?, ?>> {
+
 	}
 
 	public interface MessageSourcesFunction extends Function<MessageSources, MessageSourceSpec<?, ?>> {
+
 	}
 
 	public interface MessageProducersFunction extends Function<MessageProducers, MessageProducerSpec<?, ?>> {
+
 	}
 
 	public interface MessagingGatewaysFunction extends Function<MessagingGateways, MessagingGatewaySpec<?, ?>> {
+
 	}
 
 }

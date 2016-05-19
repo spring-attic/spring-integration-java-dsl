@@ -44,6 +44,7 @@ public class JmsMessageDrivenChannelAdapter extends MessageProducerSupport imple
 
 	@Override
 	public void setOutputChannel(MessageChannel requestChannel) {
+		super.setOutputChannel(requestChannel);
 		this.listener.setRequestChannel(requestChannel);
 	}
 

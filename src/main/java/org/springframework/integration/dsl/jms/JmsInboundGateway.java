@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements
 
 	@Override
 	public void setRequestChannel(MessageChannel requestChannel) {
+		super.setRequestChannel(requestChannel);
 		this.listener.setRequestChannel(requestChannel);
 	}
 

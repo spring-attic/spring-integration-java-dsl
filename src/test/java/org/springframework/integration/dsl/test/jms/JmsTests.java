@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
@@ -31,6 +32,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -116,6 +118,12 @@ public class JmsTests {
 	@Qualifier("jmsOutboundGateway.handler")
 	private MessageHandler jmsOutboundGatewayHandler;
 
+	@Autowired
+	private AtomicBoolean jmsMessageDriverChannelCalled;
+
+	@Autowired
+	private AtomicBoolean jmsInboundGatewayChannelCalled;
+
 	@Test
 	public void testPollingFlow() {
 		this.controlBus.send("@integerEndpoint.start()");
@@ -139,7 +147,7 @@ public class JmsTests {
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsInbound")
 				.build());
 
-		Message<?> receive = this.jmsOutboundInboundReplyChannel.receive(5000);
+		Message<?> receive = this.jmsOutboundInboundReplyChannel.receive(10000);
 
 		assertNotNull(receive);
 		assertEquals("HELLO THROUGH THE JMS", receive.getPayload());
@@ -148,16 +156,18 @@ public class JmsTests {
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsMessageDriver")
 				.build());
 
-		receive = this.jmsOutboundInboundReplyChannel.receive(5000);
+		receive = this.jmsOutboundInboundReplyChannel.receive(10000);
 
 		assertNotNull(receive);
 		assertEquals("hello through the jms", receive.getPayload());
+
+		assertTrue(this.jmsMessageDriverChannelCalled.get());
 
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
 				.build());
 
-		receive = this.jmsOutboundInboundReplyChannel.receive(5000);
+		receive = this.jmsOutboundInboundReplyChannel.receive(10000);
 
 		assertNotNull(receive);
 		assertEquals("foo", receive.getPayload());
@@ -178,6 +188,8 @@ public class JmsTests {
 
 		assertNotNull(receive);
 		assertEquals("HELLO THROUGH THE JMS PIPELINE", receive.getPayload());
+
+		assertTrue(this.jmsInboundGatewayChannelCalled.get());
 	}
 
 	@Test
@@ -199,7 +211,7 @@ public class JmsTests {
 	}
 
 	@Configuration
-	@Import({ActiveMQAutoConfiguration.class, JmxAutoConfiguration.class, IntegrationAutoConfiguration.class})
+	@Import({ ActiveMQAutoConfiguration.class, JmxAutoConfiguration.class, IntegrationAutoConfiguration.class })
 	@IntegrationComponentScan
 	@ComponentScan
 	public static class ContextConfiguration {
@@ -276,10 +288,31 @@ public class JmsTests {
 		public IntegrationFlow jmsMessageDrivenFlow() {
 			return IntegrationFlows
 					.from(Jms.messageDrivenChannelAdapter(this.jmsConnectionFactory)
+							.outputChannel(jmsMessageDriverInputChannel())
 							.destination("jmsMessageDriver"))
 					.<String, String>transform(String::toLowerCase)
 					.channel(jmsOutboundInboundReplyChannel())
 					.get();
+		}
+
+		@Bean
+		public AtomicBoolean jmsMessageDriverChannelCalled() {
+			return new AtomicBoolean();
+		}
+
+		@Bean
+		public MessageChannel jmsMessageDriverInputChannel() {
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+				@Override
+				public Message<?> preSend(Message<?> message, MessageChannel channel) {
+					jmsMessageDriverChannelCalled().set(true);
+					return super.preSend(message, channel);
+				}
+
+			});
+			return directChannel;
 		}
 
 		@Bean
@@ -297,9 +330,9 @@ public class JmsTests {
 		@Bean
 		public IntegrationFlow jmsOutboundGatewayFlow() {
 			return f -> f.handleWithAdapter(a ->
-					a.jmsGateway(this.jmsConnectionFactory)
-							.replyContainer(c -> c.idleReplyContainerTimeout(10))
-							.requestDestination("jmsPipelineTest"),
+							a.jmsGateway(this.jmsConnectionFactory)
+									.replyContainer(c -> c.idleReplyContainerTimeout(10))
+									.requestDestination("jmsPipelineTest"),
 					e -> e.id("jmsOutboundGateway"));
 		}
 
@@ -307,9 +340,30 @@ public class JmsTests {
 		public IntegrationFlow jmsInboundGatewayFlow() {
 			return IntegrationFlows.from((MessagingGateways g) ->
 					g.jms(this.jmsConnectionFactory)
+							.requestChannel(jmsInboundGatewayInputChannel())
 							.destination("jmsPipelineTest"))
 					.<String, String>transform(String::toUpperCase)
 					.get();
+		}
+
+		@Bean
+		public AtomicBoolean jmsInboundGatewayChannelCalled() {
+			return new AtomicBoolean();
+		}
+
+		@Bean
+		public MessageChannel jmsInboundGatewayInputChannel() {
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.addInterceptor(new ChannelInterceptorAdapter() {
+
+				@Override
+				public Message<?> preSend(Message<?> message, MessageChannel channel) {
+					jmsInboundGatewayChannelCalled().set(true);
+					return super.preSend(message, channel);
+				}
+
+			});
+			return directChannel;
 		}
 
 	}

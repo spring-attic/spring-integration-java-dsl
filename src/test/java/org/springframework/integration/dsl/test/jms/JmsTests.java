@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.GlobalChannelInterceptor;

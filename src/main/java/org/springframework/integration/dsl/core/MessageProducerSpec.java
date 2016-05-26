@@ -75,12 +75,38 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	}
 
 	/**
+	 * Specify the bean name of the {@code outputChannel} for the
+	 * {@link org.springframework.integration.core.MessageProducer}
+	 * @param outputChannel the outputChannel bean name.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see MessageProducerSupport#setOutputChannelName(String)
+	 */
+	public S outputChannel(String outputChannel) {
+		target.setOutputChannelName(outputChannel);
+		return _this();
+	}
+
+	/**
 	 * Configure the {@link MessageChannel} to which error messages will be sent.
 	 * @param errorChannel the errorChannel.
 	 * @return the spec.
+	 * @see MessageProducerSupport#setErrorChannel(MessageChannel)
 	 */
 	public S errorChannel(MessageChannel errorChannel) {
 		target.setErrorChannel(errorChannel);
+		return _this();
+	}
+
+	/**
+	 * Configure the bean name of the {@link MessageChannel} to which error messages will be sent.
+	 * @param errorChannel the errorChannel bean name.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see MessageProducerSupport#setErrorChannelName(String)
+	 */
+	public S errorChannel(String errorChannel) {
+		target.setErrorChannelName(errorChannel);
 		return _this();
 	}
 

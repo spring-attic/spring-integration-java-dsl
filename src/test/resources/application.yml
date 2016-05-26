@@ -10,5 +10,5 @@ spring:
     mongodb:
       port: 0
   main:
-    show-banner: false
+    banner-mode: "off"
 

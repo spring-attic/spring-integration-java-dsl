@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,6 +54,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
@@ -69,6 +72,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
@@ -204,6 +208,18 @@ public class JmsTests {
 		Message<?> received = this.jmsPubSubBridgeChannel.receive(5000);
 		assertNotNull(received);
 		assertEquals("foo", received.getPayload());
+	}
+
+	@Autowired
+	private CountDownLatch redeliveryLatch;
+
+	@Test
+	public void testJmsRedeliveryFlow() throws InterruptedException {
+		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("foo")
+				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsMessageDriverRedelivery")
+				.build());
+
+		assertTrue(this.redeliveryLatch.await(10, TimeUnit.SECONDS));
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
@@ -364,6 +380,34 @@ public class JmsTests {
 
 			});
 			return directChannel;
+		}
+
+		@Bean
+		public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
+			return IntegrationFlows
+					.from(Jms.messageDrivenChannelAdapter(this.jmsConnectionFactory)
+							.errorChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
+							.destination("jmsMessageDriverRedelivery"))
+					.<String, String>transform(p -> {
+						throw new RuntimeException("intentional");
+					})
+					.get();
+		}
+
+		@Bean
+		public CountDownLatch redeliveryLatch() {
+			return new CountDownLatch(3);
+		}
+
+		@Bean
+		public IntegrationFlow errorHandlingFlow() {
+			return IntegrationFlows.from(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
+					.handle(m -> {
+						MessagingException exception = (MessagingException) m.getPayload();
+						redeliveryLatch().countDown();
+						throw exception;
+					})
+					.get();
 		}
 
 	}

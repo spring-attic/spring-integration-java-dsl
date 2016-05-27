@@ -29,6 +29,7 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -1101,7 +1102,6 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
-		@DependsOn("gatewayRequestFlow")
 		public IntegrationFlow gatewayFlow() {
 			return IntegrationFlows.from("gatewayInput")
 					.gateway("gatewayRequest", g -> g.errorChannel("gatewayError").replyTimeout(10L))

@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
@@ -38,6 +38,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
@@ -55,11 +56,12 @@ import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.dsl.support.GenericHandler;
 import org.springframework.integration.dsl.support.MapBuilder;
 import org.springframework.integration.dsl.support.MessageChannelReference;
+import org.springframework.integration.dsl.support.tuple.Tuple2;
 import org.springframework.integration.expression.ControlBusMethodFilter;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
@@ -108,7 +110,9 @@ import org.springframework.util.StringUtils;
  */
 public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinition<B>> {
 
-	private final static SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private static final Set<MessageHandler> REFERENCED_REPLY_PRODUCERS = new HashSet<MessageHandler>();
 
 	protected final Set<Object> integrationComponents = new LinkedHashSet<Object>();
 
@@ -2772,7 +2776,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return new PublisherIntegrationFlow<T>(this.integrationComponents, channelForPublisher, executor);
 	}
 
-	private <S extends ConsumerEndpointSpec<S, ?>> B register(S endpointSpec, Consumer<S> endpointConfigurer) {
+	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
+			Consumer<S> endpointConfigurer) {
 		if (endpointConfigurer != null) {
 			endpointConfigurer.accept(endpointSpec);
 		}
@@ -2786,22 +2791,24 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			this.registerOutputChannelIfCan(inputChannel);
 		}
 
+		@SuppressWarnings("unchecked")
+		Tuple2<ConsumerEndpointFactoryBean, ? extends MessageHandler> factoryBeanTuple2 = endpointSpec.get();
 		if (inputChannel instanceof MessageChannelReference) {
-			endpointSpec.get().getT1().setInputChannelName(((MessageChannelReference) inputChannel).getName());
+			factoryBeanTuple2.getT1().setInputChannelName(((MessageChannelReference) inputChannel).getName());
 		}
 		else {
 			if (inputChannel instanceof FixedSubscriberChannelPrototype) {
 				String beanName = ((FixedSubscriberChannelPrototype) inputChannel).getName();
-				inputChannel = new FixedSubscriberChannel(endpointSpec.get().getT2());
+				inputChannel = new FixedSubscriberChannel(factoryBeanTuple2.getT2());
 				if (beanName != null) {
 					((FixedSubscriberChannel) inputChannel).setBeanName(beanName);
 				}
-				this.registerOutputChannelIfCan(inputChannel);
+				registerOutputChannelIfCan(inputChannel);
 			}
-			endpointSpec.get().getT1().setInputChannel(inputChannel);
+			factoryBeanTuple2.getT1().setInputChannel(inputChannel);
 		}
 
-		return this.addComponent(endpointSpec).currentComponent(endpointSpec.get().getT2());
+		return addComponent(endpointSpec).currentComponent(factoryBeanTuple2.getT2());
 	}
 
 	private B registerOutputChannelIfCan(MessageChannel outputChannel) {
@@ -2819,9 +2826,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					currentComponent = extractProxyTarget(currentComponent);
 				}
 
-				if (currentComponent instanceof AbstractReplyProducingMessageHandler) {
-					AbstractReplyProducingMessageHandler messageProducer =
-							(AbstractReplyProducingMessageHandler) currentComponent;
+				if (currentComponent instanceof AbstractMessageProducingHandler) {
+					AbstractMessageProducingHandler messageProducer =
+							(AbstractMessageProducingHandler) currentComponent;
+					checkReuse(messageProducer);
 					if (channelName != null) {
 						messageProducer.setOutputChannelName(channelName);
 					}
@@ -2837,16 +2845,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					}
 					else {
 						pollingChannelAdapterFactoryBean.setOutputChannel(outputChannel);
-					}
-				}
-				else if (currentComponent instanceof AbstractCorrelatingMessageHandler) {
-					AbstractCorrelatingMessageHandler messageProducer =
-							(AbstractCorrelatingMessageHandler) currentComponent;
-					if (channelName != null) {
-						messageProducer.setOutputChannelName(channelName);
-					}
-					else {
-						messageProducer.setOutputChannel(outputChannel);
 					}
 				}
 				else if (currentComponent instanceof AbstractMessageRouter) {
@@ -2877,9 +2875,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				currentComponent = extractProxyTarget(currentComponent);
 			}
 
-			return currentComponent instanceof AbstractReplyProducingMessageHandler
+			return currentComponent instanceof AbstractMessageProducingHandler
 					|| currentComponent instanceof SourcePollingChannelAdapterSpec
-					|| currentComponent instanceof AbstractCorrelatingMessageHandler
 					|| currentComponent instanceof AbstractMessageRouter;
 		}
 		return false;
@@ -2932,6 +2929,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		catch (Exception e) {
 			throw new BeanCreationException("Could not extract target", e);
 		}
+	}
+
+	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
+		Assert.isTrue(!REFERENCED_REPLY_PRODUCERS.contains(replyHandler),
+				"An AbstractMessageProducingHandler may only be referenced once (" +
+						replyHandler.getComponentName() +
+						") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
+		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
 	}
 
 }

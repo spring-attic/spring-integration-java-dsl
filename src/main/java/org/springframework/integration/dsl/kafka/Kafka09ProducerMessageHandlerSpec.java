@@ -36,7 +36,7 @@ import org.springframework.messaging.Message;
  * A {@link MessageHandlerSpec} implementation for the {@link KafkaProducerMessageHandler}.
  *
  * @author Artem Bilan
- * @since 1.1
+ * @since 1.2
  */
 public class Kafka09ProducerMessageHandlerSpec<K, V>
 		extends MessageHandlerSpec<Kafka09ProducerMessageHandlerSpec<K, V>, Kafka09ProducerMessageHandler<K, V>> {

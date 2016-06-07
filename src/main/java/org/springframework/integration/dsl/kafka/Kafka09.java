@@ -24,6 +24,8 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.config.ContainerProperties;
+import org.springframework.kafka.support.TopicPartitionInitialOffset;
 
 /**
  * Factory class for Kafka-0.9 components.
@@ -76,6 +78,23 @@ public abstract class Kafka09 {
 	 * Create an initial
 	 * {@link Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
 	 * @param consumerFactory the {@link ConsumerFactory}.
+	 * @param containerProperties the {@link ContainerProperties} to use.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
+	 */
+	public static <K, V>
+	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties) {
+		return messageDriverChannelAdapter(
+				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
+						containerProperties));
+	}
+
+	/**
+	 * Create an initial
+	 * {@link Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
+	 * @param consumerFactory the {@link ConsumerFactory}.
 	 * @param topicPartitions the {@link TopicPartition} vararg.
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
@@ -83,7 +102,7 @@ public abstract class Kafka09 {
 	 */
 	public static <K, V>
 	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, TopicPartition... topicPartitions) {
+	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, TopicPartitionInitialOffset... topicPartitions) {
 		return messageDriverChannelAdapter(
 				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						topicPartitions));

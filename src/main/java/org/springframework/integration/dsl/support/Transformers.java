@@ -26,6 +26,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.codec.Codec;
 import org.springframework.integration.dsl.support.tuple.Tuple2;
 import org.springframework.integration.file.transformer.FileToByteArrayTransformer;
 import org.springframework.integration.file.transformer.FileToStringTransformer;
@@ -33,6 +35,8 @@ import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.mail.transformer.MailToStringTransformer;
 import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.transformer.DecodingTransformer;
+import org.springframework.integration.transformer.EncodingPayloadTransformer;
 import org.springframework.integration.transformer.MapToObjectTransformer;
 import org.springframework.integration.transformer.ObjectToMapTransformer;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
@@ -49,6 +53,7 @@ import org.springframework.integration.xml.transformer.UnmarshallingTransformer;
 import org.springframework.integration.xml.transformer.XPathTransformer;
 import org.springframework.integration.xml.transformer.XsltPayloadTransformer;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
+import org.springframework.messaging.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
@@ -61,6 +66,8 @@ import org.springframework.xml.xpath.NodeMapper;
  * @author Artem Bilan
  */
 public abstract class Transformers {
+
+	private final static SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	public static ObjectToStringTransformer objectToString() {
 		return objectToString(null);
@@ -337,6 +344,65 @@ public abstract class Transformers {
 			transformer.setXslParameterMappings(params);
 		}
 		return transformer;
+	}
+
+	/**
+	 * The factory method for the {@link EncodingPayloadTransformer}.
+	 * @param codec the {@link Codec} to use.
+	 * @param <T> the {@code payload} type.
+	 * @return the {@link EncodingPayloadTransformer} instance.
+	 * @since 1.2
+	 */
+	public static <T> EncodingPayloadTransformer<T> encoding(Codec codec) {
+		return new EncodingPayloadTransformer<T>(codec);
+	}
+
+	/**
+	 * The factory method for the {@link DecodingTransformer}.
+	 * @param codec the {@link Codec} to use.
+	 * @param type the target type to transform to.
+	 * @param <T> the target type.
+	 * @return the {@link DecodingTransformer} instance.
+	 * @since 1.2
+	 */
+	public static <T> DecodingTransformer<T> decoding(Codec codec, Class<T> type) {
+		return new DecodingTransformer<T>(codec, type);
+	}
+
+	/**
+	 * The factory method for the {@link DecodingTransformer}.
+	 * @param codec the {@link Codec} to use.
+	 * @param typeExpression the target type SpEL expression.
+	 * @param <T> the target type.
+	 * @return the {@link DecodingTransformer} instance.
+	 * @since 1.2
+	 */
+	public static <T> DecodingTransformer<T> decoding(Codec codec, String typeExpression) {
+		return decoding(codec, PARSER.parseExpression(typeExpression));
+	}
+
+	/**
+	 * The factory method for the {@link DecodingTransformer}.
+	 * @param codec the {@link Codec} to use.
+	 * @param typeFunction the target type function.
+	 * @param <T> the target type.
+	 * @return the {@link DecodingTransformer} instance.
+	 * @since 1.2
+	 */
+	public static <T> DecodingTransformer<T> decoding(Codec codec, Function<Message<?>, Class<T>> typeFunction) {
+		return decoding(codec, new FunctionExpression<Message<?>>(typeFunction));
+	}
+
+	/**
+	 * The factory method for the {@link DecodingTransformer}.
+	 * @param codec the {@link Codec} to use.
+	 * @param typeExpression the target type SpEL expression.
+	 * @param <T> the target type.
+	 * @return the {@link DecodingTransformer} instance.
+	 * @since 1.2
+	 */
+	public static <T> DecodingTransformer<T> decoding(Codec codec, Expression typeExpression) {
+		return new DecodingTransformer<T>(codec, typeExpression);
 	}
 
 }

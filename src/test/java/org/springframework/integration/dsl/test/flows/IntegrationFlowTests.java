@@ -29,9 +29,6 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -43,7 +40,6 @@ import java.util.stream.Collectors;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,7 +53,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessageRejectedException;
@@ -72,7 +67,6 @@ import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.channel.DirectChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.support.GenericHandler;
@@ -167,18 +161,6 @@ public class IntegrationFlowTests {
 	@Autowired
 	@Qualifier("delayedAdvice")
 	private DelayedAdvice delayedAdvice;
-
-	@Autowired
-	@Qualifier("enricherInput")
-	private FixedSubscriberChannel enricherInput;
-
-	@Autowired
-	@Qualifier("enricherInput2")
-	private FixedSubscriberChannel enricherInput2;
-
-	@Autowired
-	@Qualifier("enricherInput3")
-	private FixedSubscriberChannel enricherInput3;
 
 	@Autowired
 	@Qualifier("splitResequenceFlow.input")
@@ -352,59 +334,6 @@ public class IntegrationFlowTests {
 		this.lamdasInput.send(message);
 		assertNull(replyChannel.receive(10));
 
-	}
-
-	@Test
-	public void testContentEnricher() {
-		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.withPayload(new TestPojo("Bar"))
-				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
-				.build();
-		this.enricherInput.send(message);
-		Message<?> receive = replyChannel.receive(5000);
-		assertNotNull(receive);
-		assertEquals("Bar Bar", receive.getHeaders().get("foo"));
-		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
-		TestPojo result = (TestPojo) payload;
-		assertEquals("Bar Bar", result.getName());
-		assertNotNull(result.getDate());
-		assertThat(new Date(), Matchers.greaterThanOrEqualTo(result.getDate()));
-	}
-
-	@Test
-	public void testContentEnricher2() {
-		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.withPayload(new TestPojo("Bar"))
-				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
-				.build();
-		this.enricherInput2.send(message);
-		Message<?> receive = replyChannel.receive(5000);
-		assertNotNull(receive);
-		assertNull(receive.getHeaders().get("foo"));
-		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
-		TestPojo result = (TestPojo) payload;
-		assertEquals("Bar Bar", result.getName());
-		assertNotNull(result.getDate());
-		assertThat(new Date(), Matchers.greaterThanOrEqualTo(result.getDate()));
-	}
-
-	@Test
-	public void testContentEnricher3() {
-		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.withPayload(new TestPojo("Bar"))
-				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
-				.build();
-		this.enricherInput3.send(message);
-		Message<?> receive = replyChannel.receive(5000);
-		assertNotNull(receive);
-		assertEquals("Bar Bar", receive.getHeaders().get("foo"));
-		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
-		TestPojo result = (TestPojo) payload;
-		assertEquals("Bar", result.getName());
-		assertNull(result.getDate());
 	}
 
 	@Test
@@ -999,51 +928,6 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
-		@DependsOn("enrichFlow")
-		public IntegrationFlow enricherFlow() {
-			return IntegrationFlows.from("enricherInput", true)
-					.enrich(e -> e.requestChannel("enrichChannel")
-							.requestPayloadExpression("payload")
-							.shouldClonePayload(false)
-							.propertyExpression("name", "payload['name']")
-							.propertyFunction("date", m -> new Date())
-							.headerExpression("foo", "payload['name']")
-					)
-					.get();
-		}
-
-		@Bean
-		@DependsOn("enrichFlow")
-		public IntegrationFlow enricherFlow2() {
-			return IntegrationFlows.from("enricherInput2", true)
-					.enrich(e -> e.requestChannel("enrichChannel")
-							.requestPayloadExpression("payload")
-							.shouldClonePayload(false)
-							.propertyExpression("name", "payload['name']")
-							.propertyExpression("date", "new java.util.Date()")
-					)
-					.get();
-		}
-
-		@Bean
-		@DependsOn("enrichFlow")
-		public IntegrationFlow enricherFlow3() {
-			return IntegrationFlows.from("enricherInput3", true)
-					.enrich(e -> e.requestChannel("enrichChannel")
-							.requestPayload(Message::getPayload)
-							.shouldClonePayload(false)
-							.<Map<String, String>>headerFunction("foo", m -> m.getPayload().get("name")))
-					.get();
-		}
-
-		@Bean
-		public IntegrationFlow enrichFlow() {
-			return IntegrationFlows.from("enrichChannel")
-					.<TestPojo, Map<?, ?>>transform(p -> Collections.singletonMap("name", p.getName() + " Bar"))
-					.get();
-		}
-
-		@Bean
 		public Executor taskExecutor() {
 			return Executors.newCachedThreadPool();
 		}
@@ -1152,34 +1036,6 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from(MessageChannels.direct())
 					.fixedSubscriberChannel()
 					.get();
-		}
-
-	}
-
-	private static class TestPojo {
-
-		private String name;
-
-		private Date date;
-
-		private TestPojo(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public Date getDate() {
-			return date;
-		}
-
-		public void setDate(Date date) {
-			this.date = date;
 		}
 
 	}

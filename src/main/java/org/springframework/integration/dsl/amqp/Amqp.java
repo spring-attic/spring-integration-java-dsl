@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.amqp;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 
@@ -163,6 +164,16 @@ public abstract class Amqp {
 	 */
 	public static AmqpOutboundEndpointSpec outboundGateway(AmqpTemplate amqpTemplate) {
 		return new AmqpOutboundEndpointSpec(amqpTemplate, true);
+	}
+
+	/**
+	 * Create an initial AmqpAsyncOutboundGatewaySpec.
+	 * @param asyncRabbitTemplate the {@link AsyncRabbitTemplate}.
+	 * @return the AmqpOutboundEndpointSpec.
+	 * @since 1.2
+	 */
+	public static AmqpAsyncOutboundGatewaySpec asyncOutboundGateway(AsyncRabbitTemplate asyncRabbitTemplate) {
+		return new AmqpAsyncOutboundGatewaySpec(asyncRabbitTemplate);
 	}
 
 	/**

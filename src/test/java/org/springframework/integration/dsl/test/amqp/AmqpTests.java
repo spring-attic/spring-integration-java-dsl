@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +39,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.amqp.Amqp;
+import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -134,6 +137,22 @@ public class AmqpTests {
 		}
 	}
 
+	@Autowired
+	@Qualifier("amqpAsyncOutboundFlow.input")
+	private MessageChannel amqpAsyncOutboundFlowInput;
+
+	@Test
+	public void testAmqpAsyncOutboundGatewayFlow() throws Exception {
+		QueueChannel replyChannel = new QueueChannel();
+		this.amqpAsyncOutboundFlowInput.send(MessageBuilder.withPayload("async gateway")
+				.setReplyChannel(replyChannel)
+				.build());
+
+		Message<?> receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("HELLO ASYNC GATEWAY", receive.getPayload());
+	}
+
 	@Configuration
 	@EnableIntegration
 	@Import(RabbitAutoConfiguration.class)
@@ -185,6 +204,23 @@ public class AmqpTests {
 							.queueName("amqpReplyChannel")
 							.channelTransacted(true))
 					.get();
+		}
+
+		@Bean
+		public Queue asyncReplies() {
+			return new Queue("asyncReplies");
+		}
+
+		@Bean
+		public AsyncRabbitTemplate asyncRabbitTemplate(ConnectionFactory rabbitConnectionFactory) {
+			return new AsyncRabbitTemplate(rabbitConnectionFactory, "", "", "asyncReplies");
+		}
+
+		@Bean
+		public IntegrationFlow amqpAsyncOutboundFlow(AsyncRabbitTemplate asyncRabbitTemplate) {
+			return f -> f
+					.handle(Amqp.asyncOutboundGateway(asyncRabbitTemplate)
+							.routingKeyFunction(m -> queue().getName()));
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -374,6 +374,45 @@ public class RouterTests {
 		}
 	}
 
+	@Autowired
+	@Qualifier("payloadTypeRouteFlow.input")
+	private MessageChannel payloadTypeRouteFlowInput;
+
+	@Autowired
+	@Qualifier("stringsChannel")
+	private PollableChannel stringsChannel;
+
+	@Autowired
+	@Qualifier("integersChannel")
+	private PollableChannel integersChannel;
+
+	@Test
+	public void testPayloadTypeRouteFlow() {
+		this.payloadTypeRouteFlowInput.send(new GenericMessage<>("foo"));
+		this.payloadTypeRouteFlowInput.send(new GenericMessage<>(22));
+		this.payloadTypeRouteFlowInput.send(new GenericMessage<>(33));
+		this.payloadTypeRouteFlowInput.send(new GenericMessage<>("BAR"));
+
+		Message<?> receive = this.stringsChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("foo", receive.getPayload());
+
+		receive = this.stringsChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("BAR", receive.getPayload());
+
+		assertNull(this.stringsChannel.receive(10));
+
+		receive = this.integersChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals(22, receive.getPayload());
+
+		receive = this.integersChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals(33, receive.getPayload());
+
+		assertNull(this.integersChannel.receive(10));
+	}
 
 	@Configuration
 	@EnableIntegration
@@ -388,8 +427,8 @@ public class RouterTests {
 		public IntegrationFlow routeFlow() {
 			return IntegrationFlows.from("routerInput")
 					.<Integer, Boolean>route(p -> p % 2 == 0,
-							m -> m.channelMapping("true", "evenChannel")
-									.subFlowMapping("false", f ->
+							m -> m.channelMapping(true, "evenChannel")
+									.subFlowMapping(false, f ->
 											f.<Integer>handle((p, h) -> p * 3)))
 					.channel(c -> c.queue("oddChannel"))
 					.get();
@@ -399,7 +438,7 @@ public class RouterTests {
 		public IntegrationFlow routeSubflowToReplyChannelFlow() {
 			return f -> f
 					.<Integer, Boolean>route("true", m -> m
-									.subFlowMapping("true", sf -> sf
+							.subFlowMapping(true, sf -> sf
 													.<String>handle((p, h) -> p.toUpperCase())
 									)
 					);
@@ -410,7 +449,7 @@ public class RouterTests {
 			return f -> f
 					.<String, Boolean>route("BOO"::equals, m -> m
 							.resolutionRequired(false)
-							.subFlowMapping("true", sf -> sf
+							.subFlowMapping(true, sf -> sf
 									.transform(String.class, String::toLowerCase)
 									.channel(c -> c.queue("routerSubflowResult"))))
 					// Valid: maps to the router's defaultOutputChannel
@@ -422,8 +461,8 @@ public class RouterTests {
 			return f -> f
 					.split()
 					.<Integer, Boolean>route(p -> p % 2 == 0, m -> m
-							.subFlowMapping("true", sf -> sf.<Integer>handle((p, h) -> p * 2))
-							.subFlowMapping("false", sf -> sf.<Integer>handle((p, h) -> p * 3)))
+							.subFlowMapping(true, sf -> sf.<Integer>handle((p, h) -> p * 2))
+							.subFlowMapping(false, sf -> sf.<Integer>handle((p, h) -> p * 3)))
 					.aggregate()
 					.channel(c -> c.queue("routerTwoSubFlowsOutput"));
 		}
@@ -493,6 +532,24 @@ public class RouterTests {
 					.route(String.class, p -> p.equals("foo") || p.equals("bar") ? new String[] {"foo", "bar"} : null,
 							s -> s.suffix("-channel"))
 					.get();
+		}
+
+		@Bean
+		public PollableChannel stringsChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel integersChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public IntegrationFlow payloadTypeRouteFlow() {
+			return f -> f
+					.<Object, Object>route(p -> p.getClass().getName(), m -> m //https://jira.spring.io/browse/INT-4057
+							.channelMapping(String.class, "stringsChannel")
+							.channelMapping(Integer.class, "integersChannel"));
 		}
 
 	}

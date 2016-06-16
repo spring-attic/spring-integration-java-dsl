@@ -88,7 +88,7 @@ class DslRecipientListRouter extends RecipientListRouter {
 		return null;
 	}
 
-	class DslRecipient extends Recipient {
+	private class DslRecipient extends Recipient {
 
 		private volatile MessageChannel channel;
 

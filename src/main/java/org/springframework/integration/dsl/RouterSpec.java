@@ -22,13 +22,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -36,19 +38,20 @@ import org.springframework.util.StringUtils;
  * The {@link AbstractRouterSpec} for an {@link AbstractMappingMessageRouter}.
  * @author Artem Bilan
  */
-public final class RouterSpec<R extends AbstractMappingMessageRouter> extends AbstractRouterSpec<RouterSpec<R>, R>
+public final class RouterSpec<K, R extends AbstractMappingMessageRouter> extends AbstractRouterSpec<RouterSpec<K, R>, R>
 		implements ComponentsRegistration {
 
 	private final List<Object> subFlows = new ArrayList<Object>();
+
+	private final RouterMappingProvider mappingProvider;
 
 	private String prefix;
 
 	private String suffix;
 
-	private RouterSubFlowMappingProvider mappingProvider;
-
 	RouterSpec(R router) {
 		super(router);
+		this.mappingProvider = new RouterMappingProvider(this.target);
 	}
 
 	/**
@@ -56,18 +59,18 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 	 * @return the router spec.
 	 * @see AbstractMappingMessageRouter#setResolutionRequired(boolean)
 	 */
-	public RouterSpec<R> resolutionRequired(boolean resolutionRequired) {
+	public RouterSpec<K, R> resolutionRequired(boolean resolutionRequired) {
 		this.target.setResolutionRequired(resolutionRequired);
 		return _this();
 	}
 
 	/**
-	 * Cannot be invoked if {@link #subFlowMapping(String, IntegrationFlow)} is used.
+	 * Cannot be invoked if {@link #subFlowMapping(Object, IntegrationFlow)} is used.
 	 * @param prefix the prefix.
 	 * @return the router spec.
 	 * @see AbstractMappingMessageRouter#setPrefix(String)
 	 */
-	public RouterSpec<R> prefix(String prefix) {
+	public RouterSpec<K, R> prefix(String prefix) {
 		Assert.state(this.subFlows.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.prefix = prefix;
 		this.target.setPrefix(prefix);
@@ -75,12 +78,12 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 	}
 
 	/**
-	 * Cannot be invoked if {@link #subFlowMapping(String, IntegrationFlow)} is used.
+	 * Cannot be invoked if {@link #subFlowMapping(Object, IntegrationFlow)} is used.
 	 * @param suffix the suffix to set.
 	 * @return the router spec.
 	 * @see AbstractMappingMessageRouter#setSuffix(String)
 	 */
-	public RouterSpec<R> suffix(String suffix) {
+	public RouterSpec<K, R> suffix(String suffix) {
 		Assert.state(this.subFlows.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.suffix = suffix;
 		this.target.setSuffix(suffix);
@@ -93,22 +96,40 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 	 * @return the router spec.
 	 * @see AbstractMappingMessageRouter#setChannelMapping(String, String)
 	 */
-	public RouterSpec<R> channelMapping(String key, String channelName) {
-		Assert.hasText(key);
+	public RouterSpec<K, R> channelMapping(K key, final String channelName) {
+		Assert.notNull(key);
 		Assert.hasText(channelName);
-		this.target.setChannelMapping(key, channelName);
+		if (key instanceof String) {
+			this.target.setChannelMapping((String) key, channelName);
+		}
+		else {
+			this.mappingProvider.addMapping(key, new NamedComponent() {
+
+				@Override
+				public String getComponentName() {
+					return channelName;
+				}
+
+				@Override
+				public String getComponentType() {
+					return "channel";
+				}
+
+			});
+		}
 		return _this();
 	}
 
 	/**
-	 * Add a subflow as an alternative to a {@link #channelMapping(String, String)}. {@link #prefix(String)} and
-	 * {@link #suffix(String)} cannot be used when subflow mappings are used.
+	 * Add a subflow as an alternative to a {@link #channelMapping(Object, String)}.
+	 * {@link #prefix(String)} and {@link #suffix(String)} cannot be used when subflow
+	 * mappings are used.
 	 * @param key the key.
 	 * @param subFlow the subFlow.
 	 * @return the router spec.
 	 */
-	public RouterSpec<R> subFlowMapping(String key, IntegrationFlow subFlow) {
-		Assert.hasText(key);
+	public RouterSpec<K, R> subFlowMapping(Object key, IntegrationFlow subFlow) {
+		Assert.notNull(key);
 		Assert.notNull(subFlow);
 		Assert.state(!(StringUtils.hasText(this.prefix) || StringUtils.hasText(this.suffix)),
 				"The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
@@ -119,40 +140,53 @@ public final class RouterSpec<R extends AbstractMappingMessageRouter> extends Ab
 
 		this.subFlows.add(flowBuilder);
 
-		if (this.mappingProvider == null) {
-			this.mappingProvider = new RouterSubFlowMappingProvider(this.target);
-		}
 		this.mappingProvider.addMapping(key, channel);
 		return _this();
 	}
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		if (this.mappingProvider != null) {
-			this.subFlows.add(this.mappingProvider);
-		}
+		this.subFlows.add(this.mappingProvider);
 		return this.subFlows;
 	}
 
-	private static class RouterSubFlowMappingProvider {
+	private static class RouterMappingProvider extends IntegrationObjectSupport {
 
 		private final MappingMessageRouterManagement router;
 
-		private final Map<String, NamedComponent> mapping = new HashMap<String, NamedComponent>();
+		private final Map<Object, NamedComponent> mapping = new HashMap<Object, NamedComponent>();
 
-		public RouterSubFlowMappingProvider(MappingMessageRouterManagement router) {
+		RouterMappingProvider(MappingMessageRouterManagement router) {
 			this.router = router;
 		}
 
-		void addMapping(String key, NamedComponent channel) {
+		void addMapping(Object key, NamedComponent channel) {
 			this.mapping.put(key, channel);
 		}
 
-		@PostConstruct
-		public void init() {
-			for (Map.Entry<String, NamedComponent> entry : this.mapping.entrySet()) {
-				this.router.setChannelMapping(entry.getKey(), entry.getValue().getComponentName());
+		@Override
+		protected void onInit() throws Exception {
+			ConversionService conversionService = getConversionService();
+			if (conversionService == null) {
+				conversionService = new DefaultConversionService();
+			}
+			for (Map.Entry<Object, NamedComponent> entry : this.mapping.entrySet()) {
+				Object key = entry.getKey();
+				String channelKey;
+				if (key instanceof String) {
+					channelKey = (String) key;
+				}
+				else if (key instanceof Class) {
+					channelKey = ((Class<?>) key).getName();
+				}
+				else if (conversionService.canConvert(key.getClass(), String.class)) {
+					channelKey = conversionService.convert(key, String.class);
+				}
+				else {
+					throw new MessagingException("unsupported channel mapping type for router [" + key.getClass() + "]");
+				}
 
+				this.router.setChannelMapping(channelKey, entry.getValue().getComponentName());
 			}
 		}
 

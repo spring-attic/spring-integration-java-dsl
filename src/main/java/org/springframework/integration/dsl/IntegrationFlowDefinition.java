@@ -1996,8 +1996,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String beanName, String method, Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer) {
-		return this.route(beanName, method, routerConfigurer, null);
+	public B route(String beanName, String method, Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+		return route(beanName, method, routerConfigurer, null);
 	}
 
 	/**
@@ -2010,7 +2010,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String beanName, String method, Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer,
+	public B route(String beanName, String method, Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
 		return this.route(new MethodInvokingRouter(new BeanNameMessageProcessor<Object>(beanName, method)),
 				routerConfigurer, endpointConfigurer);
@@ -2051,7 +2051,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see MethodInvokingRouter
 	 * @since 1.1
 	 */
-	public B route(Object service, String methodName, Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer) {
+	public B route(Object service, String methodName,
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 		return route(service, methodName, routerConfigurer, null);
 	}
 
@@ -2067,7 +2068,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see MethodInvokingRouter
 	 * @since 1.1
 	 */
-	public B route(Object service, String methodName, Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer,
+	public B route(Object service, String methodName,
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
 		MethodInvokingRouter router;
 		if (StringUtils.hasText(methodName)) {
@@ -2087,7 +2089,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B route(String expression) {
-		return this.route(expression, (Consumer<RouterSpec<ExpressionEvaluatingRouter>>) null);
+		return this.route(expression, (Consumer<RouterSpec<Object, ExpressionEvaluatingRouter>>) null);
 	}
 
 	/**
@@ -2097,7 +2099,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param routerConfigurer the {@link Consumer} to provide {@link ExpressionEvaluatingRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String expression, Consumer<RouterSpec<ExpressionEvaluatingRouter>> routerConfigurer) {
+	public B route(String expression, Consumer<RouterSpec<Object, ExpressionEvaluatingRouter>> routerConfigurer) {
 		return this.route(expression, routerConfigurer, null);
 	}
 
@@ -2110,7 +2112,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String expression, Consumer<RouterSpec<ExpressionEvaluatingRouter>> routerConfigurer,
+	public B route(String expression, Consumer<RouterSpec<Object, ExpressionEvaluatingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<ExpressionEvaluatingRouter>> endpointConfigurer) {
 		return this.route(new ExpressionEvaluatingRouter(PARSER.parseExpression(expression)), routerConfigurer,
 				endpointConfigurer);
@@ -2152,7 +2154,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer) {
+	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 		return this.route(null, router, routerConfigurer);
 	}
 
@@ -2167,12 +2169,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param payloadType the expected payload type.
 	 * @param router  the {@link Function} to use.
-	 * @param <P> the source payload type.
+	 * @param <S> the source payload type.
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P, T> B route(Class<P> payloadType, Function<P, T> router) {
+	public <S, T> B route(Class<S> payloadType, Function<S, T> router) {
 		return this.route(payloadType, router, null, null);
 	}
 
@@ -2191,13 +2193,13 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param payloadType the expected payload type.
 	 * @param router  the {@link Function} to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param <P> the source payload type.
+	 * @param <S> the source payload type.
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
-	public <P, T> B route(Class<P> payloadType, Function<P, T> router,
-			Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer) {
+	public <S, T> B route(Class<S> payloadType, Function<S, T> router,
+			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 		return this.route(payloadType, router, routerConfigurer, null);
 	}
 
@@ -2222,7 +2224,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer,
+	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
 		return route(null, router, routerConfigurer, endpointConfigurer);
 	}
@@ -2251,7 +2253,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see LambdaMessageProcessor
 	 */
 	public <P, T> B route(Class<P> payloadType, Function<P, T> router,
-			Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer,
+			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
 		MethodInvokingRouter methodInvokingRouter = isLambda(router)
 				? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
@@ -2272,7 +2274,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.1
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec) {
-		return route(messageProcessorSpec, (Consumer<RouterSpec<MethodInvokingRouter>>) null);
+		return route(messageProcessorSpec, (Consumer<RouterSpec<Object, MethodInvokingRouter>>) null);
 	}
 
 	/**
@@ -2292,7 +2294,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.1
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer) {
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 		return route(messageProcessorSpec, routerConfigurer, null);
 	}
 
@@ -2316,7 +2318,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.1
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<RouterSpec<MethodInvokingRouter>> routerConfigurer,
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
 		Assert.notNull(messageProcessorSpec);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
@@ -2331,14 +2333,15 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param router the {@link AbstractMappingMessageRouter} to populate.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <K> the {@code channelKey mapping} type.
 	 * @param <R> the {@link AbstractMappingMessageRouter} type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <R extends AbstractMappingMessageRouter> B route(R router, Consumer<RouterSpec<R>> routerConfigurer,
+	public <K, R extends AbstractMappingMessageRouter> B route(R router, Consumer<RouterSpec<K, R>> routerConfigurer,
 			Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
 		Collection<Object> componentsToRegister = null;
 		if (routerConfigurer != null) {
-			RouterSpec<R> routerSpec = new RouterSpec<R>(router);
+			RouterSpec<K, R> routerSpec = new RouterSpec<K, R>(router);
 			routerConfigurer.accept(routerSpec);
 			componentsToRegister = routerSpec.getComponentsToRegister();
 		}

@@ -211,7 +211,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(beanName + ".input");
 		flow.configure(flowBuilder);
 		Object standardIntegrationFlow = processStandardIntegrationFlow(flowBuilder.get(), beanName);
-		 return isLambda(flow) ? standardIntegrationFlow : flow;
+		return isLambda(flow) ? standardIntegrationFlow : flow;
 	}
 
 	private void processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean) {

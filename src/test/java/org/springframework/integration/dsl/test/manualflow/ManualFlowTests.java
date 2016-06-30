@@ -16,51 +16,106 @@
 
 package org.springframework.integration.dsl.test.manualflow;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertFalse;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.dsl.IntegrationFlowAdapter;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
  */
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class ManualFlowTests {
+
+	@Autowired
+	private IntegrationFlowContext integrationFlowContext;
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	@Test
 	public void testManualFlowRegistration() {
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(RootConfiguration.class);
-
-		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
-
-		IntegrationFlow flow = f -> f
+		IntegrationFlow myFlow = f -> f
 				.<String, String>transform(String::toUpperCase)
-				.channel(c -> c.queue("results"));
+				.transform("Hello, "::concat);
 
-		beanFactory.registerSingleton("testFlow", flow);
-		beanFactory.initializeBean(flow, "testFlow");
+		String flowId = this.integrationFlowContext.register(myFlow);
 
-		ctx.start();
+		MessagingTemplate messagingTemplate = this.integrationFlowContext.messagingTemplateFor(flowId);
+		messagingTemplate.setReceiveTimeout(10000);
 
-		MessageChannel input = ctx.getBean("testFlow.input", MessageChannel.class);
-		PollableChannel output = ctx.getBean("results", PollableChannel.class);
+		assertEquals("Hello, FOO", messagingTemplate.convertSendAndReceive("foo", String.class));
 
-		input.send(new GenericMessage<>("foo"));
-		Message<?> receive = output.receive(10000);
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		assertEquals("Hello, BAR", messagingTemplate.convertSendAndReceive("bar", String.class));
 
-		ctx.close();
+		try {
+			messagingTemplate.receive();
+			fail("UnsupportedOperationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(UnsupportedOperationException.class));
+			assertThat(e.getMessage(), containsString("The 'receive()/receiveAndConvert()' isn't supported"));
+		}
+
+		this.integrationFlowContext.remove(flowId);
+
+		assertFalse(this.beanFactory.containsBean(flowId));
+		assertFalse(this.beanFactory.containsBean(flowId + ".input"));
 	}
+
+	@Test
+	public void testWrongLifecycle() {
+		IntegrationFlowAdapter testFlow = new IntegrationFlowAdapter() {
+
+			@Override
+			protected IntegrationFlowDefinition<?> buildFlow() {
+				return from("foo")
+						.bridge(null);
+			}
+
+		};
+
+		// This is fine because we are not going to start it automatically.
+		assertNotNull(this.integrationFlowContext.register(testFlow, false));
+
+		try {
+			this.integrationFlowContext.register(testFlow);
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("Consider to implement it for [" + testFlow + "]."));
+		}
+
+		try {
+			this.integrationFlowContext.remove("foo");
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("But [" + "foo" + "] ins't one of them."));
+		}
+	}
+
 
 	@Configuration
 	@EnableIntegration

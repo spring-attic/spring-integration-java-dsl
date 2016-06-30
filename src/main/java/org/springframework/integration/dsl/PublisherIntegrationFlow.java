@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -40,7 +39,7 @@ import org.springframework.messaging.SubscribableChannel;
  * @author Artem Bilan
  * @since 1.1
  */
-class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Publisher<Message<T>>, Lifecycle {
+class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Publisher<Message<T>> {
 
 	private static final Subscription NO_OP_SUBSCRIPTION = new Subscription() {
 
@@ -61,8 +60,6 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 
 	private final Executor executor;
 
-	private volatile boolean running;
-
 	PublisherIntegrationFlow(Set<Object> integrationComponents, MessageChannel messageChannel, Executor executor) {
 		super(integrationComponents);
 		this.messageChannel = messageChannel;
@@ -73,7 +70,7 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 	@Override
 	@SuppressWarnings("unchecked")
 	public void subscribe(Subscriber<? super Message<T>> subscriber) {
-		if (!this.running) {
+		if (!isRunning()) {
 			//Reactive Streams Specification: https://github.com/reactive-streams/reactive-streams-jvm#1.4
 			subscriber.onSubscribe(NO_OP_SUBSCRIPTION);
 			subscriber.onError(
@@ -99,18 +96,9 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 	}
 
 	@Override
-	public void start() {
-		this.running = true;
-	}
-
-	@Override
 	public void stop() {
+		super.stop();
 		shutdown();
-	}
-
-	@Override
-	public boolean isRunning() {
-		return this.running;
 	}
 
 	public void shutdown() {
@@ -118,24 +106,23 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 		while ((subscriber = this.subscribers.poll()) != null) {
 			subscriber.onComplete();
 		}
-		this.running = false;
 	}
 
 
 	private abstract class SubscriberSubscription implements Subscription {
 
-		protected final Subscriber<Message<?>> subscriber;
+		final Subscriber<Message<?>> subscriber;
 
-		protected volatile boolean terminated;
+		volatile boolean terminated;
 
-		protected SubscriberSubscription(Subscriber<Message<?>> subscriber) {
+		SubscriberSubscription(Subscriber<Message<?>> subscriber) {
 			this.subscriber = subscriber;
 		}
 
 		@Override
 		public void request(long n) {
 			//Reactive Streams Specification: https://github.com/reactive-streams/reactive-streams-jvm#3.9
-			if (n <= 0l) {
+			if (n <= 0L) {
 				subscriber.onError(
 						new IllegalArgumentException("Spec. Rule 3.9 - " +
 								"Cannot request a non strictly positive number: " + n));

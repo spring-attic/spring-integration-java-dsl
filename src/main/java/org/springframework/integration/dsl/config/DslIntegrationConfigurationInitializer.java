@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.springframework.integration.dsl.config;
 
+import java.beans.Introspector;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.core.IntegrationComponentSpec;
 import org.springframework.util.Assert;
 
@@ -31,12 +34,16 @@ import org.springframework.util.Assert;
  * {@link IntegrationComponentSpec#get()}.
  *
  * @author Artem Bilan
+ *
  * @see org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor
  */
 public class DslIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
-	private static final String INTEGRATION_FLOW_BPP_BEAN_NAME = IntegrationFlowBeanPostProcessor
-			.class.getName();
+	private static final String INTEGRATION_FLOW_BPP_BEAN_NAME =
+			Introspector.decapitalize(IntegrationFlowBeanPostProcessor.class.getName());
+
+	private static final String INTEGRATION_FLOW_CONTEXT_BEAN_NAME =
+			Introspector.decapitalize(IntegrationFlowContext.class.getName());
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
@@ -49,6 +56,8 @@ public class DslIntegrationConfigurationInitializer implements IntegrationConfig
 		if (!registry.containsBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME)) {
 			registry.registerBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME,
 					new RootBeanDefinition(IntegrationFlowBeanPostProcessor.class));
+			registry.registerBeanDefinition(INTEGRATION_FLOW_CONTEXT_BEAN_NAME,
+					new RootBeanDefinition(IntegrationFlowContext.class));
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ package org.springframework.integration.dsl;
  * @author Artem Bilan
  */
 public final class IntegrationFlowBuilder extends IntegrationFlowDefinition<IntegrationFlowBuilder> {
+
+	IntegrationFlowBuilder() {
+	}
 
 	@Override
 	public StandardIntegrationFlow get() {

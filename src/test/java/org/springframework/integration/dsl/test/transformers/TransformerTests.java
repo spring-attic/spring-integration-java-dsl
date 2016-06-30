@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.codec.Codec;
@@ -50,6 +51,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -156,6 +158,22 @@ public class TransformerTests {
 	}
 
 
+	@Autowired
+	@Qualifier("pojoTransformFlow.input")
+	private MessageChannel pojoTransformFlowInput;
+
+	@Test
+	public void transformWithHeader() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("Foo")
+				.setReplyChannel(replyChannel)
+				.build();
+		this.pojoTransformFlowInput.send(message);
+		Message<?> receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("FooBar", receive.getPayload());
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -207,12 +225,16 @@ public class TransformerTests {
 			return new QueueChannel();
 		}
 
+		@Bean
+		public PollableChannel codecReplyChannel() {
+			return new QueueChannel();
+		}
 
 		@Bean
 		public IntegrationFlow encodingFlow() {
 			return f -> f
 					.transform(Transformers.encoding(new MyCodec()))
-					.channel(c -> c.queue("codecReplyChannel"));
+					.channel("codecReplyChannel");
 		}
 
 		@Bean
@@ -220,6 +242,13 @@ public class TransformerTests {
 			return f -> f
 					.transform(Transformers.decoding(new MyCodec(), m -> Integer.class))
 					.channel("codecReplyChannel");
+		}
+
+		@Bean
+		public IntegrationFlow pojoTransformFlow() {
+			return f -> f
+					.enrichHeaders(h -> h.header("Foo", "Bar"))
+					.transform(new PojoTransformer());
 		}
 
 	}
@@ -277,5 +306,13 @@ public class TransformerTests {
 
 	}
 
+	public static class PojoTransformer {
+
+		@Transformer
+		public String transform(String payload, @Header("Foo") String header) {
+			return payload + header;
+		}
+
+	}
 
 }

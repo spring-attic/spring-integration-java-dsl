@@ -16,8 +16,10 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 import org.springframework.beans.factory.BeanNameAware;
@@ -33,7 +35,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private final Set<Object> integrationComponents;
 
-	private final Set<Lifecycle> lifecycles = new HashSet<Lifecycle>();
+	private final List<Lifecycle> lifecycles = new LinkedList<Lifecycle>();
 
 	private boolean registerComponents = true;
 
@@ -59,11 +61,11 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	}*/
 
 	public boolean isRegisterComponents() {
-		return registerComponents;
+		return this.registerComponents;
 	}
 
 	public Set<Object> getIntegrationComponents() {
-		return integrationComponents;
+		return this.integrationComponents;
 	}
 
 	@Override
@@ -74,8 +76,9 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public void start() {
 		if (!this.running) {
-			for (Lifecycle lifecycle : this.lifecycles) {
-				lifecycle.start();
+			ListIterator<Lifecycle> lifecycleIterator = this.lifecycles.listIterator(this.lifecycles.size());
+			while(lifecycleIterator.hasPrevious()) {
+				lifecycleIterator.previous().start();
 			}
 			this.running = true;
 		}

@@ -160,15 +160,18 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	}
 
 	/**
-	 * Obtain an {@link IntegrationFlow} input channel from provided {@code flowId}
-	 * and build a {@link MessagingTemplate} based on that channel as default {@code destination}.
+	 * Obtain a {@link MessagingTemplate} with its default destination set to the input channel
+	 * of the {@link IntegrationFlow} for provided {@code flowId}.
+	 * <p> Any {@link IntegrationFlow} bean (not only manually registered) can be used for this method.
+	 * <p> If {@link IntegrationFlow} doesn't start with the {@link MessageChannel}, the
+	 * {@link IllegalStateException} is thrown.
 	 * @param flowId the bean name to obtain the input channel from
 	 * @return the {@link MessagingTemplate} instance
 	 */
 	public MessagingTemplate messagingTemplateFor(String flowId) {
 		MessageChannel channel = this.flowInputChannelCache.get(flowId);
 		if (channel == null) {
-			Object o = this.registry.get(flowId);
+			Object o = this.beanFactory.getBean(flowId);
 			if (o instanceof StandardIntegrationFlow) {
 				StandardIntegrationFlow integrationFlow = (StandardIntegrationFlow) o;
 				Object next = integrationFlow.getIntegrationComponents().iterator().next();
@@ -186,7 +189,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 				}
 				else {
 					throw new IllegalStateException("The 'IntegrationFlow' [" + integrationFlow + "] " +
-							"doesn't start with 'MessageChannel' for direct message to send.");
+							"doesn't start with 'MessageChannel' for direct message sending.");
 				}
 			}
 			else {

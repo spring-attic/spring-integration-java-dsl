@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.test.flowservices;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +36,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
@@ -149,7 +152,7 @@ public class FlowServiceTests {
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
 			return from(this, "messageSource", e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
-					.split(this)
+					.split(this, null, e -> e.applySequence(false))
 					.transform(this)
 					.aggregate(a -> a.processor(this, null))
 					.enrichHeaders(Collections.singletonMap("foo", "FOO"))
@@ -170,6 +173,17 @@ public class FlowServiceTests {
 		@Transformer
 		public String transform(String payload) {
 			return payload.toLowerCase();
+		}
+
+
+		@CorrelationStrategy
+		public Integer correlationKey() {
+			return 1;
+		}
+
+		@ReleaseStrategy
+		public boolean canRelease(Collection<Message<?>> messages) {
+			return messages.size() == 3;
 		}
 
 		@Aggregator

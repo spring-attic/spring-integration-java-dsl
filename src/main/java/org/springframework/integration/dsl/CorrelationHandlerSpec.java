@@ -173,8 +173,10 @@ public abstract class
 		try {
 			CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
 			correlationStrategyFactoryBean.setTarget(target);
+			correlationStrategyFactoryBean.afterPropertiesSet();
 			ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
 			releaseStrategyFactoryBean.setTarget(target);
+			releaseStrategyFactoryBean.afterPropertiesSet();
 			return correlationStrategy(correlationStrategyFactoryBean.getObject())
 					.releaseStrategy(releaseStrategyFactoryBean.getObject());
 		}
@@ -208,6 +210,7 @@ public abstract class
 			CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
 			correlationStrategyFactoryBean.setTarget(target);
 			correlationStrategyFactoryBean.setMethodName(methodName);
+			correlationStrategyFactoryBean.afterPropertiesSet();
 			return correlationStrategy(correlationStrategyFactoryBean.getObject());
 		}
 		catch (Exception e) {
@@ -250,6 +253,7 @@ public abstract class
 			ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
 			releaseStrategyFactoryBean.setTarget(target);
 			releaseStrategyFactoryBean.setMethodName(methodName);
+			releaseStrategyFactoryBean.afterPropertiesSet();
 			return releaseStrategy(releaseStrategyFactoryBean.getObject());
 		}
 		catch (Exception e) {

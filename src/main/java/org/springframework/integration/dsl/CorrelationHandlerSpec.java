@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,8 +171,14 @@ public abstract class
 	 */
 	public S processor(Object target) {
 		try {
-			return correlationStrategy(new CorrelationStrategyFactoryBean(target).getObject())
-					.releaseStrategy(new ReleaseStrategyFactoryBean(target).getObject());
+			CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
+			correlationStrategyFactoryBean.setTarget(target);
+			correlationStrategyFactoryBean.afterPropertiesSet();
+			ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
+			releaseStrategyFactoryBean.setTarget(target);
+			releaseStrategyFactoryBean.afterPropertiesSet();
+			return correlationStrategy(correlationStrategyFactoryBean.getObject())
+					.releaseStrategy(releaseStrategyFactoryBean.getObject());
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -201,7 +207,11 @@ public abstract class
 	 */
 	public S correlationStrategy(Object target, String methodName) {
 		try {
-			return correlationStrategy(new CorrelationStrategyFactoryBean(target, methodName).getObject());
+			CorrelationStrategyFactoryBean correlationStrategyFactoryBean = new CorrelationStrategyFactoryBean();
+			correlationStrategyFactoryBean.setTarget(target);
+			correlationStrategyFactoryBean.setMethodName(methodName);
+			correlationStrategyFactoryBean.afterPropertiesSet();
+			return correlationStrategy(correlationStrategyFactoryBean.getObject());
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -240,7 +250,11 @@ public abstract class
 	 */
 	public S releaseStrategy(Object target, String methodName) {
 		try {
-			return releaseStrategy(new ReleaseStrategyFactoryBean(target, methodName).getObject());
+			ReleaseStrategyFactoryBean releaseStrategyFactoryBean = new ReleaseStrategyFactoryBean();
+			releaseStrategyFactoryBean.setTarget(target);
+			releaseStrategyFactoryBean.setMethodName(methodName);
+			releaseStrategyFactoryBean.afterPropertiesSet();
+			return releaseStrategy(releaseStrategyFactoryBean.getObject());
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

@@ -30,6 +30,7 @@ import org.springframework.integration.dsl.http.Http;
 import org.springframework.integration.dsl.http.HttpControllerEndpointSpec;
 import org.springframework.integration.dsl.http.HttpRequestHandlerEndpointSpec;
 import org.springframework.integration.dsl.jms.Jms;
+import org.springframework.integration.dsl.jms.JmsListenerContainerSpec;
 import org.springframework.integration.dsl.jms.JmsMessageDrivenChannelAdapterSpec;
 import org.springframework.integration.dsl.mail.ImapIdleChannelAdapterSpec;
 import org.springframework.integration.dsl.mail.Mail;
@@ -83,11 +84,11 @@ public class MessageProducers {
 		return Jms.messageDrivenChannelAdapter(connectionFactory);
 	}
 
-	public <C extends AbstractMessageListenerContainer>
+	public <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
 	JmsMessageDrivenChannelAdapterSpec<? extends JmsMessageDrivenChannelAdapterSpec<?>> jms(
 			javax.jms.ConnectionFactory connectionFactory,
 			Class<C> containerClass) {
-		return Jms.messageDrivenChannelAdapter(connectionFactory, containerClass);
+		return Jms.<S, C>messageDrivenChannelAdapter(connectionFactory, containerClass);
 	}
 
 	public HttpControllerEndpointSpec http(String viewName, String... path) {

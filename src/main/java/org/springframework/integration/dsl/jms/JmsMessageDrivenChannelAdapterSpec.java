@@ -71,12 +71,12 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 
 
 	public static class
-			JmsMessageDrivenChannelAdapterListenerContainerSpec<C extends AbstractMessageListenerContainer> extends
-			JmsMessageDrivenChannelAdapterSpec<JmsMessageDrivenChannelAdapterListenerContainerSpec<C>> {
+			JmsMessageDrivenChannelAdapterListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+			extends JmsMessageDrivenChannelAdapterSpec<JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>> {
 
-		private final JmsListenerContainerSpec<C> spec;
+		private final JmsListenerContainerSpec<S, C> spec;
 
-		JmsMessageDrivenChannelAdapterListenerContainerSpec(JmsListenerContainerSpec<C> spec) {
+		JmsMessageDrivenChannelAdapterListenerContainerSpec(JmsListenerContainerSpec<S, C> spec) {
 			super(spec.get());
 			this.spec = spec;
 			this.spec.get().setAutoStartup(false);
@@ -87,7 +87,7 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		 * @return the spec.
 		 * @see JmsListenerContainerSpec#destination(Destination)
 		 */
-		public JmsMessageDrivenChannelAdapterListenerContainerSpec<C> destination(Destination destination) {
+		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> destination(Destination destination) {
 			spec.destination(destination);
 			return _this();
 		}
@@ -97,7 +97,7 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		 * @return the spec.
 		 * @see JmsListenerContainerSpec#destination(String)
 		 */
-		public JmsMessageDrivenChannelAdapterListenerContainerSpec<C> destination(String destinationName) {
+		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> destination(String destinationName) {
 			spec.destination(destinationName);
 			return _this();
 		}
@@ -108,8 +108,8 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		 * @param configurer the configurer.
 		 * @return the spec.
 		 */
-		public JmsMessageDrivenChannelAdapterListenerContainerSpec<C> configureListenerContainer(
-				Consumer<JmsListenerContainerSpec<C>> configurer) {
+		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> configureListenerContainer(
+				Consumer<JmsListenerContainerSpec<S, C>> configurer) {
 			Assert.notNull(configurer);
 			configurer.accept(this.spec);
 			return _this();

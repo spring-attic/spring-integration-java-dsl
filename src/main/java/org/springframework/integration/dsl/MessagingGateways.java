@@ -29,7 +29,9 @@ import org.springframework.integration.dsl.http.Http;
 import org.springframework.integration.dsl.http.HttpControllerEndpointSpec;
 import org.springframework.integration.dsl.http.HttpRequestHandlerEndpointSpec;
 import org.springframework.integration.dsl.jms.Jms;
+import org.springframework.integration.dsl.jms.JmsDefaultListenerContainerSpec;
 import org.springframework.integration.dsl.jms.JmsInboundGatewaySpec;
+import org.springframework.integration.dsl.jms.JmsListenerContainerSpec;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
@@ -67,13 +69,13 @@ public class MessagingGateways {
 		return Amqp.inboundGateway(listenerContainer, amqpTemplate);
 	}
 
-	public JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<DefaultMessageListenerContainer> jms(
+	public JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer> jms(
 			javax.jms.ConnectionFactory connectionFactory) {
 		return Jms.inboundGateway(connectionFactory);
 	}
 
-	public <C extends AbstractMessageListenerContainer>
-	JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<C> jms(ConnectionFactory connectionFactory,
+	public <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+	JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<S, C> jms(ConnectionFactory connectionFactory,
 			Class<C> containerClass) {
 		return Jms.inboundGateway(connectionFactory, containerClass);
 	}

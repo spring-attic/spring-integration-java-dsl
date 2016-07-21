@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -337,6 +338,7 @@ public class JmsTests {
 					.from(Jms.messageDrivenChannelAdapter(
 							Jms.container(this.jmsConnectionFactory, "containerSpecDestination")
 									.pubSubDomain(false)
+									.taskExecutor(Executors.newCachedThreadPool())
 									.get()))
 					.transform(String::trim)
 					.channel(jmsOutboundInboundReplyChannel())

@@ -170,12 +170,12 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		return _this();
 	}
 
-	public static class JmsInboundGatewayListenerContainerSpec<C extends AbstractMessageListenerContainer>
-			extends JmsInboundGatewaySpec<JmsInboundGatewayListenerContainerSpec<C>> {
+	public static class JmsInboundGatewayListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+			extends JmsInboundGatewaySpec<JmsInboundGatewayListenerContainerSpec<S, C>> {
 
-		private final JmsListenerContainerSpec<C> spec;
+		private final JmsListenerContainerSpec<S, C> spec;
 
-		JmsInboundGatewayListenerContainerSpec(JmsListenerContainerSpec<C> spec) {
+		JmsInboundGatewayListenerContainerSpec(JmsListenerContainerSpec<S, C> spec) {
 			super(spec.get());
 			this.spec = spec;
 			this.spec.get().setAutoStartup(false);
@@ -186,7 +186,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * @return the spec.
 		 * @see JmsListenerContainerSpec#destination(Destination)
 		 */
-		public JmsInboundGatewayListenerContainerSpec<C> destination(Destination destination) {
+		public JmsInboundGatewayListenerContainerSpec<S, C> destination(Destination destination) {
 			spec.destination(destination);
 			return _this();
 		}
@@ -196,13 +196,13 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * @return the spec.
 		 * @see JmsListenerContainerSpec#destination(String)
 		 */
-		public JmsInboundGatewayListenerContainerSpec<C> destination(String destinationName) {
+		public JmsInboundGatewayListenerContainerSpec<S, C> destination(String destinationName) {
 			spec.destination(destinationName);
 			return _this();
 		}
 
-		public JmsInboundGatewayListenerContainerSpec<C> configureListenerContainer(
-				Consumer<JmsListenerContainerSpec<C>> configurer) {
+		public JmsInboundGatewayListenerContainerSpec<S, C> configureListenerContainer(
+				Consumer<JmsListenerContainerSpec<S, C>> configurer) {
 			Assert.notNull(configurer);
 			configurer.accept(this.spec);
 			return _this();

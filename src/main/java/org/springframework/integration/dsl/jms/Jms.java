@@ -163,7 +163,7 @@ public abstract class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsOutboundGatewaySpec} instance
 	 */
-	public static JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<DefaultMessageListenerContainer>
+	public static JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
 	inboundGateway(ConnectionFactory connectionFactory) {
 		return inboundGateway(connectionFactory, DefaultMessageListenerContainer.class);
 	}
@@ -176,13 +176,14 @@ public abstract class Jms {
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
 	 * @return the {@link JmsOutboundGatewaySpec} instance
 	 */
-	public static <C extends AbstractMessageListenerContainer>
-	JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<C> inboundGateway(ConnectionFactory connectionFactory,
+	public static <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+	JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<S, C> inboundGateway(ConnectionFactory connectionFactory,
 	                                                                               Class<C> containerClass) {
 		try {
-			JmsListenerContainerSpec<C> spec = new JmsListenerContainerSpec<C>(containerClass)
+			JmsListenerContainerSpec<S, C> spec =
+					new JmsListenerContainerSpec<S, C>(containerClass)
 					.connectionFactory(connectionFactory);
-			return new JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<C>(spec);
+			return new JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<S, C>(spec);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -211,7 +212,7 @@ public abstract class Jms {
 	 */
 	@Deprecated
 	public static JmsMessageDrivenChannelAdapterSpec
-			.JmsMessageDrivenChannelAdapterListenerContainerSpec<DefaultMessageListenerContainer>
+			.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
 				messageDriverChannelAdapter(ConnectionFactory connectionFactory) {
 		return messageDrivenChannelAdapter(connectionFactory);
 	}
@@ -226,8 +227,8 @@ public abstract class Jms {
 	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory, Class)}.
 	 */
 	@Deprecated
-	public static <C extends AbstractMessageListenerContainer>
-			JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<C>
+	public static <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+			JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>
 				messageDriverChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
 		return messageDrivenChannelAdapter(connectionFactory, containerClass);
 	}
@@ -250,7 +251,7 @@ public abstract class Jms {
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
 	public static JmsMessageDrivenChannelAdapterSpec
-			.JmsMessageDrivenChannelAdapterListenerContainerSpec<DefaultMessageListenerContainer>
+			.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
 				messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
 		return messageDrivenChannelAdapter(connectionFactory, DefaultMessageListenerContainer.class);
 	}
@@ -263,13 +264,14 @@ public abstract class Jms {
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
-	public static <C extends AbstractMessageListenerContainer>
-	JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<C>
+	public static <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+	JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>
 			messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
 		try {
-			JmsListenerContainerSpec<C> spec = new JmsListenerContainerSpec<C>(containerClass)
+			JmsListenerContainerSpec<S, C> spec =
+					new JmsListenerContainerSpec<S, C>(containerClass)
 					.connectionFactory(connectionFactory);
-			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<C>(spec);
+			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>(spec);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -283,10 +285,10 @@ public abstract class Jms {
 	 * @return the {@link JmsListenerContainerSpec} instance
 	 * @since 1.1
 	 */
-	public static JmsListenerContainerSpec<DefaultMessageListenerContainer> container(
-			ConnectionFactory connectionFactory, Destination destination) {
+	public static JmsDefaultListenerContainerSpec container(ConnectionFactory connectionFactory,
+			Destination destination) {
 		try {
-			return new JmsListenerContainerSpec<DefaultMessageListenerContainer>(DefaultMessageListenerContainer.class)
+			return new JmsDefaultListenerContainerSpec()
 					.connectionFactory(connectionFactory)
 					.destination(destination);
 		}
@@ -302,10 +304,10 @@ public abstract class Jms {
 	 * @return the {@link JmsListenerContainerSpec} instance
 	 * @since 1.1
 	 */
-	public static JmsListenerContainerSpec<DefaultMessageListenerContainer> container(
-			ConnectionFactory connectionFactory, String destinationName) {
+	public static JmsDefaultListenerContainerSpec container(ConnectionFactory connectionFactory,
+			String destinationName) {
 		try {
-			return new JmsListenerContainerSpec<DefaultMessageListenerContainer>(DefaultMessageListenerContainer.class)
+			return new JmsDefaultListenerContainerSpec()
 					.connectionFactory(connectionFactory)
 					.destination(destinationName);
 		}

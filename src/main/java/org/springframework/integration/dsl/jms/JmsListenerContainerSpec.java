@@ -29,13 +29,13 @@ import org.springframework.util.ErrorHandler;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer>
-		extends JmsDestinationAccessorSpec<JmsListenerContainerSpec<C>, C> {
+public class JmsListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+		extends JmsDestinationAccessorSpec<S, C> {
 
 	JmsListenerContainerSpec(Class<C> aClass) throws Exception {
 		super(aClass.newInstance());
 		if (DefaultMessageListenerContainer.class.isAssignableFrom(aClass)) {
-			target.setSessionTransacted(true);
+			this.target.setSessionTransacted(true);
 		}
 	}
 
@@ -44,8 +44,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setDestination(Destination)
 	 */
-	JmsListenerContainerSpec<C> destination(Destination destination) {
-		target.setDestination(destination);
+	S destination(Destination destination) {
+		this.target.setDestination(destination);
 		return _this();
 	}
 
@@ -54,8 +54,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setDestinationName(String)
 	 */
-	JmsListenerContainerSpec<C> destination(String destinationName) {
-		target.setDestinationName(destinationName);
+	S destination(String destinationName) {
+		this.target.setDestinationName(destinationName);
 		return _this();
 	}
 
@@ -64,8 +64,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setMessageSelector(String)
 	 */
-	public JmsListenerContainerSpec<C> messageSelector(String messageSelector) {
-		target.setMessageSelector(messageSelector);
+	public S messageSelector(String messageSelector) {
+		this.target.setMessageSelector(messageSelector);
 		return _this();
 	}
 
@@ -74,8 +74,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setSubscriptionDurable(boolean)
 	 */
-	public JmsListenerContainerSpec<C> subscriptionDurable(boolean subscriptionDurable) {
-		target.setSubscriptionDurable(subscriptionDurable);
+	public S subscriptionDurable(boolean subscriptionDurable) {
+		this.target.setSubscriptionDurable(subscriptionDurable);
 		return _this();
 	}
 
@@ -84,8 +84,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setDurableSubscriptionName(String)
 	 */
-	public JmsListenerContainerSpec<C> durableSubscriptionName(String durableSubscriptionName) {
-		target.setDurableSubscriptionName(durableSubscriptionName);
+	public S durableSubscriptionName(String durableSubscriptionName) {
+		this.target.setDurableSubscriptionName(durableSubscriptionName);
 		return _this();
 	}
 
@@ -94,8 +94,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setExceptionListener(ExceptionListener)
 	 */
-	public JmsListenerContainerSpec<C> exceptionListener(ExceptionListener exceptionListener) {
-		target.setExceptionListener(exceptionListener);
+	public S exceptionListener(ExceptionListener exceptionListener) {
+		this.target.setExceptionListener(exceptionListener);
 		return _this();
 	}
 
@@ -104,8 +104,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setErrorHandler(ErrorHandler)
 	 */
-	public JmsListenerContainerSpec<C> errorHandler(ErrorHandler errorHandler) {
-		target.setErrorHandler(errorHandler);
+	public S errorHandler(ErrorHandler errorHandler) {
+		this.target.setErrorHandler(errorHandler);
 		return _this();
 	}
 
@@ -114,8 +114,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setExposeListenerSession(boolean)
 	 */
-	public JmsListenerContainerSpec<C> exposeListenerSession(boolean exposeListenerSession) {
-		target.setExposeListenerSession(exposeListenerSession);
+	public S exposeListenerSession(boolean exposeListenerSession) {
+		this.target.setExposeListenerSession(exposeListenerSession);
 		return _this();
 	}
 
@@ -124,8 +124,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setAcceptMessagesWhileStopping(boolean)
 	 */
-	public JmsListenerContainerSpec<C> acceptMessagesWhileStopping(boolean acceptMessagesWhileStopping) {
-		target.setAcceptMessagesWhileStopping(acceptMessagesWhileStopping);
+	public S acceptMessagesWhileStopping(boolean acceptMessagesWhileStopping) {
+		this.target.setAcceptMessagesWhileStopping(acceptMessagesWhileStopping);
 		return _this();
 	}
 
@@ -134,8 +134,8 @@ public class JmsListenerContainerSpec<C extends AbstractMessageListenerContainer
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setClientId(String)
 	 */
-	public JmsListenerContainerSpec<C> clientId(String clientId) {
-		target.setClientId(clientId);
+	public S clientId(String clientId) {
+		this.target.setClientId(clientId);
 		return _this();
 	}
 

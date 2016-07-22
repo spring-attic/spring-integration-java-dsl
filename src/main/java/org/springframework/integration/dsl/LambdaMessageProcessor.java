@@ -78,7 +78,7 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 		this.method = methodValue.get();
 		this.method.setAccessible(true);
 		this.parameterTypes = this.method.getParameterTypes();
-		this.payloadType = TypeDescriptor.valueOf(payloadType);
+		this.payloadType = payloadType != null ? TypeDescriptor.valueOf(payloadType) : null;
 	}
 
 	@Override

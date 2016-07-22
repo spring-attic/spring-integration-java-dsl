@@ -16,11 +16,15 @@
 
 package org.springframework.integration.dsl;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * An {@link AbstractRouterSpec} for a {@link RecipientListRouter}.
@@ -39,9 +43,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(String channelName) {
-		Assert.hasText(channelName);
-		((DslRecipientListRouter) this.target).add(channelName, (MessageSelector) null);
-		return _this();
+		return recipient(channelName, (String) null);
 	}
 
 	/**
@@ -51,9 +53,33 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(String channelName, String expression) {
+		return recipient(channelName, StringUtils.hasText(expression) ? PARSER.parseExpression(expression): null);
+	}
+
+	/**
+	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * @param channelName the channel name.
+	 * @param expression the expression.
+	 * @return the router spec.
+	 * @since 1.2
+	 */
+	public RecipientListRouterSpec recipient(String channelName, Expression expression) {
 		Assert.hasText(channelName);
 		((DslRecipientListRouter) this.target).add(channelName, expression);
 		return _this();
+	}
+
+
+	/**
+	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * @param channelName the channel name.
+	 * @param selector the selector.
+	 * @return the router spec.
+	 * @deprecated since 1.2 in favor of {@link #recipient(String, GenericSelector)}
+	 */
+	@Deprecated
+	public RecipientListRouterSpec recipient(String channelName, MessageSelector selector) {
+		return recipient(channelName, (GenericSelector<Message<?>>) selector);
 	}
 
 	/**
@@ -61,8 +87,9 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param channelName the channel name.
 	 * @param selector the selector.
 	 * @return the router spec.
+	 * @since 1.2
 	 */
-	public RecipientListRouterSpec recipient(String channelName, MessageSelector selector) {
+	public <P> RecipientListRouterSpec recipient(String channelName, GenericSelector<P> selector) {
 		Assert.hasText(channelName);
 		((DslRecipientListRouter) this.target).add(channelName, selector);
 		return _this();
@@ -74,9 +101,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel) {
-		Assert.notNull(channel);
-		((DslRecipientListRouter) this.target).add(channel, (MessageSelector) null);
-		return _this();
+		return recipient(channel, (String) null);
 	}
 
 	/**
@@ -86,6 +111,17 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel, String expression) {
+		return recipient(channel, StringUtils.hasText(expression) ? PARSER.parseExpression(expression): null);
+	}
+
+	/**
+	 * Adds a recipient channel that will be selected if the the expression evaluates to 'true'.
+	 * @param channel the recipient channel.
+	 * @param expression the expression.
+	 * @return the router spec.
+	 * @since 1.2
+	 */
+	public RecipientListRouterSpec recipient(MessageChannel channel, Expression expression) {
 		Assert.notNull(channel);
 		((DslRecipientListRouter) this.target).add(channel, expression);
 		return _this();
@@ -96,8 +132,20 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param channel the recipient channel.
 	 * @param selector the selector.
 	 * @return the router spec.
+	 * @deprecated since 1.2 in favor of {@link #recipient(MessageChannel, GenericSelector)}
 	 */
+	@Deprecated
 	public RecipientListRouterSpec recipient(MessageChannel channel, MessageSelector selector) {
+		return recipient(channel, (GenericSelector<Message<?>>) selector);
+	}
+
+	/**
+	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
+	 * @param channel the recipient channel.
+	 * @param selector the selector.
+	 * @return the router spec.
+	 */
+	public <P> RecipientListRouterSpec recipient(MessageChannel channel, GenericSelector<P> selector) {
 		Assert.notNull(channel);
 		((DslRecipientListRouter) this.target).add(channel, selector);
 		return _this();
@@ -108,13 +156,36 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param selector the selector.
 	 * @param subFlow the subflow.
 	 * @return the router spec.
+	 * @deprecated since 1.2 in favor of {@link #recipientFlow(GenericSelector selector, IntegrationFlow subFlow)}
 	 */
+	@Deprecated
 	public RecipientListRouterSpec recipientFlow(MessageSelector selector, IntegrationFlow subFlow) {
+		return recipientFlow((GenericSelector<Message<?>>) selector, subFlow);
+	}
+
+	/**
+	 * Adds a subflow that will be invoked if the selector's accept methods returns 'true'.
+	 * @param selector the selector.
+	 * @param subFlow the subflow.
+	 * @return the router spec.
+	 */
+	public <P> RecipientListRouterSpec recipientFlow(GenericSelector<P> selector, IntegrationFlow subFlow) {
 		Assert.notNull(subFlow);
 		DirectChannel channel = populateSubFlow(subFlow);
 		((DslRecipientListRouter) this.target).add(channel, selector);
 		return _this();
 	}
+
+	/**
+	 * Adds a subflow that will be invoked as a recipient.
+	 * @param subFlow the subflow.
+	 * @return the router spec.
+	 * @since 1.2
+	 */
+	public RecipientListRouterSpec recipientFlow(IntegrationFlow subFlow) {
+		return recipientFlow((String) null, subFlow);
+	}
+
 
 	/**
 	 * Adds a subflow that will be invoked if the expression evaluates to 'true'.
@@ -123,6 +194,17 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipientFlow(String expression, IntegrationFlow subFlow) {
+		return recipientFlow(StringUtils.hasText(expression) ? PARSER.parseExpression(expression): null, subFlow);
+	}
+
+	/**
+	 * Adds a subflow that will be invoked if the expression evaluates to 'true'.
+	 * @param expression the expression.
+	 * @param subFlow the subflow.
+	 * @return the router spec.
+	 * @since 1.2
+	 */
+	public RecipientListRouterSpec recipientFlow(Expression expression, IntegrationFlow subFlow) {
 		Assert.notNull(subFlow);
 		DirectChannel channel = populateSubFlow(subFlow);
 		((DslRecipientListRouter) this.target).add(channel, expression);

@@ -41,10 +41,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.config.EnableMessageHistory;
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -185,6 +185,10 @@ public class RouterTests {
 	private PollableChannel recipientListSubFlow2Result;
 
 	@Autowired
+	@Qualifier("recipientListSubFlow3Result")
+	private PollableChannel recipientListSubFlow3Result;
+
+	@Autowired
 	@Qualifier("defaultOutputChannel")
 	private PollableChannel defaultOutputChannel;
 
@@ -197,13 +201,13 @@ public class RouterTests {
 		Message<String> badMessage = new GenericMessage<>("badPayload");
 
 		this.recipientListInput.send(fooMessage);
-		Message<?> result1a = this.fooChannel.receive(2000);
+		Message<?> result1a = this.fooChannel.receive(10000);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
-		Message<?> result1b = this.barChannel.receive(2000);
+		Message<?> result1b = this.barChannel.receive(10000);
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		Message<?> result1c = this.recipientListSubFlow1Result.receive(2000);
+		Message<?> result1c = this.recipientListSubFlow1Result.receive(10000);
 		assertNotNull(result1c);
 		assertEquals("FOO", result1c.getPayload());
 		assertNull(this.recipientListSubFlow2Result.receive(0));
@@ -211,20 +215,20 @@ public class RouterTests {
 		this.recipientListInput.send(barMessage);
 		assertNull(this.fooChannel.receive(0));
 		assertNull(this.recipientListSubFlow2Result.receive(0));
-		Message<?> result2b = this.barChannel.receive(2000);
+		Message<?> result2b = this.barChannel.receive(10000);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		Message<?> result2c = this.recipientListSubFlow1Result.receive(2000);
+		Message<?> result2c = this.recipientListSubFlow1Result.receive(10000);
 		assertNotNull(result1c);
 		assertEquals("BAR", result2c.getPayload());
 
 		this.recipientListInput.send(bazMessage);
 		assertNull(this.fooChannel.receive(0));
 		assertNull(this.barChannel.receive(0));
-		Message<?> result3c = this.recipientListSubFlow1Result.receive(2000);
+		Message<?> result3c = this.recipientListSubFlow1Result.receive(10000);
 		assertNotNull(result3c);
 		assertEquals("BAZ", result3c.getPayload());
-		Message<?> result4c = this.recipientListSubFlow2Result.receive(2000);
+		Message<?> result4c = this.recipientListSubFlow2Result.receive(10000);
 		assertNotNull(result4c);
 		assertEquals("Hello baz", result4c.getPayload());
 
@@ -233,9 +237,18 @@ public class RouterTests {
 		assertNull(this.barChannel.receive(0));
 		assertNull(this.recipientListSubFlow1Result.receive(0));
 		assertNull(this.recipientListSubFlow2Result.receive(0));
-		Message<?> resultD = this.defaultOutputChannel.receive(2000);
+		Message<?> resultD = this.defaultOutputChannel.receive(10000);
 		assertNotNull(resultD);
 		assertEquals("bad", resultD.getPayload());
+
+		this.recipientListInput.send(new GenericMessage<>("bax"));
+		Message<?> result5c = this.recipientListSubFlow3Result.receive(10000);
+		assertNotNull(result5c);
+		assertEquals("bax", result5c.getPayload());
+		assertNull(this.fooChannel.receive(0));
+		assertNull(this.barChannel.receive(0));
+		assertNull(this.recipientListSubFlow1Result.receive(0));
+		assertNull(this.recipientListSubFlow2Result.receive(0));
 	}
 
 	@Autowired
@@ -546,21 +559,23 @@ public class RouterTests {
 		}
 
 		@Bean
+		@SuppressWarnings("deprecation")
 		public IntegrationFlow recipientListFlow() {
 			return IntegrationFlows.from("recipientListInput")
 					.<String, String>transform(p -> p.replaceFirst("Payload", ""))
 					.routeToRecipients(r -> r
 							.recipient("foo-channel", "'foo' == payload")
-							.recipient("bar-channel", m ->
+							.recipient("bar-channel", (MessageSelector) m ->
 									m.getHeaders().containsKey("recipient")
 											&& (boolean) m.getHeaders().get("recipient"))
 							.recipientFlow("'foo' == payload or 'bar' == payload or 'baz' == payload",
 									f -> f.<String, String>transform(String::toUpperCase)
 											.channel(c -> c.queue("recipientListSubFlow1Result")))
-							.recipientFlow(m -> "baz".equals(m.getPayload()),
+							.recipientFlow((String p) -> "baz".equals(p),
 									f -> f.transform("Hello "::concat)
 											.channel(c -> c.queue("recipientListSubFlow2Result")))
-							.defaultOutputToParentFlow())
+							.recipientFlow(new FunctionExpression<Message<?>>(m -> "bax".equals(m.getPayload())),
+									f -> f.channel(c -> c.queue("recipientListSubFlow3Result"))))
 					.channel("defaultOutputChannel")
 					.get();
 		}

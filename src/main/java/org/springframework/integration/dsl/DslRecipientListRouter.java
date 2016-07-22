@@ -20,11 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.BeansException;
+import org.springframework.expression.Expression;
+import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.dsl.support.tuple.Tuple2;
 import org.springframework.integration.dsl.support.tuple.Tuples;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
@@ -37,19 +40,19 @@ class DslRecipientListRouter extends RecipientListRouter {
 
 	private final List<Tuple2<?, ?>> recipients = new ArrayList<Tuple2<?, ?>>();
 
-	void add(String channelName, String expression) {
+	void add(String channelName, Expression expression) {
 		this.recipients.add(Tuples.of(channelName, expression));
 	}
 
-	void add(String channelName, MessageSelector selector) {
+	void add(String channelName, GenericSelector<?> selector) {
 		this.recipients.add(Tuples.of(channelName, selector));
 	}
 
-	void add(MessageChannel channel, String expression) {
+	void add(MessageChannel channel, Expression expression) {
 		this.recipients.add(Tuples.of(channel, expression));
 	}
 
-	void add(MessageChannel channel, MessageSelector selector) {
+	void add(MessageChannel channel, GenericSelector<?> selector) {
 		this.recipients.add(Tuples.of(channel, selector));
 	}
 
@@ -73,7 +76,7 @@ class DslRecipientListRouter extends RecipientListRouter {
 		super.onInit();
 	}
 
-	private MessageSelector populateRecipientSelector(Object recipientSelector) {
+	private MessageSelector populateRecipientSelector(final Object recipientSelector) {
 		if (recipientSelector instanceof String) {
 			String expression = (String) recipientSelector;
 			if (StringUtils.hasText(expression)) {
@@ -82,8 +85,16 @@ class DslRecipientListRouter extends RecipientListRouter {
 				return selector;
 			}
 		}
-		else {
+		else if (recipientSelector instanceof Expression) {
+			ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector((Expression) recipientSelector);
+			selector.setBeanFactory(getBeanFactory());
+			return selector;
+		}
+		else if (recipientSelector instanceof MessageSelector) {
 			return (MessageSelector) recipientSelector;
+		}
+		else if (recipientSelector instanceof GenericSelector) {
+			return new MethodInvokingSelector(new LambdaMessageProcessor(recipientSelector, null));
 		}
 		return null;
 	}

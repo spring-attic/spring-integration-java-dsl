@@ -16,12 +16,14 @@
 
 package org.springframework.integration.dsl.test.transformers;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -46,6 +49,8 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.support.Transformers;
+import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
+import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -162,6 +167,9 @@ public class TransformerTests {
 	@Qualifier("pojoTransformFlow.input")
 	private MessageChannel pojoTransformFlowInput;
 
+	@Autowired
+	private PollableChannel idempotentDiscardChannel;
+
 	@Test
 	public void transformWithHeader() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -172,6 +180,18 @@ public class TransformerTests {
 		Message<?> receive = replyChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("FooBar", receive.getPayload());
+
+		try {
+			this.pojoTransformFlowInput.send(message);
+			fail("MessageRejectedException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageRejectedException.class));
+			assertThat(e.getMessage(), containsString("IdempotentReceiver"));
+			assertThat(e.getMessage(), containsString("rejected duplicate Message"));
+		}
+
+		assertNotNull(this.idempotentDiscardChannel.receive(10000));
 	}
 
 	@Configuration
@@ -247,9 +267,25 @@ public class TransformerTests {
 		@Bean
 		public IntegrationFlow pojoTransformFlow() {
 			return f -> f
-					.enrichHeaders(h -> h.header("Foo", "Bar"))
+					.enrichHeaders(h -> h.header("Foo", "Bar"),
+							e -> e.advice(idempotentReceiverInterceptor()))
 					.transform(new PojoTransformer());
 		}
+
+		@Bean
+		public PollableChannel idempotentDiscardChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
+			IdempotentReceiverInterceptor idempotentReceiverInterceptor =
+					new IdempotentReceiverInterceptor(new MetadataStoreSelector(m -> m.getPayload().toString()));
+			idempotentReceiverInterceptor.setDiscardChannel(idempotentDiscardChannel());
+			idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
+			return idempotentReceiverInterceptor;
+		}
+
 
 	}
 

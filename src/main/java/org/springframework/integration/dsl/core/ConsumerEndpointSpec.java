@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,9 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	protected ConsumerEndpointSpec(H messageHandler) {
 		super(messageHandler);
 		this.target.getT1().setHandler(messageHandler);
+		this.target.getT1().setAdviceChain(this.adviceChain);
 		if (messageHandler instanceof AbstractReplyProducingMessageHandler) {
 			((AbstractReplyProducingMessageHandler) messageHandler).setAdviceChain(this.adviceChain);
-		}
-		else {
-			this.target.getT1().setAdviceChain(this.adviceChain);
 		}
 	}
 

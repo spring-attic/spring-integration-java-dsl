@@ -75,9 +75,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param channelName the channel name.
 	 * @param selector the selector.
 	 * @return the router spec.
-	 * @deprecated since 1.2 in favor of {@link #recipient(String, GenericSelector)}
 	 */
-	@Deprecated
 	public RecipientListRouterSpec recipient(String channelName, MessageSelector selector) {
 		return recipient(channelName, (GenericSelector<Message<?>>) selector);
 	}
@@ -132,9 +130,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param channel the recipient channel.
 	 * @param selector the selector.
 	 * @return the router spec.
-	 * @deprecated since 1.2 in favor of {@link #recipient(MessageChannel, GenericSelector)}
 	 */
-	@Deprecated
 	public RecipientListRouterSpec recipient(MessageChannel channel, MessageSelector selector) {
 		return recipient(channel, (GenericSelector<Message<?>>) selector);
 	}
@@ -156,9 +152,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param selector the selector.
 	 * @param subFlow the subflow.
 	 * @return the router spec.
-	 * @deprecated since 1.2 in favor of {@link #recipientFlow(GenericSelector selector, IntegrationFlow subFlow)}
 	 */
-	@Deprecated
 	public RecipientListRouterSpec recipientFlow(MessageSelector selector, IntegrationFlow subFlow) {
 		return recipientFlow((GenericSelector<Message<?>>) selector, subFlow);
 	}

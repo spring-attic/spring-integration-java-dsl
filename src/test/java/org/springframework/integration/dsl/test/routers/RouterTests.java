@@ -565,13 +565,13 @@ public class RouterTests {
 					.<String, String>transform(p -> p.replaceFirst("Payload", ""))
 					.routeToRecipients(r -> r
 							.recipient("foo-channel", "'foo' == payload")
-							.recipient("bar-channel", (MessageSelector) m ->
+							.recipient("bar-channel", m ->
 									m.getHeaders().containsKey("recipient")
 											&& (boolean) m.getHeaders().get("recipient"))
 							.recipientFlow("'foo' == payload or 'bar' == payload or 'baz' == payload",
 									f -> f.<String, String>transform(String::toUpperCase)
 											.channel(c -> c.queue("recipientListSubFlow1Result")))
-							.recipientFlow((String p) -> "baz".equals(p),
+							.recipientFlow((String p) -> p.startsWith("baz"),
 									f -> f.transform("Hello "::concat)
 											.channel(c -> c.queue("recipientListSubFlow2Result")))
 							.recipientFlow(new FunctionExpression<Message<?>>(m -> "bax".equals(m.getPayload())),

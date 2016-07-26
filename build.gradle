@@ -68,7 +68,7 @@ ext {
 	reactorVersion = '2.0.8.RELEASE'
 	scalaVersion = '2.10'
 	slf4jVersion = '1.7.21'
-	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.1.BUILD-SNAPSHOT'
+	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.1.RELEASE'
 	springIntegrationKafkaVersion = '1.3.1.RELEASE'
 	springKafkaVersion = '1.0.2.RELEASE'
 	springBootVersion = '1.4.0.BUILD-SNAPSHOT'

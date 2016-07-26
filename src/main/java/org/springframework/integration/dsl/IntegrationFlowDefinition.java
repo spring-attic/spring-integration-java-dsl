@@ -74,6 +74,7 @@ import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
@@ -2748,6 +2749,113 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return wireTap(loggerChannel);
 	}
 
+	/**
+	 * Populate a {@link ScatterGatherHandler} to the current integration flow position
+	 * based on the provided {@link MessageChannel} for scattering function
+	 * and default {@link AggregatorSpec} for gathering function.
+	 * @param scatterChannel the {@link MessageChannel} for scatting requests.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B scatterGather(MessageChannel scatterChannel) {
+		return scatterGather(scatterChannel, null);
+	}
+
+	/**
+	 * Populate a {@link ScatterGatherHandler} to the current integration flow position
+	 * based on the provided {@link MessageChannel} for scattering function
+	 * and {@link AggregatorSpec} for gathering function.
+	 * @param scatterChannel the {@link MessageChannel} for scatting requests.
+	 * @param gatherer the {@link Consumer} for {@link AggregatorSpec} to configure gatherer.
+	 * Can be {@code null}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B scatterGather(MessageChannel scatterChannel, Consumer<AggregatorSpec> gatherer) {
+		return scatterGather(scatterChannel, gatherer, null);
+	}
+
+	/**
+	 * Populate a {@link ScatterGatherHandler} to the current integration flow position
+	 * based on the provided {@link MessageChannel} for scattering function
+	 * and {@link AggregatorSpec} for gathering function.
+	 * @param scatterChannel the {@link MessageChannel} for scatting requests.
+	 * @param gatherer the {@link Consumer} for {@link AggregatorSpec} to configure gatherer.
+	 * Can be {@code null}.
+	 * @param scatterGather the {@link Consumer} for {@link ScatterGatherSpec} to configure
+	 * {@link ScatterGatherHandler} and its endpoint. Can be {@code null}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B scatterGather(MessageChannel scatterChannel, Consumer<AggregatorSpec> gatherer,
+			Consumer<ScatterGatherSpec> scatterGather) {
+		AggregatorSpec aggregatorSpec = new AggregatorSpec();
+		if (gatherer != null) {
+			gatherer.accept(aggregatorSpec);
+		}
+
+		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.get().getT2();
+		addComponent(aggregatingMessageHandler);
+		ScatterGatherHandler messageHandler = new ScatterGatherHandler(scatterChannel, aggregatingMessageHandler);
+		return register(new ScatterGatherSpec(messageHandler), scatterGather);
+	}
+
+	/**
+	 * Populate a {@link ScatterGatherHandler} to the current integration flow position
+	 * based on the provided {@link RecipientListRouterSpec} for scattering function
+	 * and default {@link AggregatorSpec} for gathering function.
+	 * @param scatterer the {@link Consumer} for {@link RecipientListRouterSpec} to configure scatterer.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer) {
+		return scatterGather(scatterer, null);
+	}
+
+	/**
+	 * Populate a {@link ScatterGatherHandler} to the current integration flow position
+	 * based on the provided {@link RecipientListRouterSpec} for scattering function
+	 * and {@link AggregatorSpec} for gathering function.
+	 * @param scatterer the {@link Consumer} for {@link RecipientListRouterSpec} to configure scatterer.
+	 * Can be {@code null}.
+	 * @param gatherer the {@link Consumer} for {@link AggregatorSpec} to configure gatherer.
+	 * Can be {@code null}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer) {
+		return scatterGather(scatterer, gatherer, null);
+	}
+
+	/**
+	 * Populate a {@link ScatterGatherHandler} to the current integration flow position
+	 * based on the provided {@link RecipientListRouterSpec} for scattering function
+	 * and {@link AggregatorSpec} for gathering function.
+	 * @param scatterer the {@link Consumer} for {@link RecipientListRouterSpec} to configure scatterer.
+	 * @param gatherer the {@link Consumer} for {@link AggregatorSpec} to configure gatherer.
+	 * @param scatterGather the {@link Consumer} for {@link ScatterGatherSpec} to configure
+	 * {@link ScatterGatherHandler} and its endpoint. Can be {@code null}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer,
+			Consumer<ScatterGatherSpec> scatterGather) {
+		Assert.notNull(scatterer);
+		RecipientListRouterSpec recipientListRouterSpec = new RecipientListRouterSpec();
+		scatterer.accept(recipientListRouterSpec);
+		AggregatorSpec aggregatorSpec = new AggregatorSpec();
+		if (gatherer != null) {
+			gatherer.accept(aggregatorSpec);
+		}
+
+		RecipientListRouter recipientListRouter = recipientListRouterSpec.get();
+		addComponent(recipientListRouter);
+		addComponents(recipientListRouterSpec.getComponentsToRegister());
+		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.get().getT2();
+		addComponent(aggregatingMessageHandler);
+		ScatterGatherHandler messageHandler = new ScatterGatherHandler(recipientListRouter, aggregatingMessageHandler);
+		return register(new ScatterGatherSpec(messageHandler), scatterGather);
+	}
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.

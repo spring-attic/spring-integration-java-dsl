@@ -173,6 +173,7 @@ public abstract class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
 	 *                          to instantiate listener container
+	 * @param <S>               the {@link JmsListenerContainerSpec} inheritor type
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
 	 * @return the {@link JmsOutboundGatewaySpec} instance
 	 */
@@ -222,6 +223,7 @@ public abstract class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
 	 *                          to instantiate listener container
+	 * @param <S>               the {@link JmsListenerContainerSpec} inheritor type
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory, Class)}.
@@ -261,6 +263,7 @@ public abstract class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
 	 *                          to instantiate listener container
+	 * @param <S>               the {@link JmsListenerContainerSpec} inheritor type
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */

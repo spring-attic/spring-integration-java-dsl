@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl.test.routers;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -414,6 +415,24 @@ public class RouterTests {
 		assertNull(this.integersChannel.receive(10));
 	}
 
+	@Autowired
+	@Qualifier("scatterGatherFlow.input")
+	private MessageChannel scatterGatherFlowInput;
+
+	@Test
+	public void testScatterGather() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<String> request = MessageBuilder.withPayload("foo")
+				.setReplyChannel(replyChannel)
+				.build();
+		this.scatterGatherFlowInput.send(request);
+		Message<?> bestQuoteMessage = replyChannel.receive(10000);
+		assertNotNull(bestQuoteMessage);
+		Object payload = bestQuoteMessage.getPayload();
+		assertThat(payload, instanceOf(List.class));
+		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -547,9 +566,27 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow payloadTypeRouteFlow() {
 			return f -> f
-					.<Object, Object>route(p -> p.getClass().getName(), m -> m //https://jira.spring.io/browse/INT-4057
+					.<Object, Class<?>>route(Object::getClass, m -> m
 							.channelMapping(String.class, "stringsChannel")
 							.channelMapping(Integer.class, "integersChannel"));
+		}
+
+		@Bean
+		public IntegrationFlow scatterGatherFlow() {
+			return f -> f
+					.scatterGather(scatterer -> scatterer
+									.applySequence(true)
+									.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
+									.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10))
+									.recipientFlow(m -> true, sf -> sf.handle((p, h) -> Math.random() * 10)),
+							gatherer -> gatherer
+									.releaseStrategy(group ->
+											group.size() == 3 ||
+													group.getMessages()
+															.stream()
+															.anyMatch(m -> (Double) m.getPayload() > 5)),
+							scatterGather -> scatterGather
+									.gatherTimeout(10_000));
 		}
 
 	}

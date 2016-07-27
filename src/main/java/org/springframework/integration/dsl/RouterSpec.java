@@ -16,10 +16,8 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.convert.ConversionService;
@@ -40,8 +38,6 @@ import org.springframework.util.StringUtils;
  */
 public final class RouterSpec<K, R extends AbstractMappingMessageRouter> extends AbstractRouterSpec<RouterSpec<K, R>, R>
 		implements ComponentsRegistration {
-
-	private final List<Object> subFlows = new ArrayList<Object>();
 
 	private final RouterMappingProvider mappingProvider;
 
@@ -146,8 +142,10 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter> extends
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
+		// The 'mappingProvider' must be added to the 'componentToRegister' in the end to
+		// let all other components to be registered before the 'RouterMappingProvider.onInit()' logic.
 		this.subFlows.add(this.mappingProvider);
-		return this.subFlows;
+		return super.getComponentsToRegister();
 	}
 
 	private static class RouterMappingProvider extends IntegrationObjectSupport {

@@ -2340,17 +2340,23 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <K, R extends AbstractMappingMessageRouter> B route(R router, Consumer<RouterSpec<K, R>> routerConfigurer,
 			Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
-		Collection<Object> componentsToRegister = null;
+
+		RouterSpec<K, R> routerSpec = new RouterSpec<K, R>(router);
 		if (routerConfigurer != null) {
-			RouterSpec<K, R> routerSpec = new RouterSpec<K, R>(router);
 			routerConfigurer.accept(routerSpec);
-			componentsToRegister = routerSpec.getComponentsToRegister();
 		}
+
+		return route(router, routerSpec, endpointConfigurer);
+	}
+
+	private  <R extends AbstractMessageRouter, S extends AbstractRouterSpec<S, R>> B route(R router,
+			S routerSpec, Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
 
 		route(router, endpointConfigurer);
 
 		final BridgeHandler bridgeHandler = new BridgeHandler();
 		boolean registerSubflowBridge = false;
+		Collection<Object> componentsToRegister = routerSpec.getComponentsToRegister();
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
 			for (Object component : componentsToRegister) {
 				if (component instanceof IntegrationFlowDefinition) {
@@ -2366,7 +2372,13 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				}
 			}
 		}
+		if (routerSpec.isDefaultToParentFlow()) {
+			routerSpec.defaultOutputChannel(new FixedSubscriberChannel(bridgeHandler));
+			registerSubflowBridge = true;
+		}
+
 		if (registerSubflowBridge) {
+			this.currentComponent = null;
 			handle(bridgeHandler);
 		}
 		return _this();
@@ -2413,11 +2425,13 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B routeToRecipients(Consumer<RecipientListRouterSpec> routerConfigurer,
 			Consumer<GenericEndpointSpec<RecipientListRouter>> endpointConfigurer) {
-		Assert.notNull(routerConfigurer);
+
 		RecipientListRouterSpec spec = new RecipientListRouterSpec();
-		routerConfigurer.accept(spec);
-		addComponents(spec.getComponentsToRegister());
-		return route(spec.get(), endpointConfigurer);
+		if (routerConfigurer != null) {
+			routerConfigurer.accept(spec);
+		}
+
+		return route(spec.get(), spec, endpointConfigurer);
 	}
 
 	/**
@@ -2958,15 +2972,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 						pollingChannelAdapterFactoryBean.setOutputChannel(outputChannel);
 					}
 				}
-				else if (currentComponent instanceof AbstractMessageRouter) {
-					AbstractMessageRouter router = (AbstractMessageRouter) currentComponent;
-					if (channelName != null) {
-						router.setDefaultOutputChannelName(channelName);
-					}
-					else {
-						router.setDefaultOutputChannel(outputChannel);
-					}
-				}
 				else {
 					throw new BeanCreationException("The 'currentComponent' (" + currentComponent +
 							") is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. " +
@@ -2987,8 +2992,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			}
 
 			return currentComponent instanceof AbstractMessageProducingHandler
-					|| currentComponent instanceof SourcePollingChannelAdapterSpec
-					|| currentComponent instanceof AbstractMessageRouter;
+					|| currentComponent instanceof SourcePollingChannelAdapterSpec;
 		}
 		return false;
 	}

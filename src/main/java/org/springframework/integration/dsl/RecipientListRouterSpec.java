@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -32,10 +27,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  */
-public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRouterSpec, RecipientListRouter>
-		implements ComponentsRegistration {
-
-	private final List<Object> subFlows = new ArrayList<Object>();
+public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRouterSpec, RecipientListRouter> {
 
 	RecipientListRouterSpec() {
 		super(new DslRecipientListRouter());
@@ -143,11 +135,6 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 		subFlow.configure(flowBuilder);
 		this.subFlows.add(flowBuilder.get());
 		return channel;
-	}
-
-	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return subFlows;
 	}
 
 }

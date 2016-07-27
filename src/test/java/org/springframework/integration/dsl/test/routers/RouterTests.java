@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,8 +41,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -416,6 +419,46 @@ public class RouterTests {
 	}
 
 	@Autowired
+	@Qualifier("recipientListOrderFlow.input")
+	private MessageChannel recipientListOrderFlowInput;
+
+	@Autowired
+	@Qualifier("recipientListOrderResult")
+	private PollableChannel recipientListOrderResult;
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testRecipientListRouterOrder() {
+		this.recipientListOrderFlowInput.send(new GenericMessage<>(new AtomicReference<>("")));
+		Message<?> receive = this.recipientListOrderResult.receive(10000);
+		assertNotNull(receive);
+
+		AtomicReference<String> result = (AtomicReference<String>) receive.getPayload();
+		assertEquals("Hello World", result.get());
+
+		receive = this.recipientListOrderResult.receive(10000);
+		assertNotNull(receive);
+		result = (AtomicReference<String>) receive.getPayload();
+		assertEquals("Hello World", result.get());
+	}
+
+	@Autowired
+	@Qualifier("routerAsNonLastFlow.input")
+	private MessageChannel routerAsNonLastFlowChannel;
+
+	@Autowired
+	@Qualifier("routerAsNonLastDefaultOutputChannel")
+	private PollableChannel routerAsNonLastDefaultOutputChannel;
+
+	@Test
+	public void testRouterAsNonLastComponent() {
+		this.routerAsNonLastFlowChannel.send(new GenericMessage<>("Hello World"));
+		Message<?> receive = this.routerAsNonLastDefaultOutputChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("Hello World", receive.getPayload());
+	}
+
+	@Autowired
 	@Qualifier("scatterGatherFlow.input")
 	private MessageChannel scatterGatherFlowInput;
 
@@ -435,6 +478,7 @@ public class RouterTests {
 
 	@Configuration
 	@EnableIntegration
+	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
 	public static class ContextConfiguration {
 
 		@Bean
@@ -448,7 +492,8 @@ public class RouterTests {
 					.<Integer, Boolean>route(p -> p % 2 == 0,
 							m -> m.channelMapping(true, "evenChannel")
 									.subFlowMapping(false, f ->
-											f.<Integer>handle((p, h) -> p * 3)))
+											f.<Integer>handle((p, h) -> p * 3))
+									.defaultOutputToParentFlow())
 					.channel(c -> c.queue("oddChannel"))
 					.get();
 		}
@@ -470,9 +515,8 @@ public class RouterTests {
 							.resolutionRequired(false)
 							.subFlowMapping(true, sf -> sf
 									.transform(String.class, String::toLowerCase)
-									.channel(c -> c.queue("routerSubflowResult"))))
-					// Valid: maps to the router's defaultOutputChannel
-					.channel("defaultOutputChannel");
+									.channel(c -> c.queue("routerSubflowResult")))
+							.defaultSubFlowMapping(sf -> sf.channel("defaultOutputChannel")));
 		}
 
 		@Bean
@@ -515,7 +559,8 @@ public class RouterTests {
 											.channel(c -> c.queue("recipientListSubFlow1Result")))
 							.recipientFlow(m -> "baz".equals(m.getPayload()),
 									f -> f.transform("Hello "::concat)
-											.channel(c -> c.queue("recipientListSubFlow2Result"))))
+											.channel(c -> c.queue("recipientListSubFlow2Result")))
+							.defaultOutputToParentFlow())
 					.channel("defaultOutputChannel")
 					.get();
 		}
@@ -572,6 +617,50 @@ public class RouterTests {
 		}
 
 		@Bean
+		public IntegrationFlow routerAsNonLastFlow() {
+			return f -> f
+					.<String, String>route(p -> p, r ->
+							r.resolutionRequired(false)
+									.defaultOutputToParentFlow())
+					.channel(MessageChannels.queue("routerAsNonLastDefaultOutputChannel"));
+		}
+
+		@Bean
+		public IntegrationFlow recipientListOrderFlow() {
+			return f -> f
+					.routeToRecipients(r -> r
+							.recipient("recipient2.input")
+							.recipient("recipient1.input"));
+		}
+
+		@Bean
+		public IntegrationFlow recipient1() {
+			return f -> f
+					.<AtomicReference<String>>handle((p, h) -> {
+						p.set(p.get() + "World");
+						return p;
+					})
+					.channel("recipientListOrderResult");
+		}
+
+		@Bean
+		public IntegrationFlow recipient2() {
+			return f -> f
+					.<AtomicReference<String>>handle((p, h) -> {
+						p.set(p.get() + "Hello ");
+						return p;
+					})
+					.channel("recipientListOrderResult");
+		}
+
+		@Bean
+		public PollableChannel recipientListOrderResult() {
+			return new QueueChannel();
+		}
+
+	}
+
+		@Bean
 		public IntegrationFlow scatterGatherFlow() {
 			return f -> f
 					.scatterGather(scatterer -> scatterer
@@ -588,8 +677,6 @@ public class RouterTests {
 							scatterGather -> scatterGather
 									.gatherTimeout(10_000));
 		}
-
-	}
 
 	private static class RoutingTestBean {
 

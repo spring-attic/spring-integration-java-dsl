@@ -269,22 +269,6 @@ public class IntegrationFlowTests {
 		assertTrue(this.delayedAdvice.getInvoked());
 	}
 
-	@Autowired
-	@Qualifier("routerAsNonLastFlow.input")
-	private MessageChannel routerAsNonLastFlowChannel;
-
-	@Autowired
-	@Qualifier("routerAsNonLastDefaultOutputChannel")
-	private PollableChannel routerAsNonLastDefaultOutputChannel;
-
-	@Test
-	public void testRouterAsNonLastComponent() {
-		this.routerAsNonLastFlowChannel.send(new GenericMessage<>("Hello World"));
-		Message<?> receive = this.routerAsNonLastDefaultOutputChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("Hello World", receive.getPayload());
-	}
-
 	@Test
 	public void testWrongLastMessageChannel() {
 		ConfigurableApplicationContext context = null;
@@ -402,31 +386,6 @@ public class IntegrationFlowTests {
 		assertEquals("1", headers.get("one"));
 		assertEquals("2", headers.get("two"));
 		assertThat(headers.getReplyChannel(), instanceOf(String.class));
-	}
-
-
-	@Autowired
-	@Qualifier("recipientListOrderFlow.input")
-	private MessageChannel recipientListOrderFlowInput;
-
-	@Autowired
-	@Qualifier("recipientListOrderResult")
-	private PollableChannel recipientListOrderResult;
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void testRecipientListRouterOrder() {
-		this.recipientListOrderFlowInput.send(new GenericMessage<>(new AtomicReference<>("")));
-		Message<?> receive = this.recipientListOrderResult.receive(10000);
-		assertNotNull(receive);
-
-		AtomicReference<String> result = (AtomicReference<String>) receive.getPayload();
-		assertEquals("Hello World", result.get());
-
-		receive = this.recipientListOrderResult.receive(10000);
-		assertNotNull(receive);
-		result = (AtomicReference<String>) receive.getPayload();
-		assertEquals("Hello World", result.get());
 	}
 
 	@Test
@@ -593,7 +552,6 @@ public class IntegrationFlowTests {
 	@Configuration
 	@EnableIntegration
 	@IntegrationComponentScan
-	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
 	public static class ContextConfiguration {
 
 		@Bean
@@ -621,12 +579,6 @@ public class IntegrationFlowTests {
 		@Bean
 		public MessageChannel foo() {
 			return MessageChannels.publishSubscribe().get();
-		}
-
-		@Bean
-		public IntegrationFlow routerAsNonLastFlow() {
-			return f -> f.<String, String>route(p -> p, r -> r.resolutionRequired(false))
-					.channel(MessageChannels.queue("routerAsNonLastDefaultOutputChannel"));
 		}
 
 	}
@@ -851,39 +803,6 @@ public class IntegrationFlowTests {
 					.claimCheckIn(this.messageStore())
 					.claimCheckOut(this.messageStore())
 					.get();
-		}
-
-		@Bean
-		public IntegrationFlow recipientListOrderFlow() {
-			return f -> f
-					.routeToRecipients(r -> r
-							.recipient("recipient2.input")
-							.recipient("recipient1.input"));
-		}
-
-		@Bean
-		public IntegrationFlow recipient1() {
-			return f -> f
-					.<AtomicReference<String>>handle((p, h) -> {
-						p.set(p.get() + "World");
-						return p;
-					})
-					.channel("recipientListOrderResult");
-		}
-
-		@Bean
-		public IntegrationFlow recipient2() {
-			return f -> f
-					.<AtomicReference<String>>handle((p, h) -> {
-						p.set(p.get() + "Hello ");
-						return p;
-					})
-					.channel("recipientListOrderResult");
-		}
-
-		@Bean
-		public PollableChannel recipientListOrderResult() {
-			return new QueueChannel();
 		}
 
 	}

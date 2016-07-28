@@ -19,6 +19,9 @@ package org.springframework.integration.dsl.test.mongodb;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,7 +34,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.core.convert.CustomConversions;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.config.EnableIntegration;
@@ -47,8 +54,11 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.mongodb.DBObject;
 
 /**
  * @author Artem Bilan
@@ -137,7 +147,13 @@ public class MongoDbTests {
 	@Import({EmbeddedMongoAutoConfiguration.class, MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 	@EnableIntegration
 	@IntegrationComponentScan
+	@EnableMongoAuditing
 	public static class ContextConfiguration {
+
+		@Bean
+		public CustomConversions customConversions() {
+			return new CustomConversions(Collections.singletonList(new MessageReadConverter()));
+		}
 
 		@Bean
 		public IntegrationFlow controlBus() {
@@ -145,8 +161,10 @@ public class MongoDbTests {
 		}
 
 		@Bean
-		public MongoDbChannelMessageStore mongoDbChannelMessageStore(MongoDbFactory mongoDbFactory) {
-			MongoDbChannelMessageStore mongoDbChannelMessageStore = new MongoDbChannelMessageStore(mongoDbFactory);
+		public MongoDbChannelMessageStore mongoDbChannelMessageStore(MongoDbFactory mongoDbFactory,
+				MappingMongoConverter mappingMongoConverter) {
+			MongoDbChannelMessageStore mongoDbChannelMessageStore =
+					new MongoDbChannelMessageStore(mongoDbFactory, mappingMongoConverter);
 			mongoDbChannelMessageStore.setPriorityEnabled(true);
 			return mongoDbChannelMessageStore;
 		}
@@ -160,6 +178,16 @@ public class MongoDbTests {
 							.id("priorityChannelBridge"))
 					.channel(MessageChannels.queue("priorityReplyChannel"))
 					.get();
+		}
+
+	}
+
+	public static class MessageReadConverter implements Converter<DBObject, Message<?>> {
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public Message<?> convert(DBObject source) {
+			return new GenericMessage<>(source.get("payload"), (Map<String, Object>) source.get("headers"));
 		}
 
 	}

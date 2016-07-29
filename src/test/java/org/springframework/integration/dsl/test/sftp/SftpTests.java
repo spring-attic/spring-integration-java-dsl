@@ -242,7 +242,6 @@ public class SftpTests {
 		@Bean
 		public IntegrationFlow sftpOutboundFlow() {
 			return IntegrationFlows.from("toSftpChannel")
-					// INTEXT-200
 					.handle(Sftp.outboundAdapter(this.sftpSessionFactory, FileExistsMode.FAIL)
 									.useTemporaryFileName(false)
 									.remoteDirectory(this.sftpServer.getTargetSftpDirectory().getName())

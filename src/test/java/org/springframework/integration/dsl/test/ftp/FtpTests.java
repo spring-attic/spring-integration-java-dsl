@@ -38,6 +38,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
@@ -54,6 +55,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.ftp.Ftp;
+import org.springframework.integration.dsl.ftp.FtpOutboundGatewaySpec;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -99,7 +101,7 @@ public class FtpTests {
 	private MessageChannel toFtpChannel;
 
 	@Autowired
-	@Qualifier("ftpMgetInputChannel")
+	@Qualifier("ftpMGetFlow.input")
 	private MessageChannel ftpMgetInputChannel;
 
 	@Autowired
@@ -170,7 +172,7 @@ public class FtpTests {
 	@Test
 	public void testMBeansForDSL() throws MalformedObjectNameException {
 		assertFalse(this.mBeanServer.queryMBeans(ObjectName.getInstance("org.springframework.integration:" +
-				"type=MessageHandler,name=ftpMgetInputChannel,bean=anonymous"), null).isEmpty());
+				"type=MessageHandler,name=ftpMGetFlow.input,bean=anonymous"), null).isEmpty());
 	}
 
 
@@ -219,7 +221,6 @@ public class FtpTests {
 		@Bean
 		public IntegrationFlow ftpOutboundFlow() {
 			return IntegrationFlows.from("toFtpChannel")
-					// INTEXT-200
 					.handle(Ftp.outboundAdapter(this.ftpSessionFactory, FileExistsMode.FAIL)
 							.useTemporaryFileName(false)
 							.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
@@ -228,27 +229,25 @@ public class FtpTests {
 		}
 
 		@Bean
-		public PollableChannel remoteFileOutputChannel() {
-			return new QueueChannel();
-		}
-
-		@Bean
-		public MessageHandler ftpOutboundGateway() {
+		public FtpOutboundGatewaySpec ftpOutboundGateway() {
 			return Ftp.outboundGateway(this.ftpSessionFactory,
 					AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
 					.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
 					.regexFileNameFilter("(subFtpSource|.*1.txt)")
 					.localDirectoryExpression("@ftpServer.targetLocalDirectoryName + #remoteDirectory")
-					.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')")
-					.get();
+					.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')");
 		}
 
 		@Bean
-		public IntegrationFlow ftpMGetFlow() {
-			return IntegrationFlows.from("ftpMgetInputChannel")
-					.handle(ftpOutboundGateway())
-					.channel(remoteFileOutputChannel())
-					.get();
+		public IntegrationFlow ftpMGetFlow(AbstractRemoteFileOutboundGateway<FTPFile> ftpOutboundGateway) {
+			return f -> f
+					.handle(ftpOutboundGateway)
+					.channel(remoteFileOutputChannel());
+		}
+
+		@Bean
+		public PollableChannel remoteFileOutputChannel() {
+			return new QueueChannel();
 		}
 
 	}

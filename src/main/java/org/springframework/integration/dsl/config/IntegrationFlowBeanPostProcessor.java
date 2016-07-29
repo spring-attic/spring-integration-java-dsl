@@ -215,6 +215,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private void processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean) {
+		registerComponent(bean.get(), generateBeanName(bean.get()), null, false);
 		if (bean instanceof ComponentsRegistration) {
 			Collection<Object> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
 			for (Object component : componentsToRegister) {

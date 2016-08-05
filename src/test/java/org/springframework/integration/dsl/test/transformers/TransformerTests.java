@@ -251,6 +251,11 @@ public class TransformerTests {
 		}
 
 		@Bean
+		public PollableChannel codecReplyChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public IntegrationFlow encodingFlow() {
 			return f -> f
 					.transform(Transformers.encoding(new MyCodec()))

@@ -513,7 +513,7 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow routeSubflowToReplyChannelFlow() {
 			return f -> f
-					.route("true", m -> m
+					.<Boolean>route("true", m -> m
 							.subFlowMapping(true, sf -> sf
 													.<String>handle((p, h) -> p.toUpperCase())
 									)

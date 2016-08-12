@@ -2098,10 +2098,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with provided options from {@link RouterSpec}.
 	 * @param expression the expression to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link ExpressionEvaluatingRouter} options.
+	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String expression, Consumer<RouterSpec<Object, ExpressionEvaluatingRouter>> routerConfigurer) {
-		return this.route(expression, routerConfigurer, null);
+	public <T> B route(String expression, Consumer<RouterSpec<T, ExpressionEvaluatingRouter>> routerConfigurer) {
+		return route(expression, routerConfigurer, null);
 	}
 
 	/**
@@ -2111,9 +2112,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param expression the expression to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link ExpressionEvaluatingRouter} options.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String expression, Consumer<RouterSpec<Object, ExpressionEvaluatingRouter>> routerConfigurer,
+	public <T> B route(String expression, Consumer<RouterSpec<T, ExpressionEvaluatingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<ExpressionEvaluatingRouter>> endpointConfigurer) {
 		return this.route(new ExpressionEvaluatingRouter(PARSER.parseExpression(expression)), routerConfigurer,
 				endpointConfigurer);

@@ -142,6 +142,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param selector the selector.
 	 * @param <P> the selector source type.
 	 * @return the router spec.
+	 * @since 1.2
 	 */
 	public <P> RecipientListRouterSpec recipient(MessageChannel channel, GenericSelector<P> selector) {
 		Assert.notNull(channel);
@@ -165,6 +166,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param subFlow the subflow.
 	 * @param <P> the selector source type.
 	 * @return the router spec.
+	 * @since 1.2
 	 */
 	public <P> RecipientListRouterSpec recipientFlow(GenericSelector<P> selector, IntegrationFlow subFlow) {
 		Assert.notNull(subFlow);

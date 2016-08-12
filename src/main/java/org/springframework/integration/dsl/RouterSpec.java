@@ -124,7 +124,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter> extends
 	 * @param subFlow the subFlow.
 	 * @return the router spec.
 	 */
-	public RouterSpec<K, R> subFlowMapping(Object key, IntegrationFlow subFlow) {
+	public RouterSpec<K, R> subFlowMapping(K key, IntegrationFlow subFlow) {
 		Assert.notNull(key);
 		Assert.notNull(subFlow);
 		Assert.state(!(StringUtils.hasText(this.prefix) || StringUtils.hasText(this.suffix)),

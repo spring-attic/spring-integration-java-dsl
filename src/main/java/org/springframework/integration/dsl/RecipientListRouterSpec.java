@@ -84,6 +84,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
 	 * @param channelName the channel name.
 	 * @param selector the selector.
+	 * @param <P> the selector source type.
 	 * @return the router spec.
 	 * @since 1.2
 	 */
@@ -139,6 +140,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
 	 * @param channel the recipient channel.
 	 * @param selector the selector.
+	 * @param <P> the selector source type.
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipient(MessageChannel channel, GenericSelector<P> selector) {
@@ -161,6 +163,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * Adds a subflow that will be invoked if the selector's accept methods returns 'true'.
 	 * @param selector the selector.
 	 * @param subFlow the subflow.
+	 * @param <P> the selector source type.
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipientFlow(GenericSelector<P> selector, IntegrationFlow subFlow) {

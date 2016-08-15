@@ -658,8 +658,6 @@ public class RouterTests {
 			return new QueueChannel();
 		}
 
-	}
-
 		@Bean
 		public IntegrationFlow scatterGatherFlow() {
 			return f -> f
@@ -677,6 +675,8 @@ public class RouterTests {
 							scatterGather -> scatterGather
 									.gatherTimeout(10_000));
 		}
+
+	}
 
 	private static class RoutingTestBean {
 

@@ -41,8 +41,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -573,7 +575,8 @@ public class RouterTests {
 									f -> f.transform("Hello "::concat)
 											.channel(c -> c.queue("recipientListSubFlow2Result")))
 							.recipientFlow(new FunctionExpression<Message<?>>(m -> "bax".equals(m.getPayload())),
-									f -> f.channel(c -> c.queue("recipientListSubFlow3Result"))))
+									f -> f.channel(c -> c.queue("recipientListSubFlow3Result")))
+							.defaultOutputToParentFlow())
 					.channel("defaultOutputChannel")
 					.get();
 		}

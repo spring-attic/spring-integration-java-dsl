@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.test.mail;
 
 import java.io.BufferedReader;
@@ -29,13 +30,13 @@ import java.util.concurrent.Executors;
 
 import javax.net.ServerSocketFactory;
 
-import org.apache.sshd.common.util.Base64;
+import org.springframework.util.Base64Utils;
 
 /**
  * @author Gary Russell
  *
  */
-public class PoorMansMailServer {
+public class TestMailServer {
 
 	public static SmtpServer smtp(int port) {
 		try {
@@ -103,13 +104,13 @@ public class PoorMansMailServer {
 						}
 						else if (line.contains("dXNlcg==")) { // base64 'user'
 							sb.append("user:");
-							sb.append((new String(new Base64().decode(line.getBytes()))));
+							sb.append((new String(Base64Utils.decode(line.getBytes()))));
 							sb.append("\n");
 							write("334 UGFzc3dvcmQ6");
 						}
 						else if (line.contains("cHc=")) { // base64 'pw'
 							sb.append("password:");
-							sb.append((new String(new Base64().decode(line.getBytes()))));
+							sb.append((new String(Base64Utils.decode(line.getBytes()))));
 							sb.append("\n");
 							write("235");
 						}
@@ -270,14 +271,13 @@ public class PoorMansMailServer {
 							write("* 1 FETCH (RFC822.SIZE 6909 INTERNALDATE \"27-May-2013 09:45:41 +0000\" "
 									+ "FLAGS (\\Seen) "
 									+ "ENVELOPE (\"Mon, 27 May 2013 15:14:49 +0530\" "
-									+ "\"Test Email\" ((\"Foo\" NIL \"foo\" \"bar.tv\")) "
+									+ "\"Test Email\" ((\"Bar\" NIL \"bar\" \"baz\")) "
 									+ "((\"Foo\" NIL \"foo\" \"bar.tv\")) "
 									+ "((\"Foo\" NIL \"foo\" \"bar.tv\")) "
-									+ "((\"Bar\" NIL \"bar\" \"baz.net\")) NIL NIL "
+									+ "((\"Foo\" NIL \"foo\" \"bar\")) NIL NIL "
 									+ "\"<4DA0A7E4.3010506@baz.net>\" "
 									+ "\"<CACVnpJkAUUfa3d_-4GNZW2WpxbB39tBCHC=T0gc7hty6dOEHcA@foo.bar.com>\") "
-									+ "BODYSTRUCTURE (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL "
-									+ "\"7BIT\" 1176 43)))");
+									+ "BODYSTRUCTURE (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1176 43)))");
 							write(tag + "OK FETCH completed");
 						}
 						else if (line.contains("STORE 1 +FLAGS (\\Flagged)")) {
@@ -343,6 +343,10 @@ public class PoorMansMailServer {
 			exec.execute(this);
 		}
 
+		public int getPort() {
+			return this.socket.getLocalPort();
+		}
+
 		public boolean isListening() {
 			return listening;
 		}
@@ -378,7 +382,8 @@ public class PoorMansMailServer {
 
 		public abstract class MailHandler implements Runnable {
 
-			protected static final String MESSAGE = "To: foo@bar\r\nFrom: bar@baz\r\nSubject: Test Email\r\n\r\nfoo";
+			protected static final String MESSAGE =
+					"To: Foo <foo@bar>\r\nFrom: Bar <bar@baz>\r\nSubject: Test Email\r\n\r\nfoo";
 
 			protected final Socket socket;
 
@@ -416,7 +421,7 @@ public class PoorMansMailServer {
 
 	}
 
-	private PoorMansMailServer() {
+	private TestMailServer() {
 	}
 
 }

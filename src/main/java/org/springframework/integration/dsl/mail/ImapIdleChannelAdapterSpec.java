@@ -23,6 +23,8 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 
 import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
@@ -38,7 +40,9 @@ import org.springframework.integration.dsl.support.PropertiesBuilder;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessageProducerSpec} for a {@link ImapIdleChannelAdapter}.
@@ -52,9 +56,18 @@ public class ImapIdleChannelAdapterSpec
 
 	private final ImapMailReceiver receiver;
 
+	protected final boolean externalReceiver;
+
+	private boolean sessionProvided;
+
 	ImapIdleChannelAdapterSpec(ImapMailReceiver receiver) {
+		this(receiver, false);
+	}
+
+	ImapIdleChannelAdapterSpec(ImapMailReceiver receiver, boolean externalReceiver) {
 		super(new ImapIdleChannelAdapter(receiver));
 		this.receiver = receiver;
+		this.externalReceiver = externalReceiver;
 	}
 
 	/**
@@ -77,8 +90,13 @@ public class ImapIdleChannelAdapterSpec
 	 * @since 1.2
 	 */
 	public ImapIdleChannelAdapterSpec selectorExpression(Expression selectorExpression) {
+		assertReceiver();
 		this.receiver.setSelectorExpression(selectorExpression);
 		return this;
+	}
+
+	private void assertReceiver() {
+		Assert.state(!this.externalReceiver, "An external 'receiver' [" + this.receiver + "] can't be modified.");
 	}
 
 	/**
@@ -99,7 +117,9 @@ public class ImapIdleChannelAdapterSpec
 	 * @see ImapMailReceiver#setSession(Session)
 	 */
 	public ImapIdleChannelAdapterSpec session(Session session) {
+		assertReceiver();
 		this.receiver.setSession(session);
+		this.sessionProvided = true;
 		return this;
 	}
 
@@ -109,8 +129,15 @@ public class ImapIdleChannelAdapterSpec
 	 * @see ImapMailReceiver#setJavaMailProperties(Properties)
 	 */
 	public ImapIdleChannelAdapterSpec javaMailProperties(Properties javaMailProperties) {
+		assertReceiver();
+		assertSession();
 		this.receiver.setJavaMailProperties(javaMailProperties);
 		return this;
+	}
+
+	private void assertSession() {
+		Assert.state(!this.sessionProvided, "Neither 'javaMailProperties' nor 'javaMailAuthenticator' "
+				+ "references are allowed when a 'session' reference has been provided.");
 	}
 
 	/**
@@ -132,6 +159,8 @@ public class ImapIdleChannelAdapterSpec
 	 * @see ImapMailReceiver#setJavaMailAuthenticator(Authenticator)
 	 */
 	public ImapIdleChannelAdapterSpec javaMailAuthenticator(Authenticator javaMailAuthenticator) {
+		assertReceiver();
+		assertSession();
 		this.receiver.setJavaMailAuthenticator(javaMailAuthenticator);
 		return this;
 	}
@@ -142,6 +171,7 @@ public class ImapIdleChannelAdapterSpec
 	 * @see ImapMailReceiver#setMaxFetchSize(int)
 	 */
 	public ImapIdleChannelAdapterSpec maxFetchSize(int maxFetchSize) {
+		assertReceiver();
 		this.receiver.setMaxFetchSize(maxFetchSize);
 		return this;
 	}
@@ -152,6 +182,7 @@ public class ImapIdleChannelAdapterSpec
 	 * @see ImapMailReceiver#setShouldDeleteMessages(boolean)
 	 */
 	public ImapIdleChannelAdapterSpec shouldDeleteMessages(boolean shouldDeleteMessages) {
+		assertReceiver();
 		this.receiver.setShouldDeleteMessages(shouldDeleteMessages);
 		return this;
 	}
@@ -162,6 +193,7 @@ public class ImapIdleChannelAdapterSpec
 	 * @see ImapMailReceiver#setSearchTermStrategy(SearchTermStrategy)
 	 */
 	public ImapIdleChannelAdapterSpec searchTermStrategy(SearchTermStrategy searchTermStrategy) {
+		assertReceiver();
 		this.receiver.setSearchTermStrategy(searchTermStrategy);
 		return this;
 	}
@@ -172,9 +204,60 @@ public class ImapIdleChannelAdapterSpec
 	 * @see ImapMailReceiver#setShouldMarkMessagesAsRead(Boolean)
 	 */
 	public ImapIdleChannelAdapterSpec shouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
+		assertReceiver();
 		this.receiver.setShouldMarkMessagesAsRead(shouldMarkMessagesAsRead);
 		return this;
 	}
+
+	/**
+	 * Set the name of the flag to use to flag messages when the server does
+	 * not support \Recent but supports user flags;
+	 * default {@value ImapMailReceiver#DEFAULT_SI_USER_FLAG}.
+	 * @param userFlag the flag.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see ImapMailReceiver#setUserFlag(String)
+	 */
+	public ImapIdleChannelAdapterSpec userFlag(String userFlag) {
+		assertReceiver();
+		this.receiver.setUserFlag(userFlag);
+		return _this();
+	}
+
+	/**
+	 * Set the header mapper; if a header mapper is not provided, the message payload is
+	 * a {@link MimeMessage}, when provided, the headers are mapped and the payload is
+	 * the {@link MimeMessage} content.
+	 * @param headerMapper the header mapper.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see ImapMailReceiver#setUserFlag(String)
+	 * @see #embeddedPartsAsBytes(boolean)
+	 */
+	public ImapIdleChannelAdapterSpec headerMapper(HeaderMapper<MimeMessage> headerMapper) {
+		assertReceiver();
+		this.receiver.setHeaderMapper(headerMapper);
+		return _this();
+	}
+
+	/**
+	 * When a header mapper is provided determine whether an embedded {@link Part} (e.g
+	 * {@link Message} or {@link javax.mail.Multipart} content is rendered as a byte[] in the
+	 * payload. Otherwise, leave as a {@link Part}. These objects are not suitable for
+	 * downstream serialization. Default: true.
+	 * <p>This has no effect if there is no header mapper, in that case the payload is the
+	 * {@link MimeMessage}.
+	 * @param embeddedPartsAsBytes the embeddedPartsAsBytes to set.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see #headerMapper(HeaderMapper)
+	 */
+	public ImapIdleChannelAdapterSpec embeddedPartsAsBytes(boolean embeddedPartsAsBytes) {
+		assertReceiver();
+		this.receiver.setEmbeddedPartsAsBytes(embeddedPartsAsBytes);
+		return _this();
+	}
+
 
 	/**
 	 * Configure a {@link TransactionSynchronizationFactory}. Usually used to synchronize message

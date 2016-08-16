@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.mail;
 
 import org.springframework.integration.mail.Pop3MailReceiver;
@@ -21,24 +22,29 @@ import org.springframework.integration.mail.Pop3MailReceiver;
  * A {@link MailInboundChannelAdapterSpec} for POP3.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class Pop3MailInboundChannelAdapterSpec
 		extends MailInboundChannelAdapterSpec<Pop3MailInboundChannelAdapterSpec, Pop3MailReceiver> {
 
 	Pop3MailInboundChannelAdapterSpec() {
-		this.receiver = new Pop3MailReceiver();
+		super(new Pop3MailReceiver());
+	}
+
+	Pop3MailInboundChannelAdapterSpec(Pop3MailReceiver receiver) {
+		super(receiver, true);
 	}
 
 	Pop3MailInboundChannelAdapterSpec(String url) {
-		this.receiver = new Pop3MailReceiver(url);
+		super(new Pop3MailReceiver(url));
 	}
 
 	Pop3MailInboundChannelAdapterSpec(String host, String username, String password) {
-		this.receiver = new Pop3MailReceiver(host, username, password);
+		super(new Pop3MailReceiver(host, username, password));
 	}
 
 	Pop3MailInboundChannelAdapterSpec(String host, int port, String username, String password) {
-		this.receiver = new Pop3MailReceiver(host, port, username, password);
+		super(new Pop3MailReceiver(host, port, username, password));
 	}
 
 }

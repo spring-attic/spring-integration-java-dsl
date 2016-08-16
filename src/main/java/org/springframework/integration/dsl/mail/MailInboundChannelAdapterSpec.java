@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.mail;
 
 import java.util.Collection;
@@ -20,9 +21,12 @@ import java.util.Collections;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageSourceSpec;
 import org.springframework.integration.dsl.support.Consumer;
@@ -31,6 +35,8 @@ import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.dsl.support.PropertiesBuilder;
 import org.springframework.integration.mail.AbstractMailReceiver;
 import org.springframework.integration.mail.MailReceivingMessageSource;
+import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessageSourceSpec} for a {@link MailReceivingMessageSource}.
@@ -43,7 +49,20 @@ public abstract class
 		extends MessageSourceSpec<S, MailReceivingMessageSource>
 		implements ComponentsRegistration {
 
-	protected volatile R receiver;
+	protected final R receiver;
+
+	protected final boolean externalReceiver;
+
+	private boolean sessionProvided;
+
+	protected MailInboundChannelAdapterSpec(R receiver) {
+		this(receiver, false);
+	}
+
+	protected MailInboundChannelAdapterSpec(R receiver, boolean externalReceiver) {
+		this.receiver = receiver;
+		this.externalReceiver = externalReceiver;
+	}
 
 	/**
 	 * Configure a SpEL expression to select messages. The root object for the expression
@@ -53,7 +72,26 @@ public abstract class
 	 * @return the spec.
 	 */
 	public S selectorExpression(String selectorExpression) {
+		assertReceiver();
 		this.receiver.setSelectorExpression(PARSER.parseExpression(selectorExpression));
+		return _this();
+	}
+
+	protected void assertReceiver() {
+		Assert.state(!this.externalReceiver, "An external 'receiver' [" + this.receiver + "] can't be modified.");
+	}
+
+	/**
+	 * Configure a SpEL expression to select messages. The root object for the expression
+	 * evaluation is a {@link javax.mail.internet.MimeMessage} which should return a boolean
+	 * result (true means select the message).
+	 * @param selectorExpression the selectorExpression.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S selectorExpression(Expression selectorExpression) {
+		assertReceiver();
+		this.receiver.setSelectorExpression(selectorExpression);
 		return _this();
 	}
 
@@ -66,6 +104,7 @@ public abstract class
 	 * @see FunctionExpression
 	 */
 	public S selector(Function<MimeMessage, Boolean> selectorFunction) {
+		assertReceiver();
 		this.receiver.setSelectorExpression(new FunctionExpression<MimeMessage>(selectorFunction));
 		return _this();
 	}
@@ -76,7 +115,9 @@ public abstract class
 	 * @see AbstractMailReceiver#setSession(Session)
 	 */
 	public S session(Session session) {
+		assertReceiver();
 		this.receiver.setSession(session);
+		this.sessionProvided = true;
 		return _this();
 	}
 
@@ -86,8 +127,15 @@ public abstract class
 	 * @see AbstractMailReceiver#setJavaMailProperties(Properties)
 	 */
 	public S javaMailProperties(Properties javaMailProperties) {
+		assertReceiver();
+		assertSession();
 		this.receiver.setJavaMailProperties(javaMailProperties);
 		return _this();
+	}
+
+	private void assertSession() {
+		Assert.state(!this.sessionProvided, "Neither 'javaMailProperties' nor 'javaMailAuthenticator' "
+				+ "references are allowed when a 'session' reference has been provided.");
 	}
 
 	/**
@@ -109,6 +157,8 @@ public abstract class
 	 * @see AbstractMailReceiver#setJavaMailAuthenticator(Authenticator)
 	 */
 	public S javaMailAuthenticator(Authenticator javaMailAuthenticator) {
+		assertSession();
+		assertReceiver();
 		this.receiver.setJavaMailAuthenticator(javaMailAuthenticator);
 		return _this();
 	}
@@ -119,6 +169,7 @@ public abstract class
 	 * @see AbstractMailReceiver#setMaxFetchSize(int)
 	 */
 	public S maxFetchSize(int maxFetchSize) {
+		assertReceiver();
 		this.receiver.setMaxFetchSize(maxFetchSize);
 		return _this();
 	}
@@ -129,7 +180,57 @@ public abstract class
 	 * @see AbstractMailReceiver#setShouldDeleteMessages(boolean)
 	 */
 	public S shouldDeleteMessages(boolean shouldDeleteMessages) {
+		assertReceiver();
 		this.receiver.setShouldDeleteMessages(shouldDeleteMessages);
+		return _this();
+	}
+
+	/**
+	 * Set the name of the flag to use to flag messages when the server does
+	 * not support \Recent but supports user flags;
+	 * default {@value AbstractMailReceiver#DEFAULT_SI_USER_FLAG}.
+	 * @param userFlag the flag.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see AbstractMailReceiver#setUserFlag(String)
+	 */
+	public S userFlag(String userFlag) {
+		assertReceiver();
+		this.receiver.setUserFlag(userFlag);
+		return _this();
+	}
+
+	/**
+	 * Set the header mapper; if a header mapper is not provided, the message payload is
+	 * a {@link MimeMessage}, when provided, the headers are mapped and the payload is
+	 * the {@link MimeMessage} content.
+	 * @param headerMapper the header mapper.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see AbstractMailReceiver#setUserFlag(String)
+	 * @see #embeddedPartsAsBytes(boolean)
+	 */
+	public S headerMapper(HeaderMapper<MimeMessage> headerMapper) {
+		assertReceiver();
+		this.receiver.setHeaderMapper(headerMapper);
+		return _this();
+	}
+
+	/**
+	 * When a header mapper is provided determine whether an embedded {@link Part} (e.g
+	 * {@link Message} or {@link javax.mail.Multipart} content is rendered as a byte[] in the
+	 * payload. Otherwise, leave as a {@link Part}. These objects are not suitable for
+	 * downstream serialization. Default: true.
+	 * <p>This has no effect if there is no header mapper, in that case the payload is the
+	 * {@link MimeMessage}.
+	 * @param embeddedPartsAsBytes the embeddedPartsAsBytes to set.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see #headerMapper(HeaderMapper)
+	 */
+	public S embeddedPartsAsBytes(boolean embeddedPartsAsBytes) {
+		assertReceiver();
+		this.receiver.setEmbeddedPartsAsBytes(embeddedPartsAsBytes);
 		return _this();
 	}
 

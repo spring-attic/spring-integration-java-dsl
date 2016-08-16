@@ -51,21 +51,23 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.mail.Mail;
-import org.springframework.integration.dsl.test.mail.PoorMansMailServer.ImapServer;
-import org.springframework.integration.dsl.test.mail.PoorMansMailServer.Pop3Server;
-import org.springframework.integration.dsl.test.mail.PoorMansMailServer.SmtpServer;
+import org.springframework.integration.dsl.test.mail.TestMailServer.ImapServer;
+import org.springframework.integration.dsl.test.mail.TestMailServer.Pop3Server;
+import org.springframework.integration.dsl.test.mail.TestMailServer.SmtpServer;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.MailHeaders;
+import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -76,27 +78,20 @@ import org.springframework.util.SocketUtils;
 @DirtiesContext
 public class MailTests {
 
-	private final static int smtpPort = SocketUtils.findAvailableTcpPort();
+	private final static SmtpServer smtpServer = TestMailServer.smtp(0);
 
-	private final static SmtpServer smtpServer = PoorMansMailServer.smtp(smtpPort);
+	private final static Pop3Server pop3Server = TestMailServer.pop3(0);
 
-	private final static int pop3Port = SocketUtils.findAvailableTcpPort(smtpPort + 1);
+	private final static ImapServer imapServer = TestMailServer.imap(0);
 
-	private final static Pop3Server pop3Server = PoorMansMailServer.pop3(pop3Port);
-
-	private final static int imapPort = SocketUtils.findAvailableTcpPort(pop3Port + 1);
-
-	private final static ImapServer imapServer = PoorMansMailServer.imap(imapPort);
-
-	private final static int imapIdlePort = SocketUtils.findAvailableTcpPort(imapPort + 1);
-
-	private final static ImapServer imapIdleServer = PoorMansMailServer.imap(imapIdlePort);
+	private final static ImapServer imapIdleServer = TestMailServer.imap(0);
 
 
 	@BeforeClass
 	public static void setup() throws InterruptedException {
 		int n = 0;
-		while (n++ < 100 && (!smtpServer.isListening() || !pop3Server.isListening() || !imapServer.isListening())) {
+		while (n++ < 100 && (!smtpServer.isListening() || !pop3Server.isListening()
+				|| !imapServer.isListening()) || !imapIdleServer.isListening()) {
 			Thread.sleep(100);
 		}
 		assertTrue(n < 100);
@@ -158,11 +153,11 @@ public class MailTests {
 	public void testPop3() throws Exception {
 		Message<?> message = this.pop3Channel.receive(10000);
 		assertNotNull(message);
-		MimeMessage mm = (MimeMessage) message.getPayload();
-		assertEquals("foo@bar", mm.getRecipients(RecipientType.TO)[0].toString());
-		assertEquals("bar@baz", message.getHeaders().get(MailHeaders.FROM));
-		assertEquals("Test Email", message.getHeaders().get(MailHeaders.SUBJECT));
-		assertEquals("foo\r\n", mm.getContent());
+		MessageHeaders headers = message.getHeaders();
+		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
+		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
+		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
+		assertEquals("foo\r\n", message.getPayload());
 	}
 
 	@Test
@@ -170,8 +165,8 @@ public class MailTests {
 		Message<?> message = this.imapChannel.receive(10000);
 		assertNotNull(message);
 		MimeMessage mm = (MimeMessage) message.getPayload();
-		assertEquals("foo@bar", mm.getRecipients(RecipientType.TO)[0].toString());
-		assertEquals("bar@baz", mm.getFrom()[0].toString());
+		assertEquals("Foo <foo@bar>", mm.getRecipients(RecipientType.TO)[0].toString());
+		assertEquals("Bar <bar@baz>", mm.getFrom()[0].toString());
 		assertEquals("Test Email", mm.getSubject());
 		assertEquals("foo\r\n", mm.getContent());
 	}
@@ -180,11 +175,15 @@ public class MailTests {
 	public void testImapIdle() throws Exception {
 		Message<?> message = this.imapIdleChannel.receive(10000);
 		assertNotNull(message);
-		MimeMessage mm = (MimeMessage) message.getPayload();
-		assertEquals("foo@bar", mm.getRecipients(RecipientType.TO)[0].toString());
-		assertEquals("bar@baz", mm.getFrom()[0].toString());
-		assertEquals("Test Email", mm.getSubject());
-		assertEquals("foo\r\n", mm.getContent());
+		MessageHeaders headers = message.getHeaders();
+		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
+		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
+		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
+		assertEquals("To: Foo <foo@bar>\r\n" +
+				 "From: Bar <bar@baz>\r\n" +
+				 "Subject: Test Email\r\n" +
+				 "\r\n" +
+				 "foo\r\n", message.getPayload());
 		this.imapIdleAdapter.stop();
 		assertFalse(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class));
 	}
@@ -201,7 +200,7 @@ public class MailTests {
 							.from("foo@bar")
 							.toFunction(m -> new String[] {"bar@baz"}))
 					.handleWithAdapter(h -> h.mail("localhost")
-									.port(smtpPort)
+									.port(smtpServer.getPort())
 									.credentials("user", "pw")
 									.protocol("smtp")
 									.javaMailProperties(p -> p.put("mail.debug", "false")),
@@ -212,8 +211,9 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow pop3MailFlow() {
 			return IntegrationFlows
-					.from(s -> s.pop3("localhost", pop3Port, "user", "pw")
-									.javaMailProperties(p -> p.put("mail.debug", "false")),
+					.from(s -> s.pop3("localhost", pop3Server.getPort(), "user", "pw")
+									.javaMailProperties(p -> p.put("mail.debug", "false"))
+									.headerMapper(mailHeaderMapper()),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
 					.enrichHeaders(s -> s.headerExpressions(c -> c.put(MailHeaders.SUBJECT, "payload.subject")
 							.put(MailHeaders.FROM, "payload.from[0].toString()")))
@@ -224,7 +224,7 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow imapMailFlow() {
 			return IntegrationFlows
-					.from(s -> s.imap("imap://user:pw@localhost:" + imapPort + "/INBOX")
+					.from(s -> s.imap("imap://user:pw@localhost:" + imapServer.getPort() + "/INBOX")
 									.searchTermStrategy(this::fromAndNotSeenTerm)
 									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.autoStartup(true)
@@ -236,13 +236,20 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow imapIdleFlow() {
 			return IntegrationFlows
-					.from((MessageProducers mp) -> mp.imap("imap://user:pw@localhost:" + imapIdlePort + "/INBOX")
+					.from((MessageProducers mp) ->
+							mp.imap("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX")
 							.searchTermStrategy(this::fromAndNotSeenTerm)
 							.javaMailProperties(p -> p.put("mail.debug", "false")
 									.put("mail.imap.connectionpoolsize", "5"))
-							.shouldReconnectAutomatically(false))
+							.shouldReconnectAutomatically(false)
+							.headerMapper(mailHeaderMapper()))
 					.channel(MessageChannels.queue("imapIdleChannel"))
 					.get();
+		}
+
+		@Bean
+		public HeaderMapper<MimeMessage> mailHeaderMapper() {
+			return new DefaultMailHeaderMapper();
 		}
 
 		private SearchTerm fromAndNotSeenTerm(Flags supportedFlags, Folder folder) {

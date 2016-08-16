@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.mail;
 
 import org.springframework.integration.mail.ImapMailReceiver;
+import org.springframework.integration.mail.Pop3MailReceiver;
 
 /**
  * @author Gary Russell
@@ -29,6 +31,16 @@ public class Mail {
 
 	public static Pop3MailInboundChannelAdapterSpec pop3InboundAdapter() {
 		return new Pop3MailInboundChannelAdapterSpec();
+	}
+
+	/**
+	 * A {@link Pop3MailInboundChannelAdapterSpec} factory based on the provided {@link Pop3MailReceiver}.
+	 * @param pop3MailReceiver the {@link Pop3MailReceiver} to use.
+	 * @return the {@link Pop3MailInboundChannelAdapterSpec} instance.
+	 * @since 1.2
+	 */
+	public static Pop3MailInboundChannelAdapterSpec pop3InboundAdapter(Pop3MailReceiver pop3MailReceiver) {
+		return new Pop3MailInboundChannelAdapterSpec(pop3MailReceiver);
 	}
 
 	public static Pop3MailInboundChannelAdapterSpec pop3InboundAdapter(String url) {
@@ -48,24 +60,40 @@ public class Mail {
 		return new ImapMailInboundChannelAdapterSpec();
 	}
 
+	/**
+	 * An {@link ImapMailInboundChannelAdapterSpec} factory based on the provided {@link ImapMailReceiver}.
+	 * @param imapMailReceiver the {@link ImapMailReceiver} to use.
+	 * @return the {@link ImapMailInboundChannelAdapterSpec} instance.
+	 * @since 1.2
+	 */
+	public static ImapMailInboundChannelAdapterSpec imapInboundAdapter(ImapMailReceiver imapMailReceiver) {
+		return new ImapMailInboundChannelAdapterSpec(imapMailReceiver);
+	}
+
 	public static ImapMailInboundChannelAdapterSpec imapInboundAdapter(String url) {
 		return new ImapMailInboundChannelAdapterSpec(url);
 	}
 
 	public static ImapIdleChannelAdapterSpec imapIdleAdapter() {
-		return imapIdleAdapter(new ImapMailReceiver());
+		return new ImapIdleChannelAdapterSpec(new ImapMailReceiver());
 	}
 
 	public static ImapIdleChannelAdapterSpec imapIdleAdapter(String url) {
-		return imapIdleAdapter(new ImapMailReceiver(url));
+		return new ImapIdleChannelAdapterSpec(new ImapMailReceiver(url));
+	}
+
+	/**
+	 * An {@link ImapIdleChannelAdapterSpec} factory based on the provided {@link ImapMailReceiver}.
+	 * @param imapMailReceiver the {@link ImapMailReceiver} to use.
+	 * @return the {@link ImapIdleChannelAdapterSpec} instance.
+	 * @since 1.2
+	 */
+	public static ImapIdleChannelAdapterSpec imapIdleAdapter(ImapMailReceiver imapMailReceiver) {
+		return new ImapIdleChannelAdapterSpec(imapMailReceiver, true);
 	}
 
 	public static MailHeadersBuilder headers() {
 		return new MailHeadersBuilder();
-	}
-
-	private static ImapIdleChannelAdapterSpec imapIdleAdapter(ImapMailReceiver imapMailReceiver) {
-		return new ImapIdleChannelAdapterSpec(imapMailReceiver);
 	}
 
 }

@@ -56,11 +56,14 @@ import org.springframework.integration.dsl.test.mail.PoorMansMailServer.Pop3Serv
 import org.springframework.integration.dsl.test.mail.PoorMansMailServer.SmtpServer;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.MailHeaders;
+import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -158,11 +161,11 @@ public class MailTests {
 	public void testPop3() throws Exception {
 		Message<?> message = this.pop3Channel.receive(10000);
 		assertNotNull(message);
-		MimeMessage mm = (MimeMessage) message.getPayload();
-		assertEquals("foo@bar", mm.getRecipients(RecipientType.TO)[0].toString());
-		assertEquals("bar@baz", message.getHeaders().get(MailHeaders.FROM));
-		assertEquals("Test Email", message.getHeaders().get(MailHeaders.SUBJECT));
-		assertEquals("foo\r\n", mm.getContent());
+		MessageHeaders headers = message.getHeaders();
+		assertEquals("foo@bar", headers.get(MailHeaders.TO, String[].class)[0]);
+		assertEquals("bar@baz", headers.get(MailHeaders.FROM));
+		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
+		assertEquals("foo\r\n", message.getPayload());
 	}
 
 	@Test
@@ -213,7 +216,8 @@ public class MailTests {
 		public IntegrationFlow pop3MailFlow() {
 			return IntegrationFlows
 					.from(s -> s.pop3("localhost", pop3Port, "user", "pw")
-									.javaMailProperties(p -> p.put("mail.debug", "false")),
+									.javaMailProperties(p -> p.put("mail.debug", "false"))
+									.headerMapper(mailHeaderMapper()),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
 					.enrichHeaders(s -> s.headerExpressions(c -> c.put(MailHeaders.SUBJECT, "payload.subject")
 							.put(MailHeaders.FROM, "payload.from[0].toString()")))
@@ -243,6 +247,11 @@ public class MailTests {
 							.shouldReconnectAutomatically(false))
 					.channel(MessageChannels.queue("imapIdleChannel"))
 					.get();
+		}
+
+		@Bean
+		public HeaderMapper<MimeMessage> mailHeaderMapper() {
+			return new DefaultMailHeaderMapper();
 		}
 
 		private SearchTerm fromAndNotSeenTerm(Flags supportedFlags, Folder folder) {

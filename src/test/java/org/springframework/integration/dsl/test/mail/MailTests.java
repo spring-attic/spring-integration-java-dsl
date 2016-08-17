@@ -179,8 +179,11 @@ public class MailTests {
 		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
 		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
 		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
-		// TODO until INT-4097
-		// assertEquals("foo\r\n", message.getPayload());
+		assertEquals("To: Foo <foo@bar>\r\n" +
+				 "From: Bar <bar@baz>\r\n" +
+				 "Subject: Test Email\r\n" +
+				 "\r\n" +
+				 "foo\r\n", message.getPayload());
 		this.imapIdleAdapter.stop();
 		assertFalse(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class));
 	}

@@ -17,12 +17,7 @@
 package org.springframework.integration.dsl.amqp;
 
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
-import org.springframework.integration.amqp.support.AmqpHeaderMapper;
-import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
-import org.springframework.integration.dsl.core.MessageHandlerSpec;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -43,6 +38,7 @@ public class AmqpOutboundEndpointSpec
 		}
 	}
 
+	@Override
 	public AmqpOutboundEndpointSpec mappedReplyHeaders(String... headers) {
 		Assert.isTrue(expectReply, "'mappedReplyHeaders' can be applied only for gateway");
 		return super.mappedReplyHeaders(headers);

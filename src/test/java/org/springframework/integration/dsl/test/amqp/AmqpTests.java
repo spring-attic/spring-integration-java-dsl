@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.AnonymousQueue;
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -38,7 +39,10 @@ import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
+import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -46,7 +50,6 @@ import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.amqp.Amqp;
-import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -153,6 +156,24 @@ public class AmqpTests {
 		assertEquals("HELLO ASYNC GATEWAY", receive.getPayload());
 	}
 
+	@Autowired
+	private AbstractAmqpChannel unitChannel;
+
+	@Autowired
+	private AmqpHeaderMapper mapperIn;
+
+	@Autowired
+	private AmqpHeaderMapper mapperOut;
+
+	@Test
+	public void unitTestChannel() {
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT,
+				TestUtils.getPropertyValue(this.unitChannel, "defaultDeliveryMode"));
+		assertSame(this.mapperIn, TestUtils.getPropertyValue(this.unitChannel, "inboundHeaderMapper"));
+		assertSame(this.mapperOut, TestUtils.getPropertyValue(this.unitChannel, "outboundHeaderMapper"));
+		assertTrue(TestUtils.getPropertyValue(this.unitChannel, "extractPayload", Boolean.class));
+	}
+
 	@Configuration
 	@EnableIntegration
 	@Import(RabbitAutoConfiguration.class)
@@ -221,6 +242,28 @@ public class AmqpTests {
 			return f -> f
 					.handle(Amqp.asyncOutboundGateway(asyncRabbitTemplate)
 							.routingKeyFunction(m -> queue().getName()));
+		}
+
+		@Bean
+		public AbstractAmqpChannel unitChannel(ConnectionFactory rabbitConnectionFactory) {
+			return Amqp.pollableChannel(rabbitConnectionFactory)
+							.queueName("foo")
+							.channelTransacted(true)
+							.extractPayload(true)
+							.inboundHeaderMapper(mapperIn())
+							.outboundHeaderMapper(mapperOut())
+							.defaultDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
+					.get();
+		}
+
+		@Bean
+		public AmqpHeaderMapper mapperIn() {
+			return DefaultAmqpHeaderMapper.inboundMapper();
+		}
+
+		@Bean
+		public AmqpHeaderMapper mapperOut() {
+			return DefaultAmqpHeaderMapper.outboundMapper();
 		}
 
 	}

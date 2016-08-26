@@ -18,13 +18,16 @@ package org.springframework.integration.dsl.amqp;
 
 import java.lang.reflect.Method;
 
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
+import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.util.Assert;
 
@@ -143,6 +146,58 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 	 */
 	public S messagePropertiesConverter(MessagePropertiesConverter messagePropertiesConverter) {
 		this.amqpChannelFactoryBean.setMessagePropertiesConverter(messagePropertiesConverter);
+		return _this();
+	}
+
+	/**
+	 * Configure the delivery mode for messages that don't have an
+	 * {@link AmqpHeaders#DELIVERY_MODE} header. Default is {@link MessageDeliveryMode#PERSISTENT}.
+	 * @param mode the mode.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S defaultDeliveryMode(MessageDeliveryMode mode) {
+		this.amqpChannelFactoryBean.setDefaultDeliveryMode(mode);
+		return _this();
+	}
+
+	/**
+	 * Configure whether normal spring-messaging to AMQP message mapping is enabled.
+	 * Default false.
+	 * @param extract true to enable mapping.
+	 * @return the spec.
+	 * @see #outboundHeaderMapper(AmqpHeaderMapper)
+	 * @see #inboundHeaderMapper(AmqpHeaderMapper)
+	 * @since 1.2
+	 */
+	public S extractPayload(boolean extract) {
+		this.amqpChannelFactoryBean.setExtractPayload(extract);
+		return _this();
+	}
+
+	/**
+	 * Configure the outbound header mapper to use when {@link #extractPayload(boolean)}
+	 * is true. Defaults to a {@code DefaultAmqpHeaderMapper}.
+	 * @param mapper the mapper.
+	 * @return the spec.
+	 * @see #extractPayload(boolean)
+	 * @since 1.2
+	 */
+	public S outboundHeaderMapper(AmqpHeaderMapper mapper) {
+		this.amqpChannelFactoryBean.setOutboundHeaderMapper(mapper);
+		return _this();
+	}
+
+	/**
+	 * Configure the inbound header mapper to use when {@link #extractPayload(boolean)}
+	 * is true. Defaults to a {@code DefaultAmqpHeaderMapper}.
+	 * @param mapper the mapper.
+	 * @return the spec.
+	 * @see #extractPayload(boolean)
+	 * @since 1.2
+	 */
+	public S inboundHeaderMapper(AmqpHeaderMapper mapper) {
+		this.amqpChannelFactoryBean.setInboundHeaderMapper(mapper);
 		return _this();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.ErrorHandler;
  * {@link org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends AmqpPollableMessageChannelSpec<S> {
 
@@ -198,6 +199,7 @@ public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends
 	}
 
 	/**
+	 * Configure the txSize.
 	 * @param txSize the txSize.
 	 * @return the spec.
 	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setTxSize(int)

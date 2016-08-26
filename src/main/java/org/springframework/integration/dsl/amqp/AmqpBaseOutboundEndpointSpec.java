@@ -19,7 +19,6 @@ package org.springframework.integration.dsl.amqp;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.outbound.AbstractAmqpOutboundEndpoint;
-import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
@@ -27,7 +26,6 @@ import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan

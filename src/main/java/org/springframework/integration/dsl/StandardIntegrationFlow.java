@@ -21,12 +21,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.dsl.core.EndpointSpec;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 
 /**
 * @author Artem Bilan
@@ -35,7 +35,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private final Set<Object> integrationComponents;
 
-	private final List<Lifecycle> lifecycles = new LinkedList<Lifecycle>();
+	private final List<SmartLifecycle> lifecycles = new LinkedList<SmartLifecycle>();
 
 	private boolean registerComponents = true;
 
@@ -45,12 +45,12 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	StandardIntegrationFlow(Set<Object> integrationComponents) {
 		this.integrationComponents = new LinkedHashSet<Object>(integrationComponents);
 		for (Object integrationComponent : integrationComponents) {
-			if (integrationComponent instanceof AbstractEndpoint) {
-				this.lifecycles.add((Lifecycle) integrationComponent);
+			if (integrationComponent instanceof SmartLifecycle) {
+				this.lifecycles.add((SmartLifecycle) integrationComponent);
 			}
 			else if (integrationComponent instanceof EndpointSpec) {
 				BeanNameAware endpoint = ((EndpointSpec<?, BeanNameAware, ?>) integrationComponent).get().getT1();
-				this.lifecycles.add((Lifecycle) endpoint);
+				this.lifecycles.add((SmartLifecycle) endpoint);
 			}
 		}
 	}
@@ -76,7 +76,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public void start() {
 		if (!this.running) {
-			ListIterator<Lifecycle> lifecycleIterator = this.lifecycles.listIterator(this.lifecycles.size());
+			ListIterator<SmartLifecycle> lifecycleIterator = this.lifecycles.listIterator(this.lifecycles.size());
 			while(lifecycleIterator.hasPrevious()) {
 				lifecycleIterator.previous().start();
 			}
@@ -86,15 +86,23 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	@Override
 	public void stop(Runnable callback) {
-		stop();
-		if (callback != null) {
-			callback.run();
+		if (this.running) {
+			AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
+			for (SmartLifecycle lifecycle : this.lifecycles) {
+				if (lifecycle.isRunning()) {
+					lifecycle.stop(aggregatingCallback);
+				}
+				else {
+					aggregatingCallback.run();
+				}
+			}
+			this.running = false;
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (!this.running) {
+		if (this.running) {
 			for (Lifecycle lifecycle : this.lifecycles) {
 				lifecycle.stop();
 			}
@@ -116,5 +124,26 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	public int getPhase() {
 		return 0;
 	}
+
+	private static final class AggregatingCallback implements Runnable {
+
+		private final AtomicInteger count;
+
+		private final Runnable finishCallback;
+
+		private AggregatingCallback(int count, Runnable finishCallback) {
+			this.count = new AtomicInteger(count);
+			this.finishCallback = finishCallback;
+		}
+
+		@Override
+		public void run() {
+			if (this.count.decrementAndGet() <= 0) {
+				this.finishCallback.run();
+			}
+		}
+
+	}
+
 
 }

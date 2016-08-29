@@ -30,12 +30,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -114,6 +118,26 @@ public class ManualFlowTests {
 			assertThat(e, instanceOf(IllegalStateException.class));
 			assertThat(e.getMessage(), containsString("But [" + "foo" + "] ins't one of them."));
 		}
+	}
+
+	@Test
+	public void testDynamicSubFlow() {
+		PollableChannel resultChannel = new QueueChannel();
+
+		this.integrationFlowContext.register("dynamicFlow", flow -> flow
+				.publishSubscribeChannel(p -> {
+					p
+					.minSubscribers(1)
+					.subscribe(f ->
+							f.channel(resultChannel));
+				}));
+
+		this.integrationFlowContext.messagingTemplateFor("dynamicFlow").send(new GenericMessage<>("test"));
+
+		Message<?> receive = resultChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("test", receive.getPayload());
+
 	}
 
 

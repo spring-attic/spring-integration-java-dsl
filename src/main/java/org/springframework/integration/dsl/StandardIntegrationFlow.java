@@ -16,43 +16,29 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.dsl.core.EndpointSpec;
 
 /**
-* @author Artem Bilan
-*/
+ * @author Artem Bilan
+ */
 public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
 
-	private final Set<Object> integrationComponents;
+	private final List<Object> integrationComponents;
 
 	private final List<SmartLifecycle> lifecycles = new LinkedList<SmartLifecycle>();
 
-	private boolean registerComponents = true;
+	private final boolean registerComponents = true;
 
 	private boolean running;
 
-	@SuppressWarnings("unchecked")
 	StandardIntegrationFlow(Set<Object> integrationComponents) {
-		this.integrationComponents = new LinkedHashSet<Object>(integrationComponents);
-		for (Object integrationComponent : integrationComponents) {
-			if (integrationComponent instanceof SmartLifecycle) {
-				this.lifecycles.add((SmartLifecycle) integrationComponent);
-			}
-			else if (integrationComponent instanceof EndpointSpec) {
-				BeanNameAware endpoint = ((EndpointSpec<?, BeanNameAware, ?>) integrationComponent).get().getT1();
-				this.lifecycles.add((SmartLifecycle) endpoint);
-			}
-		}
+		this.integrationComponents = new LinkedList<Object>(integrationComponents);
 	}
 
 	//TODO Figure out some custom DestinationResolver when we don't register singletons
@@ -64,7 +50,12 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		return this.registerComponents;
 	}
 
-	public Set<Object> getIntegrationComponents() {
+	public void setIntegrationComponents(List<Object> integrationComponents) {
+		this.integrationComponents.clear();
+		this.integrationComponents.addAll(integrationComponents);
+	}
+
+	public List<Object> getIntegrationComponents() {
 		return this.integrationComponents;
 	}
 
@@ -76,9 +67,14 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public void start() {
 		if (!this.running) {
-			ListIterator<SmartLifecycle> lifecycleIterator = this.lifecycles.listIterator(this.lifecycles.size());
-			while(lifecycleIterator.hasPrevious()) {
-				lifecycleIterator.previous().start();
+			ListIterator<Object> iterator = this.integrationComponents.listIterator(this.integrationComponents.size());
+			this.lifecycles.clear();
+			while (iterator.hasPrevious()) {
+				Object component = iterator.previous();
+				if (component instanceof SmartLifecycle) {
+					this.lifecycles.add((SmartLifecycle) component);
+					((SmartLifecycle) component).start();
+				}
 			}
 			this.running = true;
 		}
@@ -88,7 +84,9 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	public void stop(Runnable callback) {
 		if (this.running) {
 			AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
-			for (SmartLifecycle lifecycle : this.lifecycles) {
+			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
+			while (iterator.hasPrevious()) {
+				SmartLifecycle lifecycle = iterator.previous();
 				if (lifecycle.isRunning()) {
 					lifecycle.stop(aggregatingCallback);
 				}
@@ -103,8 +101,9 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public void stop() {
 		if (this.running) {
-			for (Lifecycle lifecycle : this.lifecycles) {
-				lifecycle.stop();
+			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
+			while (iterator.hasPrevious()) {
+				iterator.previous().stop();
 			}
 			this.running = false;
 		}

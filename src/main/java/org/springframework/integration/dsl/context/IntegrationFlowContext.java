@@ -30,8 +30,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
-import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
-import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -157,8 +155,8 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 			this.flowInputChannelCache.remove(flowId);
 		}
 		else {
-			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. " +
-					"But [" + flowId + "] ins't one of them.");
+			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. "
+					+ "But [" + flowId + "] ins't one of them.");
 		}
 	}
 
@@ -174,20 +172,12 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	public MessagingTemplate messagingTemplateFor(String flowId) {
 		MessageChannel channel = this.flowInputChannelCache.get(flowId);
 		if (channel == null) {
-			Object o = this.beanFactory.getBean(flowId);
+			Object o = this.registry.get(flowId);
 			if (o instanceof StandardIntegrationFlow) {
 				StandardIntegrationFlow integrationFlow = (StandardIntegrationFlow) o;
 				Object next = integrationFlow.getIntegrationComponents().iterator().next();
 				if (next instanceof MessageChannel) {
 					channel = (MessageChannel) next;
-					if (channel instanceof MessageChannelReference) {
-						channel = this.beanFactory.getBean(((MessageChannelReference) channel).getName(),
-								MessageChannel.class);
-					}
-					else if (channel instanceof FixedSubscriberChannelPrototype) {
-						channel = this.beanFactory.getBean(((FixedSubscriberChannelPrototype) channel).getName(),
-								MessageChannel.class);
-					}
 					this.flowInputChannelCache.put(flowId, channel);
 				}
 				else {

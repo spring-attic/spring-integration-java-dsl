@@ -30,9 +30,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
@@ -46,12 +51,14 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
  * @since 1.2
  */
+@ContextConfiguration(classes = ManualFlowTests.RootConfiguration.class)
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class ManualFlowTests {
@@ -160,6 +167,18 @@ public class ManualFlowTests {
 	}
 
 
+	@Test
+	public void testWrongIntegrationFlowScope() {
+		try {
+			new AnnotationConfigApplicationContext(InvalidIntegrationFlowScopeConfiguration.class).close();
+			fail("BeanCreationNotAllowedException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanCreationNotAllowedException.class));
+			assertThat(e.getMessage(), containsString("IntegrationFlows can not be scoped beans."));
+		}
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class RootConfiguration {
@@ -177,8 +196,15 @@ public class ManualFlowTests {
 							e.poller(p ->
 									p.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
 					.channel(c -> c.queue("flowAdapterOutput"));
+	
+	@Configuration
+	@EnableIntegration
+	public static class InvalidIntegrationFlowScopeConfiguration {
+
+		@Bean
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+		public IntegrationFlow wrongScopeFlow() {
+			return flow -> flow.bridge(null);
 		}
 
-	}
-
-}
+	}}

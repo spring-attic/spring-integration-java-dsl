@@ -21,10 +21,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationListener;
@@ -106,9 +108,20 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 				multicaster.addApplicationListener(applicationListener);
 			}
 		}
+
+		this.beanFactory.getBeansOfType(IntegrationFlow.class);
 	}
 
 	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String beanName) {
+		if (this.beanFactory.containsBeanDefinition(beanName)) {
+			String scope = this.beanFactory.getBeanDefinition(beanName).getScope();
+			if (StringUtils.hasText(scope) && !BeanDefinition.SCOPE_SINGLETON.equals(scope))
+			throw new BeanCreationNotAllowedException(beanName, "IntegrationFlows can not be scoped beans. " +
+					"Any dependant beans are registered as singletons, meanwhile IntegrationFlow is just a " +
+					"logical container for them. \n" +
+					"Consider to use [IntegrationFlowContext] for manual registration of IntegrationFlows.");
+		}
+
 		String flowNamePrefix = beanName + ".";
 		int subFlowNameIndex = 0;
 		int channelNameIndex = 0;

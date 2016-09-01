@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -33,7 +32,7 @@ import org.springframework.integration.dsl.core.EndpointSpec;
 */
 public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
 
-	private final Set<Object> integrationComponents;
+	private final List<Object> integrationComponents;
 
 	private final List<SmartLifecycle> lifecycles = new LinkedList<SmartLifecycle>();
 
@@ -43,7 +42,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	@SuppressWarnings("unchecked")
 	StandardIntegrationFlow(Set<Object> integrationComponents) {
-		this.integrationComponents = new LinkedHashSet<Object>(integrationComponents);
+		this.integrationComponents = new LinkedList<Object>(integrationComponents);
 		for (Object integrationComponent : integrationComponents) {
 			if (integrationComponent instanceof SmartLifecycle) {
 				this.lifecycles.add((SmartLifecycle) integrationComponent);
@@ -64,7 +63,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		return this.registerComponents;
 	}
 
-	public Set<Object> getIntegrationComponents() {
+	public List<Object> getIntegrationComponents() {
 		return this.integrationComponents;
 	}
 

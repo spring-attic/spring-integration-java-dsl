@@ -33,11 +33,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
@@ -53,6 +51,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.context.annotation.RequestScope;
 
 /**
  * @author Artem Bilan
@@ -202,7 +201,7 @@ public class ManualFlowTests {
 	public static class InvalidIntegrationFlowScopeConfiguration {
 
 		@Bean
-		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+		@RequestScope
 		public IntegrationFlow wrongScopeFlow() {
 			return flow -> flow.bridge(null);
 		}

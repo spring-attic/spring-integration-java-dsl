@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,12 @@ import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
 
+import org.springframework.integration.dsl.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.ErrorHandler;
@@ -35,15 +37,16 @@ import org.springframework.util.ErrorHandler;
  * An {@link IntegrationComponentSpec} for {@link PollerMetadata}s.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, PollerMetadata> {
-
-	private final PollerMetadata pollerMetadata = new PollerMetadata();
 
 	private final List<Advice> adviceChain = new LinkedList<Advice>();
 
 	PollerSpec(Trigger trigger) {
-		this.pollerMetadata.setTrigger(trigger);
+		this.target = new PollerMetadata();
+		this.target.setAdviceChain(this.adviceChain);
+		this.target.setTrigger(trigger);
 	}
 
 	/**
@@ -55,7 +58,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 */
 	public PollerSpec transactionSynchronizationFactory(
 			TransactionSynchronizationFactory transactionSynchronizationFactory) {
-		this.pollerMetadata.setTransactionSynchronizationFactory(transactionSynchronizationFactory);
+		this.target.setTransactionSynchronizationFactory(transactionSynchronizationFactory);
 		return this;
 	}
 
@@ -67,7 +70,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * @see #taskExecutor
 	 */
 	public PollerSpec errorHandler(ErrorHandler errorHandler) {
-		this.pollerMetadata.setErrorHandler(errorHandler);
+		this.target.setErrorHandler(errorHandler);
 		return this;
 	}
 
@@ -77,7 +80,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * @see PollerMetadata#setMaxMessagesPerPoll
 	 */
 	public PollerSpec maxMessagesPerPoll(long maxMessagesPerPoll) {
-		this.pollerMetadata.setMaxMessagesPerPoll(maxMessagesPerPoll);
+		this.target.setMaxMessagesPerPoll(maxMessagesPerPoll);
 		return this;
 	}
 
@@ -90,7 +93,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * @see org.springframework.messaging.PollableChannel#receive(long)
 	 */
 	public PollerSpec receiveTimeout(long receiveTimeout) {
-		this.pollerMetadata.setReceiveTimeout(receiveTimeout);
+		this.target.setReceiveTimeout(receiveTimeout);
 		return this;
 	}
 
@@ -106,12 +109,35 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the
-	 * provided {@code PlatformTransactionManager} for the {@code pollingTask}.
+	 * provided {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@code pollingTask}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
 	 */
 	public PollerSpec transactional(PlatformTransactionManager transactionManager) {
-		return this.advice(new TransactionInterceptor(transactionManager, new MatchAlwaysTransactionAttributeSource()));
+		return advice(new TransactionInterceptor(transactionManager, new MatchAlwaysTransactionAttributeSource()));
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@code pollingTask}.
+	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
+	 * @return the spec.
+	 * @see TransactionInterceptorBuilder
+	 * @since 1.2
+	 */
+	public PollerSpec transactional(TransactionInterceptor transactionInterceptor) {
+		return advice(transactionInterceptor);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
+	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public PollerSpec transactional() {
+		return advice(new TransactionInterceptorBuilder()
+				.build());
 	}
 
 	/**
@@ -120,19 +146,18 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * @return the spec.
 	 */
 	public PollerSpec taskExecutor(Executor taskExecutor) {
-		this.pollerMetadata.setTaskExecutor(taskExecutor);
+		this.target.setTaskExecutor(taskExecutor);
 		return this;
 	}
 
 	public PollerSpec sendTimeout(long sendTimeout) {
-		this.pollerMetadata.setSendTimeout(sendTimeout);
+		this.target.setSendTimeout(sendTimeout);
 		return this;
 	}
 
 	@Override
 	protected PollerMetadata doGet() {
-		this.pollerMetadata.setAdviceChain(this.adviceChain);
-		return this.pollerMetadata;
+		throw new UnsupportedOperationException();
 	}
 
 }

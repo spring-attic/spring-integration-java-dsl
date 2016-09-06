@@ -23,6 +23,7 @@ import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.util.Assert;
 
 /**
  * Provides a fluent API to build a transaction interceptor. See
@@ -31,68 +32,59 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * {@link PlatformTransactionManager} is not provided, a single instance of
  * {@link PlatformTransactionManager} will be discovered at runtime; if you have more
  * than one transaction manager, you must inject the one you want to use here.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.2
  *
  */
 public class TransactionInterceptorBuilder {
 
-	private Propagation propagation = Propagation.REQUIRED;
+	private final DefaultTransactionAttribute transactionAttribute = new DefaultTransactionAttribute();
 
-	private Isolation isolation = Isolation.DEFAULT;
+	private final TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
 
-	private int timeout = -1;
-
-	private boolean readOnly = false;
-
-	private TransactionAttribute transactionAttribute;
-
-	private PlatformTransactionManager transactionManager;
+	public TransactionInterceptorBuilder() {
+		transactionAttribute(this.transactionAttribute);
+	}
 
 	public TransactionInterceptorBuilder propagation(Propagation propagation) {
-		this.propagation = propagation;
+		Assert.notNull(propagation, "'propagation' must not be null.");
+		this.transactionAttribute.setPropagationBehavior(propagation.value());
 		return this;
 	}
 
 	public TransactionInterceptorBuilder isolation(Isolation isolation) {
-		this.isolation = isolation;
+		Assert.notNull(isolation, "'isolation' must not be null.");
+		this.transactionAttribute.setIsolationLevel(isolation.value());
 		return this;
 	}
 
 	public TransactionInterceptorBuilder timeout(int timeout) {
-		this.timeout = timeout;
+		this.transactionAttribute.setTimeout(timeout);
 		return this;
 	}
 
 	public TransactionInterceptorBuilder readOnly(boolean readOnly) {
-		this.readOnly = readOnly;
+		this.transactionAttribute.setReadOnly(readOnly);
 		return this;
 	}
 
-	public TransactionInterceptorBuilder transactionAttribute(TransactionAttribute transactionAttribute) {
-		this.transactionAttribute = transactionAttribute;
+	public final TransactionInterceptorBuilder transactionAttribute(TransactionAttribute transactionAttribute) {
+		MatchAlwaysTransactionAttributeSource txAttributeSource = new MatchAlwaysTransactionAttributeSource();
+		txAttributeSource.setTransactionAttribute(transactionAttribute);
+		this.transactionInterceptor.setTransactionAttributeSource(txAttributeSource);
 		return this;
 	}
 
 	public TransactionInterceptorBuilder transactionManager(PlatformTransactionManager transactionManager) {
-		this.transactionManager = transactionManager;
+		this.transactionInterceptor.setTransactionManager(transactionManager);
 		return this;
 	}
 
 	public TransactionInterceptor build() {
-		MatchAlwaysTransactionAttributeSource attSource = new MatchAlwaysTransactionAttributeSource();
-		if (this.transactionAttribute == null) {
-			DefaultTransactionAttribute transactionAttribute = new DefaultTransactionAttribute();
-			transactionAttribute.setPropagationBehavior(this.propagation.value());
-			transactionAttribute.setIsolationLevel(this.isolation.value());
-			transactionAttribute.setTimeout(this.timeout);
-			transactionAttribute.setReadOnly(this.readOnly);
-			attSource.setTransactionAttribute(transactionAttribute);
-		}
-		else {
-			attSource.setTransactionAttribute(this.transactionAttribute);
-		}
-		return new TransactionInterceptor(this.transactionManager, attSource);
+		return this.transactionInterceptor;
 	}
 
 }

@@ -27,8 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.dsl.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transaction.PseudoTransactionManager;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -37,12 +36,12 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 1.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-public class TransactionInterceptorFactoryBeanTests {
+@RunWith(SpringRunner.class)
+public class TransactionInterceptorBuilderTests {
 
 	@Autowired
 	private PlatformTransactionManager txm;
@@ -55,14 +54,14 @@ public class TransactionInterceptorFactoryBeanTests {
 
 	@Test
 	public void test() throws Throwable {
-		verifiy(this.interceptor1, this.txm);
-		verifiy(this.interceptor2, null);
+		verify(this.interceptor1, this.txm);
+		verify(this.interceptor2, null);
 	}
 
-	private void verifiy(TransactionInterceptor interceptor, PlatformTransactionManager txm) {
+	private void verify(TransactionInterceptor interceptor, PlatformTransactionManager txm) {
 		assertSame(txm, interceptor.getTransactionManager());
-		TransactionAttribute atts =
-				interceptor.getTransactionAttributeSource().getTransactionAttribute(null, null);
+		TransactionAttribute atts = interceptor.getTransactionAttributeSource()
+				.getTransactionAttribute(null, null);
 		assertThat(atts.getPropagationBehavior()).isEqualTo(Propagation.REQUIRES_NEW.value());
 		assertThat(atts.getIsolationLevel()).isEqualTo(Isolation.SERIALIZABLE.value());
 		assertThat(atts.getTimeout()).isEqualTo(42);

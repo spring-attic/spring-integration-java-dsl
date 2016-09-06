@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.dsl.transaction.TransactionInterceptorFactoryBean;
+import org.springframework.integration.dsl.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -48,13 +48,21 @@ public class TransactionInterceptorFactoryBeanTests {
 	private PlatformTransactionManager txm;
 
 	@Autowired
-	private TransactionInterceptor interceptor;
+	private TransactionInterceptor interceptor1;
+
+	@Autowired
+	private TransactionInterceptor interceptor2;
 
 	@Test
-	public void test() {
-		assertSame(this.txm, this.interceptor.getTransactionManager());
+	public void test() throws Throwable {
+		verifiy(this.interceptor1, this.txm);
+		verifiy(this.interceptor2, null);
+	}
+
+	private void verifiy(TransactionInterceptor interceptor, PlatformTransactionManager txm) {
+		assertSame(txm, interceptor.getTransactionManager());
 		TransactionAttribute atts =
-				this.interceptor.getTransactionAttributeSource().getTransactionAttribute(null, null);
+				interceptor.getTransactionAttributeSource().getTransactionAttribute(null, null);
 		assertThat(atts.getPropagationBehavior()).isEqualTo(Propagation.REQUIRES_NEW.value());
 		assertThat(atts.getIsolationLevel()).isEqualTo(Isolation.SERIALIZABLE.value());
 		assertThat(atts.getTimeout()).isEqualTo(42);
@@ -70,12 +78,24 @@ public class TransactionInterceptorFactoryBeanTests {
 		}
 
 		@Bean
-		public TransactionInterceptorFactoryBean interceptor() {
-			return new TransactionInterceptorFactoryBean()
+		public TransactionInterceptor interceptor1(PlatformTransactionManager transactionManager) {
+			return new TransactionInterceptorBuilder()
 				.propagation(Propagation.REQUIRES_NEW)
 				.isolation(Isolation.SERIALIZABLE)
 				.timeout(42)
-				.readOnly(true);
+				.readOnly(true)
+				.transactionManager(transactionManager)
+				.build();
+		}
+
+		@Bean
+		public TransactionInterceptor interceptor2() {
+			return new TransactionInterceptorBuilder()
+				.propagation(Propagation.REQUIRES_NEW)
+				.isolation(Isolation.SERIALIZABLE)
+				.timeout(42)
+				.readOnly(true)
+				.build();
 		}
 
 	}

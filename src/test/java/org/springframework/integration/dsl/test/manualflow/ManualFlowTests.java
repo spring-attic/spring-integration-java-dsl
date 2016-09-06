@@ -24,6 +24,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,6 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.dsl.Channels;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
@@ -40,11 +44,13 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
+ * @since 1.2
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
@@ -60,7 +66,9 @@ public class ManualFlowTests {
 	public void testManualFlowRegistration() {
 		IntegrationFlow myFlow = f -> f
 				.<String, String>transform(String::toUpperCase)
-				.transform("Hello, "::concat);
+				.channel(Channels::queue)
+				.transform("Hello, "::concat,
+						e -> e.poller(p -> p.fixedDelay(10)));
 
 		String flowId = this.integrationFlowContext.register(myFlow);
 
@@ -84,19 +92,23 @@ public class ManualFlowTests {
 
 		assertFalse(this.beanFactory.containsBean(flowId));
 		assertFalse(this.beanFactory.containsBean(flowId + ".input"));
+
+		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
+		assertEquals(0, taskScheduler.getActiveCount());
 	}
 
 	@Test
 	public void testWrongLifecycle() {
-		IntegrationFlowAdapter testFlow = new IntegrationFlowAdapter() {
+		class MyIntegrationFlow implements IntegrationFlow {
 
 			@Override
-			protected IntegrationFlowDefinition<?> buildFlow() {
-				return from("foo")
-						.bridge(null);
+			public void configure(IntegrationFlowDefinition<?> flow) {
+				flow.bridge(null);
 			}
 
 		};
+
+		IntegrationFlow testFlow = new MyIntegrationFlow();
 
 		// This is fine because we are not going to start it automatically.
 		assertNotNull(this.integrationFlowContext.register(testFlow, false));
@@ -125,25 +137,47 @@ public class ManualFlowTests {
 		PollableChannel resultChannel = new QueueChannel();
 
 		this.integrationFlowContext.register("dynamicFlow", flow -> flow
-				.publishSubscribeChannel(p -> {
-					p
-					.minSubscribers(1)
-					.subscribe(f ->
-							f.channel(resultChannel));
-				}));
+				.publishSubscribeChannel(p ->
+						p.minSubscribers(1)
+								.subscribe(f -> f.channel(resultChannel))
+				));
 
 		this.integrationFlowContext.messagingTemplateFor("dynamicFlow").send(new GenericMessage<>("test"));
 
 		Message<?> receive = resultChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals("test", receive.getPayload());
+	}
 
+	@Test
+	public void testDynamicAdapterFlow() {
+		this.integrationFlowContext.register(new MyFlowAdapter());
+		PollableChannel resultChannel = this.beanFactory.getBean("flowAdapterOutput", PollableChannel.class);
+
+		Message<?> receive = resultChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("flowAdapterMessage", receive.getPayload());
 	}
 
 
 	@Configuration
 	@EnableIntegration
 	public static class RootConfiguration {
+
+	}
+
+	private static class MyFlowAdapter extends IntegrationFlowAdapter {
+
+		private final AtomicReference<Date> nextExecutionTime = new AtomicReference<>(new Date());
+
+		@Override
+		protected IntegrationFlowDefinition<?> buildFlow() {
+			return from(() -> new GenericMessage<>("flowAdapterMessage"),
+					e ->
+							e.poller(p ->
+									p.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
+					.channel(c -> c.queue("flowAdapterOutput"));
+		}
 
 	}
 

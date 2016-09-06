@@ -61,7 +61,7 @@ import org.springframework.util.Assert;
  */
 public final class IntegrationFlowContext implements BeanFactoryAware {
 
-	private final Map<String, Object> registry = new HashMap<String, Object>();
+	private final Map<String, IntegrationFlow> registry = new HashMap<String, IntegrationFlow>();
 
 	private final Map<String, MessageChannel> flowInputChannelCache = new ConcurrentHashMap<String, MessageChannel>();
 
@@ -124,7 +124,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 * @param autoStartup to start or not the {@link IntegrationFlow} automatically after registration
 	 */
 	public void register(String flowId, IntegrationFlow integrationFlow, boolean autoStartup) {
-		Object theFlow = this.beanFactory.initializeBean(integrationFlow, flowId);
+		IntegrationFlow theFlow = (IntegrationFlow) this.beanFactory.initializeBean(integrationFlow, flowId);
 		this.beanFactory.registerSingleton(flowId, theFlow);
 
 		if (autoStartup) {
@@ -135,7 +135,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 				throw new IllegalStateException("For 'autoStartup' mode the 'IntegrationFlow' " +
 						"must be an instance of 'Lifecycle'.\n" +
 						"Consider to implement it for [" + integrationFlow + "]. " +
-						"Or start dependant components on their own.");
+						"Or start dependent components on their own.");
 			}
 		}
 
@@ -149,8 +149,11 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 */
 	public synchronized void remove(String flowId) {
 		if (this.registry.containsKey(flowId)) {
+			IntegrationFlow theFlow = this.registry.remove(flowId);
+			if (theFlow instanceof Lifecycle) {
+				((Lifecycle) theFlow).stop();
+			}
 			((DefaultSingletonBeanRegistry) this.beanFactory).destroySingleton(flowId);
-			this.registry.remove(flowId);
 			this.flowInputChannelCache.remove(flowId);
 		}
 		else {

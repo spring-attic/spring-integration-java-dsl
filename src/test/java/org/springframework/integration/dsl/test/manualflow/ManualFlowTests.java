@@ -24,6 +24,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -47,6 +50,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
+ * @since 1.2
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
@@ -95,15 +99,16 @@ public class ManualFlowTests {
 
 	@Test
 	public void testWrongLifecycle() {
-		IntegrationFlowAdapter testFlow = new IntegrationFlowAdapter() {
+		class MyIntegrationFlow implements IntegrationFlow {
 
 			@Override
-			protected IntegrationFlowDefinition<?> buildFlow() {
-				return from("foo")
-						.bridge(null);
+			public void configure(IntegrationFlowDefinition<?> flow) {
+				flow.bridge(null);
 			}
 
 		};
+
+		IntegrationFlow testFlow = new MyIntegrationFlow();
 
 		// This is fine because we are not going to start it automatically.
 		assertNotNull(this.integrationFlowContext.register(testFlow, false));
@@ -142,13 +147,37 @@ public class ManualFlowTests {
 		Message<?> receive = resultChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals("test", receive.getPayload());
+	}
 
+	@Test
+	public void testDynamicAdapterFlow() {
+		this.integrationFlowContext.register(new MyFlowAdapter());
+		PollableChannel resultChannel = this.beanFactory.getBean("flowAdapterOutput", PollableChannel.class);
+
+		Message<?> receive = resultChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("flowAdapterMessage", receive.getPayload());
 	}
 
 
 	@Configuration
 	@EnableIntegration
 	public static class RootConfiguration {
+
+	}
+
+	private static class MyFlowAdapter extends IntegrationFlowAdapter {
+
+		private final AtomicReference<Date> nextExecutionTime = new AtomicReference<>(new Date());
+
+		@Override
+		protected IntegrationFlowDefinition<?> buildFlow() {
+			return from(() -> new GenericMessage<>("flowAdapterMessage"),
+					e ->
+							e.poller(p ->
+									p.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
+					.channel(c -> c.queue("flowAdapterOutput"));
+		}
 
 	}
 

@@ -135,7 +135,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 				throw new IllegalStateException("For 'autoStartup' mode the 'IntegrationFlow' " +
 						"must be an instance of 'Lifecycle'.\n" +
 						"Consider to implement it for [" + integrationFlow + "]. " +
-						"Or start dependant components on their own.");
+						"Or start dependent components on their own.");
 			}
 		}
 

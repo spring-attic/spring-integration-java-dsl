@@ -121,6 +121,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	protected Object currentComponent;
 
+	private StandardIntegrationFlow integrationFlow;
+
 	IntegrationFlowDefinition() {
 	}
 
@@ -1738,7 +1740,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.1
 	 */
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
-	               Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
+			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
 		Assert.notNull(splitterMessageHandlerSpec);
 		return split(splitterMessageHandlerSpec.get(), endpointConfigurer);
 	}
@@ -2351,7 +2353,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return route(router, routerSpec, endpointConfigurer);
 	}
 
-	private  <R extends AbstractMessageRouter, S extends AbstractRouterSpec<S, R>> B route(R router,
+	private <R extends AbstractMessageRouter, S extends AbstractRouterSpec<S, R>> B route(R router,
 			S routerSpec, Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
 
 		route(router, endpointConfigurer);
@@ -3005,26 +3007,29 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	protected StandardIntegrationFlow get() {
-		if (this.currentMessageChannel instanceof FixedSubscriberChannelPrototype) {
-			throw new BeanCreationException("The 'currentMessageChannel' (" + this.currentMessageChannel +
-					") is a prototype for FixedSubscriberChannel which can't be created without MessageHandler " +
-					"constructor argument. That means that '.fixedSubscriberChannel()' can't be the last EIP-method " +
-					"in the IntegrationFlow definition.");
-		}
+		if (this.integrationFlow == null) {
+			if (this.currentMessageChannel instanceof FixedSubscriberChannelPrototype) {
+				throw new BeanCreationException("The 'currentMessageChannel' (" + this.currentMessageChannel
+						+ ") is a prototype for FixedSubscriberChannel which can't be created without MessageHandler "
+						+ "constructor argument. That means that '.fixedSubscriberChannel()' can't be the last "
+						+ "EIP-method in the IntegrationFlow definition.");
+			}
 
-		if (this.integrationComponents.size() == 1) {
-			if (this.currentComponent != null) {
-				if (this.currentComponent instanceof SourcePollingChannelAdapterSpec) {
-					throw new BeanCreationException("The 'SourcePollingChannelAdapter' (" + this.currentComponent
-							+ ") " + "must be configured with at least one 'MessageChannel' or 'MessageHandler'.");
+			if (this.integrationComponents.size() == 1) {
+				if (this.currentComponent != null) {
+					if (this.currentComponent instanceof SourcePollingChannelAdapterSpec) {
+						throw new BeanCreationException("The 'SourcePollingChannelAdapter' (" + this.currentComponent
+								+ ") " + "must be configured with at least one 'MessageChannel' or 'MessageHandler'.");
+					}
+				}
+				else if (this.currentMessageChannel != null) {
+					throw new BeanCreationException("The 'IntegrationFlow' can't consist of only one 'MessageChannel'. "
+							+ "Add at lest '.bridge()' EIP-method before the end of flow.");
 				}
 			}
-			else if (this.currentMessageChannel != null) {
-				throw new BeanCreationException("The 'IntegrationFlow' can't consist of only one 'MessageChannel'. " +
-						"Add at lest '.bridge()' EIP-method before the end of flow.");
-			}
+			this.integrationFlow = new StandardIntegrationFlow(this.integrationComponents);
 		}
-		return new StandardIntegrationFlow(this.integrationComponents);
+		return this.integrationFlow;
 	}
 
 	private static boolean isLambda(Object o) {
@@ -3050,9 +3055,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
 		Assert.isTrue(!REFERENCED_REPLY_PRODUCERS.contains(replyHandler),
-				"An AbstractMessageProducingHandler may only be referenced once (" +
-						replyHandler.getComponentName() +
-						") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
+				"An AbstractMessageProducingHandler may only be referenced once ("
+						+ replyHandler.getComponentName()
+						+ ") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
 		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
 	}
 

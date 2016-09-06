@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.core.MessageProducerSpec;
@@ -54,7 +55,9 @@ import org.springframework.util.Assert;
  *
  * @since 1.1
  */
-public abstract class IntegrationFlowAdapter implements IntegrationFlow {
+public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLifecycle {
+
+	private StandardIntegrationFlow targetIntegrationFlow;
 
 	@Override
 	public final void configure(IntegrationFlowDefinition<?> flow) {
@@ -62,6 +65,37 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow {
 		Assert.state(targetFlow != null, "the 'buildFlow()' must not return null");
 		flow.integrationComponents.clear();
 		flow.integrationComponents.addAll(targetFlow.integrationComponents);
+		this.targetIntegrationFlow = flow.get();
+	}
+
+	@Override
+	public void start() {
+		this.targetIntegrationFlow.start();
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		this.targetIntegrationFlow.stop(callback);
+	}
+
+	@Override
+	public void stop() {
+		this.targetIntegrationFlow.stop();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.targetIntegrationFlow.isRunning();
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.targetIntegrationFlow.isAutoStartup();
+	}
+
+	@Override
+	public int getPhase() {
+		return this.targetIntegrationFlow.getPhase();
 	}
 
 	protected IntegrationFlowDefinition<?> from(String messageChannelName) {
@@ -134,13 +168,12 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow {
 	protected IntegrationFlowDefinition<?> from(IntegrationFlows.MessagingGatewaysFunction gateways) {
 		return IntegrationFlows.from(gateways);
 	}
-	
 
-	public static IntegrationFlowBuilder from(Object service, String methodName) {
+	protected IntegrationFlowBuilder from(Object service, String methodName) {
 		return IntegrationFlows.from(service, methodName);
 	}
 
-	public static IntegrationFlowBuilder from(Object service, String methodName, 
+	protected IntegrationFlowBuilder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		return IntegrationFlows.from(service, methodName, endpointConfigurer);
 	}

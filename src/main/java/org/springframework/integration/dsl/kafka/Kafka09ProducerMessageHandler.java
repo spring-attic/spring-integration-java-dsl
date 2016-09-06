@@ -16,15 +16,21 @@
 
 package org.springframework.integration.dsl.kafka;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.KafkaNull;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * The copy of {@code org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler}
@@ -37,6 +43,8 @@ import org.springframework.util.StringUtils;
  */
 public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler {
 
+	private static final long DEFAULT_SEND_TIMEOUT = 10000;
+
 	private final KafkaTemplate<K, V> kafkaTemplate;
 
 	private EvaluationContext evaluationContext;
@@ -46,6 +54,10 @@ public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler 
 	private volatile Expression messageKeyExpression;
 
 	private volatile Expression partitionIdExpression;
+
+	private boolean sync;
+
+	private long sendTimeout = DEFAULT_SEND_TIMEOUT;
 
 	public Kafka09ProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
 		Assert.notNull(kafkaTemplate, "kafkaTemplate cannot be null");
@@ -68,6 +80,15 @@ public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler 
 		return this.kafkaTemplate;
 	}
 
+	public void setSync(boolean sync) {
+		this.sync = sync;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
+
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
@@ -81,7 +102,7 @@ public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler 
 				this.topicExpression.getValue(this.evaluationContext, message, String.class)
 				: message.getHeaders().get(KafkaHeaders.TOPIC, String.class);
 
-		Assert.state(StringUtils.hasText(topic), "The 'topic' can not be empty or null.");
+		Assert.state(StringUtils.hasText(topic), "The 'topic' can not be empty or null");
 
 		Integer partitionId = this.partitionIdExpression != null ?
 				this.partitionIdExpression.getValue(this.evaluationContext, message, Integer.class)
@@ -91,22 +112,42 @@ public class Kafka09ProducerMessageHandler<K, V> extends AbstractMessageHandler 
 				? this.messageKeyExpression.getValue(this.evaluationContext, message)
 				: message.getHeaders().get(KafkaHeaders.MESSAGE_KEY);
 
+		ListenableFuture<?> future;
+
+		V payload = (V) message.getPayload();
+		if (payload instanceof KafkaNull) {
+			payload = null;
+		}
 		if (partitionId == null) {
 			if (messageKey == null) {
-				this.kafkaTemplate.send(topic, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, payload);
 			}
 			else {
-				this.kafkaTemplate.send(topic, (K) messageKey, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, (K) messageKey, payload);
 			}
 		}
 		else {
 			if (messageKey == null) {
-				this.kafkaTemplate.send(topic, partitionId, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, partitionId, payload);
 			}
 			else {
-				this.kafkaTemplate.send(topic, partitionId, (K) messageKey, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, partitionId, (K) messageKey, payload);
 			}
 		}
+		if (this.sync) {
+			if (this.sendTimeout < 0) {
+				future.get();
+			}
+			else {
+				try {
+					future.get(this.sendTimeout, TimeUnit.MILLISECONDS);
+				}
+				catch (TimeoutException te) {
+					throw new MessageTimeoutException(message, "Timeout waiting for response from KafkaProducer", te);
+				}
+			}
+		}
+
 	}
 
 	@Override

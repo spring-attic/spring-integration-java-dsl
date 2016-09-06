@@ -21,10 +21,16 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.AcknowledgingMessageListener;
+import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
+import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -40,6 +46,16 @@ public class Kafka09MessageDrivenChannelAdapter<K, V> extends MessageProducerSup
 
 	private final MessagingMessageListenerAdapter<K, V> listener = new IntegrationMessageListener();
 
+	private RecordFilterStrategy<K, V> recordFilterStrategy;
+
+	private boolean ackDiscarded;
+
+	private RetryTemplate retryTemplate;
+
+	private RecoveryCallback<Void> recoveryCallback;
+
+	private boolean filterInRetry;
+
 	public Kafka09MessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer) {
 		Assert.notNull(messageListenerContainer, "messageListenerContainer is required");
 		Assert.isNull(messageListenerContainer.getContainerProperties().getMessageListener(),
@@ -51,6 +67,54 @@ public class Kafka09MessageDrivenChannelAdapter<K, V> extends MessageProducerSup
 
 	public void setMessageConverter(MessageConverter messageConverter) {
 		this.listener.setMessageConverter(messageConverter);
+	}
+
+	public void setRecordFilterStrategy(RecordFilterStrategy<K, V> recordFilterStrategy) {
+		this.recordFilterStrategy = recordFilterStrategy;
+	}
+
+	public void setAckDiscarded(boolean ackDiscarded) {
+		this.ackDiscarded = ackDiscarded;
+	}
+
+	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		this.retryTemplate = retryTemplate;
+	}
+
+	public void setRecoveryCallback(RecoveryCallback<Void> recoveryCallback) {
+		this.recoveryCallback = recoveryCallback;
+	}
+
+	public void setFilterInRetry(boolean filterInRetry) {
+		this.filterInRetry = filterInRetry;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+
+		AcknowledgingMessageListener<K, V> listener = this.listener;
+
+		boolean filterInRetry = this.filterInRetry && this.retryTemplate != null && this.recordFilterStrategy != null;
+
+		if (filterInRetry) {
+			listener = new FilteringAcknowledgingMessageListenerAdapter<K, V>(listener, this.recordFilterStrategy,
+					this.ackDiscarded);
+			listener = new RetryingAcknowledgingMessageListenerAdapter<K, V>(listener, this.retryTemplate,
+					this.recoveryCallback);
+		}
+		else {
+			if (this.retryTemplate != null) {
+				listener = new RetryingAcknowledgingMessageListenerAdapter<K, V>(listener, this.retryTemplate,
+						this.recoveryCallback);
+			}
+			if (this.recordFilterStrategy != null) {
+				listener = new FilteringAcknowledgingMessageListenerAdapter<K, V>(listener, this.recordFilterStrategy,
+						this.ackDiscarded);
+			}
+		}
+
+		this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
 	}
 
 	@Override

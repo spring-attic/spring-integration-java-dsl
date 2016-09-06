@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.dsl.Channels;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
@@ -40,6 +41,7 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -57,10 +59,12 @@ public class ManualFlowTests {
 	private BeanFactory beanFactory;
 
 	@Test
-	public void testManualFlowRegistration() {
+	public void testManualFlowRegistration() throws InterruptedException {
 		IntegrationFlow myFlow = f -> f
 				.<String, String>transform(String::toUpperCase)
-				.transform("Hello, "::concat);
+				.channel(Channels::queue)
+				.transform("Hello, "::concat,
+						e -> e.poller(p -> p.fixedDelay(10)));
 
 		String flowId = this.integrationFlowContext.register(myFlow);
 
@@ -84,6 +88,9 @@ public class ManualFlowTests {
 
 		assertFalse(this.beanFactory.containsBean(flowId));
 		assertFalse(this.beanFactory.containsBean(flowId + ".input"));
+
+		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
+		assertEquals(0, taskScheduler.getActiveCount());
 	}
 
 	@Test
@@ -125,12 +132,10 @@ public class ManualFlowTests {
 		PollableChannel resultChannel = new QueueChannel();
 
 		this.integrationFlowContext.register("dynamicFlow", flow -> flow
-				.publishSubscribeChannel(p -> {
-					p
-					.minSubscribers(1)
-					.subscribe(f ->
-							f.channel(resultChannel));
-				}));
+				.publishSubscribeChannel(p ->
+						p.minSubscribers(1)
+								.subscribe(f -> f.channel(resultChannel))
+				));
 
 		this.integrationFlowContext.messagingTemplateFor("dynamicFlow").send(new GenericMessage<>("test"));
 

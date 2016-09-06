@@ -61,7 +61,7 @@ import org.springframework.util.Assert;
  */
 public final class IntegrationFlowContext implements BeanFactoryAware {
 
-	private final Map<String, Object> registry = new HashMap<String, Object>();
+	private final Map<String, IntegrationFlow> registry = new HashMap<String, IntegrationFlow>();
 
 	private final Map<String, MessageChannel> flowInputChannelCache = new ConcurrentHashMap<String, MessageChannel>();
 
@@ -139,7 +139,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 			}
 		}
 
-		this.registry.put(flowId, theFlow);
+		this.registry.put(flowId, (IntegrationFlow) theFlow);
 	}
 
 	/**
@@ -149,8 +149,11 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 */
 	public synchronized void remove(String flowId) {
 		if (this.registry.containsKey(flowId)) {
+			IntegrationFlow theFlow = this.registry.remove(flowId);
+			if (theFlow instanceof Lifecycle) {
+				((Lifecycle) theFlow).stop();
+			}
 			((DefaultSingletonBeanRegistry) this.beanFactory).destroySingleton(flowId);
-			this.registry.remove(flowId);
 			this.flowInputChannelCache.remove(flowId);
 		}
 		else {

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
@@ -57,6 +59,8 @@ import org.springframework.util.Assert;
  */
 public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLifecycle {
 
+	private final AtomicBoolean running = new AtomicBoolean();
+
 	private StandardIntegrationFlow targetIntegrationFlow;
 
 	@Override
@@ -70,32 +74,47 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 
 	@Override
 	public void start() {
-		this.targetIntegrationFlow.start();
+		assertTargetIntegrationFlow();
+		if (!this.running.getAndSet(true)) {
+			this.targetIntegrationFlow.start();
+		}
+	}
+
+	private void assertTargetIntegrationFlow() {
+		Assert.state(this.targetIntegrationFlow != null,
+				this + " hasn't been initialized properly via BeanFactory.\n"
+						+"Missed @EnableIntegration ?");
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		this.targetIntegrationFlow.stop(callback);
+		assertTargetIntegrationFlow();
+		if (this.running.getAndSet(false)) {
+			this.targetIntegrationFlow.stop(callback);
+		}
 	}
 
 	@Override
 	public void stop() {
-		this.targetIntegrationFlow.stop();
+		assertTargetIntegrationFlow();
+		if (this.running.getAndSet(false)) {
+			this.targetIntegrationFlow.stop();
+		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return this.targetIntegrationFlow.isRunning();
+		return this.running.get();
 	}
 
 	@Override
 	public boolean isAutoStartup() {
-		return this.targetIntegrationFlow.isAutoStartup();
+		return false;
 	}
 
 	@Override
 	public int getPhase() {
-		return this.targetIntegrationFlow.getPhase();
+		return 0;
 	}
 
 	protected IntegrationFlowDefinition<?> from(String messageChannelName) {

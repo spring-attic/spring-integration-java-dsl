@@ -112,7 +112,8 @@ public class ManualFlowTests {
 				flow.bridge(null);
 			}
 
-		};
+		}
+		;
 
 		IntegrationFlow testFlow = new MyIntegrationFlow();
 
@@ -195,7 +196,11 @@ public class ManualFlowTests {
 							e.poller(p ->
 									p.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
 					.channel(c -> c.queue("flowAdapterOutput"));
-	
+
+		}
+
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class InvalidIntegrationFlowScopeConfiguration {
@@ -206,4 +211,5 @@ public class ManualFlowTests {
 			return flow -> flow.bridge(null);
 		}
 
-	}}
+	}
+}

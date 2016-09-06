@@ -123,7 +123,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 */
 	public void register(String flowId, IntegrationFlow integrationFlow, boolean autoStartup) {
 		IntegrationFlow theFlow = (IntegrationFlow) this.beanFactory.initializeBean(integrationFlow, flowId);
-//		this.beanFactory.registerSingleton(flowId, theFlow);
+		this.beanFactory.registerSingleton(flowId, theFlow);
 
 		if (autoStartup) {
 			if (theFlow instanceof Lifecycle) {
@@ -155,8 +155,8 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 			this.flowInputChannelCache.remove(flowId);
 		}
 		else {
-			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. " +
-					"But [" + flowId + "] ins't one of them.");
+			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. "
+					+ "But [" + flowId + "] ins't one of them.");
 		}
 	}
 

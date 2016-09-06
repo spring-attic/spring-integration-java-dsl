@@ -59,7 +59,7 @@ public class ManualFlowTests {
 	private BeanFactory beanFactory;
 
 	@Test
-	public void testManualFlowRegistration() throws InterruptedException {
+	public void testManualFlowRegistration() {
 		IntegrationFlow myFlow = f -> f
 				.<String, String>transform(String::toUpperCase)
 				.channel(Channels::queue)

@@ -124,7 +124,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 * @param autoStartup to start or not the {@link IntegrationFlow} automatically after registration
 	 */
 	public void register(String flowId, IntegrationFlow integrationFlow, boolean autoStartup) {
-		Object theFlow = this.beanFactory.initializeBean(integrationFlow, flowId);
+		IntegrationFlow theFlow = (IntegrationFlow) this.beanFactory.initializeBean(integrationFlow, flowId);
 		this.beanFactory.registerSingleton(flowId, theFlow);
 
 		if (autoStartup) {
@@ -139,7 +139,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 			}
 		}
 
-		this.registry.put(flowId, (IntegrationFlow) theFlow);
+		this.registry.put(flowId, theFlow);
 	}
 
 	/**

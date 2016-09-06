@@ -23,6 +23,7 @@ import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
 
+import org.springframework.integration.dsl.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.Trigger;
@@ -109,9 +110,21 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * provided {@code PlatformTransactionManager} for the {@code pollingTask}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
+	 * @deprecated - since 1.2 use {@link #transactional(TransactionInterceptor)}
 	 */
+	@Deprecated
 	public PollerSpec transactional(PlatformTransactionManager transactionManager) {
-		return this.advice(new TransactionInterceptor(transactionManager, new MatchAlwaysTransactionAttributeSource()));
+		return advice(new TransactionInterceptor(transactionManager, new MatchAlwaysTransactionAttributeSource()));
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@code pollingTask}.
+	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
+	 * @return the spec.
+	 * @see TransactionInterceptorBuilder
+	 */
+	public PollerSpec transactional(TransactionInterceptor transactionInterceptor) {
+		return advice(transactionInterceptor);
 	}
 
 	/**

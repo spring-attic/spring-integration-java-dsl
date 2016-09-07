@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.dsl.core;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
@@ -32,7 +35,10 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  */
 public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends BeanNameAware, H>
-		extends IntegrationComponentSpec<S, Tuple2<F, H>> {
+		extends IntegrationComponentSpec<S, Tuple2<F, H>>
+		implements ComponentsRegistration {
+
+	protected Collection<Object> componentToRegister = new ArrayList<Object>();
 
 	@SuppressWarnings("unchecked")
 	protected EndpointSpec(H handler) {
@@ -91,12 +97,18 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * @see PollerSpec
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
+		Collection<Object> componentsToRegister = pollerMetadataSpec.getComponentsToRegister();
+		if (componentsToRegister != null) {
+			this.componentToRegister.addAll(componentsToRegister);
+		}
 		return this.poller(pollerMetadataSpec.get());
 	}
 
 	@Override
-	protected final Tuple2<F, H> doGet() {
-		throw new UnsupportedOperationException();
+	public Collection<Object> getComponentsToRegister() {
+		return this.componentToRegister.isEmpty()
+				? null
+				: this.componentToRegister;
 	}
 
 }

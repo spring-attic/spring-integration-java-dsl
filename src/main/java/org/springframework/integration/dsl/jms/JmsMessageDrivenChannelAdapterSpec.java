@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,20 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	 * @param headerMapper the headerMapper.
 	 * @return the spec.
 	 * @see ChannelPublishingJmsMessageListener#setHeaderMapper(JmsHeaderMapper)
+	 * @deprecated in favor of {@link #headerMapper(JmsHeaderMapper)}
 	 */
+	@Deprecated
 	public S setHeaderMapper(JmsHeaderMapper headerMapper) {
+		return headerMapper(headerMapper);
+	}
+
+	/**
+	 * @param headerMapper the headerMapper.
+	 * @return the spec.
+	 * @see ChannelPublishingJmsMessageListener#setHeaderMapper(JmsHeaderMapper)
+	 * @since 1.2
+	 */
+	public S headerMapper(JmsHeaderMapper headerMapper) {
 		this.target.getListener().setHeaderMapper(headerMapper);
 		return _this();
 	}

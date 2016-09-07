@@ -17,6 +17,8 @@
 package org.springframework.integration.dsl.core;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -29,7 +31,6 @@ import org.springframework.integration.transaction.TransactionSynchronizationFac
 import org.springframework.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
-import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.ErrorHandler;
 
@@ -39,9 +40,12 @@ import org.springframework.util.ErrorHandler;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, PollerMetadata> {
+public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, PollerMetadata>
+		implements ComponentsRegistration {
 
 	private final List<Advice> adviceChain = new LinkedList<Advice>();
+
+	private TransactionInterceptor transactionInterceptor;
 
 	PollerSpec(Trigger trigger) {
 		this.target = new PollerMetadata();
@@ -115,7 +119,20 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * @return the spec.
 	 */
 	public PollerSpec transactional(PlatformTransactionManager transactionManager) {
-		return advice(new TransactionInterceptor(transactionManager, new MatchAlwaysTransactionAttributeSource()));
+		return transactional(new TransactionInterceptorBuilder()
+				.transactionManager(transactionManager)
+				.build());
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
+	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public PollerSpec transactional() {
+		this.transactionInterceptor = new TransactionInterceptorBuilder().build();
+		return transactional(this.transactionInterceptor);
 	}
 
 	/**
@@ -127,17 +144,6 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 */
 	public PollerSpec transactional(TransactionInterceptor transactionInterceptor) {
 		return advice(transactionInterceptor);
-	}
-
-	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
-	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
-	 * @return the spec.
-	 * @since 1.2
-	 */
-	public PollerSpec transactional() {
-		return advice(new TransactionInterceptorBuilder()
-				.build());
 	}
 
 	/**
@@ -156,8 +162,13 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	}
 
 	@Override
-	protected PollerMetadata doGet() {
-		throw new UnsupportedOperationException();
+	public Collection<Object> getComponentsToRegister() {
+		if (this.transactionInterceptor != null) {
+			return Collections.<Object>singletonList(this.transactionInterceptor);
+		}
+		else {
+			return null;
+		}
 	}
 
 }

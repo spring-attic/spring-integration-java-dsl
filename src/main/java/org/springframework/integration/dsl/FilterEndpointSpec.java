@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.messaging.MessageChannel;
@@ -31,10 +27,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  */
-public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpointSpec, MessageFilter>
-		implements ComponentsRegistration {
-
-	private IntegrationFlow discardFlow;
+public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpointSpec, MessageFilter> {
 
 	FilterEndpointSpec(MessageFilter messageFilter) {
 		super(messageFilter);
@@ -81,7 +74,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 		DirectChannel channel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		discardFlow.configure(flowBuilder);
-		this.discardFlow = flowBuilder.get();
+		this.componentToRegister.add(flowBuilder.get());
 		return discardChannel(channel);
 	}
 
@@ -93,14 +86,6 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	public FilterEndpointSpec discardWithinAdvice(boolean discardWithinAdvice) {
 		this.target.getT2().setDiscardWithinAdvice(discardWithinAdvice);
 		return _this();
-	}
-
-	@Override
-	public Collection<Object> getComponentsToRegister() {
-		if (this.discardFlow != null) {
-			return Collections.<Object>singletonList(this.discardFlow);
-		}
-		return null;
 	}
 
 }

@@ -124,10 +124,4 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 		return this.subFlows;
 	}
 
-
-	@Override
-	protected R doGet() {
-		throw new UnsupportedOperationException();
-	}
-
 }

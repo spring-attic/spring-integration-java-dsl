@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,6 @@ import org.springframework.util.Assert;
  */
 public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileSplitter> {
 
-	private final FileSplitter fileSplitter;
-
 	FileSplitterSpec() {
 		this(true);
 	}
@@ -40,7 +38,7 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	}
 
 	FileSplitterSpec(boolean iterator, boolean markers) {
-		this.fileSplitter = new FileSplitter(iterator, markers);
+		this.target = new FileSplitter(iterator, markers);
 	}
 
 	public FileSplitterSpec charset(String charset) {
@@ -49,13 +47,8 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	}
 
 	public FileSplitterSpec charset(Charset charset) {
-		this.fileSplitter.setCharset(charset);
+		this.target.setCharset(charset);
 		return _this();
-	}
-
-	@Override
-	protected FileSplitter doGet() {
-		return this.fileSplitter;
 	}
 
 }

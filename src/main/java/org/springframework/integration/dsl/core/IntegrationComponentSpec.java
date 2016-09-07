@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	}
 
 	public final String getId() {
-		return id;
+		return this.id;
 	}
 
 	/**
@@ -58,7 +58,7 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	 */
 	public final T get() {
 		if (this.target == null) {
-			this.target = this.doGet();
+			this.target = doGet();
 		}
 		return this.target;
 	}
@@ -78,11 +78,13 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 		return true;
 	}
 
-	protected abstract T doGet();
-
 	@SuppressWarnings("unchecked")
 	protected final S _this() {
 		return (S) this;
+	}
+
+	protected T doGet() {
+		throw new UnsupportedOperationException();
 	}
 
 }

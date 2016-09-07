@@ -2910,9 +2910,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		if (endpointConfigurer != null) {
 			endpointConfigurer.accept(endpointSpec);
 		}
-		if (endpointSpec instanceof ComponentsRegistration) {
-			addComponents(((ComponentsRegistration) endpointSpec).getComponentsToRegister());
-		}
+
+		addComponents(endpointSpec.getComponentsToRegister());
+
 		MessageChannel inputChannel = this.currentMessageChannel;
 		this.currentMessageChannel = null;
 		if (inputChannel == null) {

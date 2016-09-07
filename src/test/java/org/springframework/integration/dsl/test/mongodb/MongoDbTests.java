@@ -65,7 +65,7 @@ import com.mongodb.DBObject;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class MongoDbTests {
 
 	@Autowired

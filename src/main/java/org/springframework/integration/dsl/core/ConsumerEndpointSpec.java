@@ -23,10 +23,15 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.dsl.transaction.TransactionHandleMessageAdvice;
+import org.springframework.integration.dsl.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 /**
  * A {@link EndpointSpec} for consumer endpoints.
@@ -67,13 +72,78 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	/**
 	 * Configure a list of {@link Advice} objects to be applied, in nested order, to the endpoint's handler.
-	 * The advice objects are applied only to the handler and not the downstream flow.
+	 * The advice objects are applied only to the handler.
 	 * @param advice the advice chain.
 	 * @return the endpoint spec.
 	 */
 	public S advice(Advice... advice) {
 		this.adviceChain.addAll(Arrays.asList(advice));
 		return _this();
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the
+	 * provided {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@code pollingTask}.
+	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S transactional(PlatformTransactionManager transactionManager) {
+		return transactional(transactionManager, false);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the
+	 * provided {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@code pollingTask}.
+	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
+	 * {@code false} - regular {@link TransactionInterceptor};
+	 * {@code true} - {@link TransactionHandleMessageAdvice} extension.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S transactional(PlatformTransactionManager transactionManager, boolean handleMessageAdvice) {
+		return transactional(new TransactionInterceptorBuilder(handleMessageAdvice)
+				.transactionManager(transactionManager)
+				.build());
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@code pollingTask}.
+	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
+	 * @return the spec.
+	 * @see TransactionInterceptorBuilder
+	 * @since 1.2
+	 */
+	public S transactional(TransactionInterceptor transactionInterceptor) {
+		return advice(transactionInterceptor);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
+	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S transactional() {
+		return transactional(false);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
+	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
+	 * {@code false} - regular {@link TransactionInterceptor};
+	 * {@code true} - {@link TransactionHandleMessageAdvice} extension.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S transactional(boolean handleMessageAdvice) {
+		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(handleMessageAdvice).build();
+		this.componentToRegister.add(transactionInterceptor);
+		return transactional(transactionInterceptor);
 	}
 
 	/**

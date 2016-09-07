@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 
 package org.springframework.integration.dsl.amqp;
-
-import java.lang.reflect.Method;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -51,6 +49,11 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 		this.amqpChannelFactoryBean.setConnectionFactory(connectionFactory);
 		this.amqpChannelFactoryBean.setSingleton(false);
 		this.amqpChannelFactoryBean.setPubSub(false);
+
+		/*
+		We need this artificial BeanFactory to overcome AmqpChannelFactoryBean initialization.
+		The real BeanFactory will be applied later for the target AbstractAmqpChannel instance.
+		*/
 		this.amqpChannelFactoryBean.setBeanFactory(new DefaultListableBeanFactory());
 	}
 
@@ -120,17 +123,7 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 	 * @see org.springframework.amqp.rabbit.core.RabbitTemplate#setChannelTransacted(boolean)
 	 */
 	public S templateChannelTransacted(boolean channelTransacted) {
-		try {
-			Method method =
-					AmqpChannelFactoryBean.class.getDeclaredMethod("setTemplateChannelTransacted", boolean.class);
-			method.invoke(this.amqpChannelFactoryBean, channelTransacted);
-		}
-		catch (NoSuchMethodException e) {
-			throw new UnsupportedOperationException("Requires Spring Integration 4.1 or higher.", e);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		this.amqpChannelFactoryBean.setTemplateChannelTransacted(channelTransacted);
 		return _this();
 	}
 

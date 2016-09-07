@@ -257,10 +257,5 @@ public class KafkaProducerMessageHandlerSpec
 		return Collections.<Object>singleton(this.kafkaProducerContext);
 	}
 
-	@Override
-	protected KafkaProducerMessageHandler doGet() {
-		throw new UnsupportedOperationException();
-	}
-
 }
 

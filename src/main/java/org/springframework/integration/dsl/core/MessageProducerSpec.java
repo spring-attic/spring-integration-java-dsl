@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,11 +108,6 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	public S errorChannel(String errorChannel) {
 		target.setErrorChannelName(errorChannel);
 		return _this();
-	}
-
-	@Override
-	protected P doGet() {
-		throw new UnsupportedOperationException();
 	}
 
 }

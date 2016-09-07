@@ -121,9 +121,4 @@ public abstract class AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEnd
 		return _this();
 	}
 
-	@Override
-	protected E doGet() {
-		throw new UnsupportedOperationException();
-	}
-
 }

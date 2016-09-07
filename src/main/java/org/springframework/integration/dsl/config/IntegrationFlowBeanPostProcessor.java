@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -129,7 +130,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		boolean registerSingleton = flow.isRegisterComponents();
 
 
-		List<Object> integrationComponents = flow.getIntegrationComponents();
+		List<Object> integrationComponents = new ArrayList<Object>(flow.getIntegrationComponents());
 		for (int i = 0; i < integrationComponents.size(); i++) {
 			Object component = integrationComponents.get(i);
 			if (component instanceof ConsumerEndpointSpec) {
@@ -223,7 +224,8 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 					}
 				}
 			}
-			}
+		}
+		flow.setIntegrationComponents(integrationComponents);
 		return flow;
 	}
 

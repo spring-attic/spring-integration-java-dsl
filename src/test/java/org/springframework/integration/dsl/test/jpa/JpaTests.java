@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -69,7 +68,7 @@ public class JpaTests {
 
 	@Configuration
 	@Import({ DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
-			JmxAutoConfiguration.class, IntegrationAutoConfiguration.class })
+			IntegrationAutoConfiguration.class })
 	@EntityScan(basePackageClasses = StudentDomain.class)
 	public static class ContextConfiguration {
 

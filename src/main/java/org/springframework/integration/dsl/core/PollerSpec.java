@@ -155,9 +155,4 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 		return this;
 	}
 
-	@Override
-	protected PollerMetadata doGet() {
-		throw new UnsupportedOperationException();
-	}
-
 }

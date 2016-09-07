@@ -189,11 +189,6 @@ public class Kafka09ProducerMessageHandlerSpec<K, V>
 		return _this();
 	}
 
-	@Override
-	protected Kafka09ProducerMessageHandler<K, V> doGet() {
-		throw new UnsupportedOperationException();
-	}
-
 
 	public static class KafkaProducerMessageHandlerTemplateSpec<K, V> extends Kafka09ProducerMessageHandlerSpec<K, V>
 			implements ComponentsRegistration {

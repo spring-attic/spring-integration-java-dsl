@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,11 +92,6 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
 		return this.poller(pollerMetadataSpec.get());
-	}
-
-	@Override
-	protected final Tuple2<F, H> doGet() {
-		throw new UnsupportedOperationException();
 	}
 
 }

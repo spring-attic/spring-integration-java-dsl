@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,8 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 
 	private final Map<String, HeaderValueMessageProcessor<?>> headerToAdd = new HashMap<String, HeaderValueMessageProcessor<?>>();
 
-	private final HeaderEnricher headerEnricher = new HeaderEnricher(headerToAdd);
-
 	HeaderEnricherSpec() {
+		this.target = new HeaderEnricher(this.headerToAdd);
 	}
 
 	/**
@@ -62,7 +61,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see HeaderEnricher#setDefaultOverwrite(boolean)
 	 */
 	public HeaderEnricherSpec defaultOverwrite(boolean defaultOverwrite) {
-		this.headerEnricher.setDefaultOverwrite(defaultOverwrite);
+		this.target.setDefaultOverwrite(defaultOverwrite);
 		return _this();
 	}
 
@@ -72,7 +71,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see HeaderEnricher#setShouldSkipNulls(boolean)
 	 */
 	public HeaderEnricherSpec shouldSkipNulls(boolean shouldSkipNulls) {
-		this.headerEnricher.setShouldSkipNulls(shouldSkipNulls);
+		this.target.setShouldSkipNulls(shouldSkipNulls);
 		return _this();
 	}
 
@@ -86,7 +85,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see HeaderEnricher#setMessageProcessor(MessageProcessor)
 	 */
 	public HeaderEnricherSpec messageProcessor(MessageProcessor<?> messageProcessor) {
-		this.headerEnricher.setMessageProcessor(messageProcessor);
+		this.target.setMessageProcessor(messageProcessor);
 		return _this();
 	}
 
@@ -400,11 +399,6 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 						"@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
 								+ ".channelToChannelName(headers.errorChannel)",
 						true);
-	}
-
-	@Override
-	protected HeaderEnricher doGet() {
-		return this.headerEnricher;
 	}
 
 }

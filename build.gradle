@@ -60,6 +60,7 @@ ext {
 	ftpServerVersion = '1.0.6'
 	hsqldbVersion = '2.3.3'
 	jmsApiVersion = '1.1-rev-1'
+	jpaApiVersion = '2.1.1'
 	jrubyVersion = '1.7.25'
 	jythonVersion = '2.7.0'
 	kafkaVersion = '0.8.2.2'
@@ -130,6 +131,9 @@ dependencies {
 		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 	}
 
+	//TODO Until SI-4.3.2.RELEASE with SF-4.3.3.RELEASE
+	compile("org.springframework:spring-orm:4.3.3.BUILD-SNAPSHOT", optional)
+
 	compile("org.springframework.kafka:spring-kafka:$springKafkaVersion", optional)
 
 	compile("org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion") {
@@ -143,14 +147,22 @@ dependencies {
 	compile("javax.jms:jms-api:$jmsApiVersion", provided)
 	compile("javax.mail:javax.mail-api:$mailVersion", provided)
 
+	compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
+
 	testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
+
 	testCompile("org.springframework.boot:spring-boot-starter-web:$springBootVersion") {
 		exclude module: 'spring-boot-starter-logging'
 	}
 	testCompile ("org.springframework.boot:spring-boot-starter-security:$springBootVersion")  {
 		exclude module: 'spring-boot-starter-logging'
 	}
+	testCompile ("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion") {
+		exclude module: 'spring-boot-starter-logging'
+	}
+
 	testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+
 	testCompile "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embedMongoVersion"
 	testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"

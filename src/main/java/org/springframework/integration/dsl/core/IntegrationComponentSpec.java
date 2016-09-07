@@ -78,7 +78,9 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 		return true;
 	}
 
-	protected abstract T doGet();
+	protected T doGet() {
+		throw new UnsupportedOperationException();
+	}
 
 	@SuppressWarnings("unchecked")
 	protected final S _this() {

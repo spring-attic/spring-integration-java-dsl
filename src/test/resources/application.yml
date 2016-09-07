@@ -9,6 +9,13 @@ spring:
   data:
     mongodb:
       port: 0
+  jpa:
+    generate-ddl: true
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+        hibernate.hbm2ddl.import_files: org/springframework/integration/dsl/test/jpa/import.sql
   main:
     banner-mode: "off"
 

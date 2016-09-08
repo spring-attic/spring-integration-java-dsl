@@ -16,6 +16,9 @@
 
 package org.springframework.integration.dsl.core;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.ResolvableType;
@@ -32,7 +35,10 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  */
 public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends BeanNameAware, H>
-		extends IntegrationComponentSpec<S, Tuple2<F, H>> {
+		extends IntegrationComponentSpec<S, Tuple2<F, H>>
+		implements ComponentsRegistration {
+
+	protected Collection<Object> componentToRegister = new ArrayList<Object>();
 
 	@SuppressWarnings("unchecked")
 	protected EndpointSpec(H handler) {
@@ -91,7 +97,18 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * @see PollerSpec
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
+		Collection<Object> componentsToRegister = pollerMetadataSpec.getComponentsToRegister();
+		if (componentsToRegister != null) {
+			this.componentToRegister.addAll(componentsToRegister);
+		}
 		return this.poller(pollerMetadataSpec.get());
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		return this.componentToRegister.isEmpty()
+				? null
+				: this.componentToRegister;
 	}
 
 }

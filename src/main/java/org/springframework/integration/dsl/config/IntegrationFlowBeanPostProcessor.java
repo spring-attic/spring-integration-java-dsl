@@ -51,6 +51,7 @@ import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -218,11 +219,13 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		registerComponent(bean.get(), generateBeanName(bean.get()), null, false);
 		if (bean instanceof ComponentsRegistration) {
 			Collection<Object> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
-			for (Object component : componentsToRegister) {
-				if (!this.beanFactory.getBeansOfType(component.getClass(), false, false)
-						.values()
-						.contains(component)) {
-					registerComponent(component, generateBeanName(component));
+			if (!CollectionUtils.isEmpty(componentsToRegister)) {
+				for (Object component : componentsToRegister) {
+					if (!this.beanFactory.getBeansOfType(component.getClass(), false, false)
+							.values()
+							.contains(component)) {
+						registerComponent(component, generateBeanName(component));
+					}
 				}
 			}
 		}

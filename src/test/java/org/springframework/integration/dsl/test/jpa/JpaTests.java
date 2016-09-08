@@ -56,7 +56,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * @author Artem Bilan
@@ -125,9 +124,6 @@ public class JpaTests {
 		@Autowired
 		private EntityManagerFactory entityManagerFactory;
 
-		@Autowired
-		private PlatformTransactionManager transactionManager;
-
 		@Bean
 		public IntegrationFlow pollingAdapterFlow() {
 			return IntegrationFlows
@@ -146,7 +142,7 @@ public class JpaTests {
 					.handle(Jpa.outboundAdapter(this.entityManagerFactory)
 									.entityClass(StudentDomain.class)
 									.persistMode(PersistMode.PERSIST),
-							e -> e.transactional(this.transactionManager, true));
+							e -> e.transactional(true));
 		}
 
 	}

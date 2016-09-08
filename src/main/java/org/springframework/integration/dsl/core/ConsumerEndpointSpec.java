@@ -122,6 +122,31 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
+	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S transactional() {
+		return transactional(false);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
+	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
+	 * {@code false} - regular {@link TransactionInterceptor};
+	 * {@code true} - {@link TransactionHandleMessageAdvice} extension.
+	 * @return the spec.
+	 * @since 1.2
+	 */
+	public S transactional(boolean handleMessageAdvice) {
+		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(handleMessageAdvice).build();
+		this.componentToRegister.add(transactionInterceptor);
+		return transactional(transactionInterceptor);
+	}
+
+	/**
 	 * @param requiresReply the requiresReply.
 	 * @return the endpoint spec.
 	 * @see AbstractReplyProducingMessageHandler#setRequiresReply(boolean)

@@ -69,12 +69,15 @@ public class ManualFlowTests {
 	private BeanFactory beanFactory;
 
 	@Test
-	public void testManualFlowRegistration() {
+	public void testManualFlowRegistration() throws InterruptedException {
 		IntegrationFlow myFlow = f -> f
 				.<String, String>transform(String::toUpperCase)
 				.channel(Channels::queue)
-				.transform("Hello, "::concat,
-						e -> e.poller(p -> p.fixedDelay(10)));
+				.transform("Hello, "::concat, e -> e
+						.poller(p -> p
+								.fixedDelay(10)
+								.maxMessagesPerPoll(1)
+								.receiveTimeout(10)));
 
 		String flowId = this.integrationFlowContext.register(myFlow);
 
@@ -100,11 +103,13 @@ public class ManualFlowTests {
 		assertFalse(this.beanFactory.containsBean(flowId + ".input"));
 
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
+		Thread.sleep(100);
 		assertEquals(0, taskScheduler.getActiveCount());
 	}
 
 	@Test
 	public void testWrongLifecycle() {
+
 		class MyIntegrationFlow implements IntegrationFlow {
 
 			@Override
@@ -113,7 +118,6 @@ public class ManualFlowTests {
 			}
 
 		}
-		;
 
 		IntegrationFlow testFlow = new MyIntegrationFlow();
 
@@ -144,9 +148,9 @@ public class ManualFlowTests {
 		PollableChannel resultChannel = new QueueChannel();
 
 		this.integrationFlowContext.register("dynamicFlow", flow -> flow
-				.publishSubscribeChannel(p ->
-						p.minSubscribers(1)
-								.subscribe(f -> f.channel(resultChannel))
+				.publishSubscribeChannel(p -> p
+						.minSubscribers(1)
+						.subscribe(f -> f.channel(resultChannel))
 				));
 
 		this.integrationFlowContext.messagingTemplateFor("dynamicFlow").send(new GenericMessage<>("test"));
@@ -192,9 +196,8 @@ public class ManualFlowTests {
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
 			return from(() -> new GenericMessage<>("flowAdapterMessage"),
-					e ->
-							e.poller(p ->
-									p.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
+					e -> e.poller(p -> p
+							.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
 					.channel(c -> c.queue("flowAdapterOutput"));
 
 		}
@@ -212,4 +215,5 @@ public class ManualFlowTests {
 		}
 
 	}
+
 }

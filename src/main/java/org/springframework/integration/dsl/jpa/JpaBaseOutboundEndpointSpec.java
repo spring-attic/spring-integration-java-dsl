@@ -77,13 +77,25 @@ public abstract class JpaBaseOutboundEndpointSpec<S extends JpaBaseOutboundEndpo
 		return _this();
 	}
 
-	public S parameter(Object value, String expression) {
-		this.jpaParameters.add(new JpaParameter(value, expression));
-		return _this();
+	public S parameter(Object value) {
+		return parameter(new JpaParameter(value, null));
 	}
 
-	public S parameter(String name, Object value, String expression) {
-		this.jpaParameters.add(new JpaParameter(value, expression));
+	public S parameter(String name, Object value) {
+		return parameter(new JpaParameter(name, value, null));
+	}
+
+	public S parameterExpression(String expression) {
+		return parameter(new JpaParameter(null, expression));
+	}
+
+	public S parameterExpression(String name, String expression) {
+		return parameter(new JpaParameter(name, null, expression));
+	}
+
+
+	public S parameter(JpaParameter jpaParameter) {
+		this.jpaParameters.add(jpaParameter);
 		return _this();
 	}
 

@@ -80,6 +80,23 @@ public final class Jpa {
 		return new JpaUpdatingOutboundEndpointSpec(jpaExecutor);
 	}
 
+	public static JpaRetrievingOutboundGatewaySpec retrievingGateway(EntityManagerFactory entityManagerFactory) {
+		return retrievingGateway(new JpaExecutor(entityManagerFactory));
+	}
+
+	public static JpaRetrievingOutboundGatewaySpec retrievingGateway(EntityManager entityManager) {
+		return retrievingGateway(new JpaExecutor(entityManager));
+	}
+
+	public static JpaRetrievingOutboundGatewaySpec retrievingGateway(JpaOperations jpaOperations) {
+		return retrievingGateway(new JpaExecutor(jpaOperations));
+	}
+
+	private static JpaRetrievingOutboundGatewaySpec retrievingGateway(JpaExecutor jpaExecutor) {
+		return new JpaRetrievingOutboundGatewaySpec(jpaExecutor);
+	}
+
+
 	private Jpa() {
 	}
 

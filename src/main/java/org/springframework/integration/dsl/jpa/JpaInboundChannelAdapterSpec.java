@@ -90,27 +90,17 @@ public class JpaInboundChannelAdapterSpec
 		return this;
 	}
 
-	/*public JpaInboundChannelAdapterSpec firstResultExpression(Expression firstResultExpression) {
-		this.jpaExecutor.setFirstResultExpression(firstResultExpression);
-		return this;
-	}*/
-
-/*	public JpaInboundChannelAdapterSpec idExpression(Expression idExpression) {
-		this.jpaExecutor.setIdExpression(idExpression);
-		return this;
-	}*/
-
-	public JpaInboundChannelAdapterSpec maxResultsExpression(Expression maxResultsExpression) {
-		this.jpaExecutor.setMaxResultsExpression(maxResultsExpression);
-		return this;
+	public JpaInboundChannelAdapterSpec maxResults(int maxResults) {
+		return maxResultsExpression(new ValueExpression<Integer>(maxResults));
 	}
 
 	public JpaInboundChannelAdapterSpec maxResultsExpression(String maxResultsExpression) {
 		return maxResultsExpression(PARSER.parseExpression(maxResultsExpression));
 	}
 
-	public JpaInboundChannelAdapterSpec maxResults(int maxResults) {
-		return maxResultsExpression(new ValueExpression<Integer>(maxResults));
+	public JpaInboundChannelAdapterSpec maxResultsExpression(Expression maxResultsExpression) {
+		this.jpaExecutor.setMaxResultsExpression(maxResultsExpression);
+		return this;
 	}
 
 	@Override

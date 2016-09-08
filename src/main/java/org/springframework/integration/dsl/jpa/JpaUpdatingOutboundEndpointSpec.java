@@ -20,6 +20,10 @@ import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.PersistMode;
 
 /**
+ * A {@link JpaBaseOutboundEndpointSpec} extension for the {@code updating}
+ * {@link org.springframework.integration.jpa.outbound.JpaOutboundGateway} mode.
+ * The {@code outbound-channel-adapter} is achievable through an internal {@code producesReply} option.
+ *
  * @author Artem Bilan
  * @since 1.2
  */

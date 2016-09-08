@@ -64,8 +64,12 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-@SpringBootTest(properties = "spring.datasource.initialize=false", webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(properties = "spring.datasource.initialize=false",
+		webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class JpaTests {
+
+	@Autowired
+	private DataSource dataSource;
 
 	@Autowired
 	private PollableChannel pollingResults;
@@ -82,7 +86,11 @@ public class JpaTests {
 	private PollableChannel persistResults;
 
 	@Autowired
-	private DataSource dataSource;
+	@Qualifier("retrievingGatewayFlow.input")
+	private MessageChannel retrievingGatewayFlowInput;
+
+	@Autowired
+	private PollableChannel retrieveResults;
 
 	@Test
 	public void testInboundAdapterFlow() {
@@ -147,6 +155,17 @@ public class JpaTests {
 		assertNull(student.getRollNumber());
 	}
 
+	@Test
+	public void testRetrievingGatewayFlow() {
+		this.retrievingGatewayFlowInput.send(MessageBuilder.withPayload(2L).build());
+		Message<?> receive = this.retrieveResults.receive(10_000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(StudentDomain.class));
+		StudentDomain student = (StudentDomain) receive.getPayload();
+		assertEquals("First Two", student.getFirstName());
+		assertEquals(Gender.FEMALE, student.getGender());
+	}
+
 
 	@Configuration
 	@Import({ DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
@@ -185,6 +204,17 @@ public class JpaTests {
 							e -> e.transactional(true))
 					.channel(c -> c.queue("persistResults"));
 		}
+
+		@Bean
+		public IntegrationFlow retrievingGatewayFlow() {
+			return f -> f
+					.handle(Jpa.retrievingGateway(this.entityManagerFactory)
+							.jpaQuery("from Student s where s.id = :id")
+							.expectSingleResult(true)
+							.parameterExpression("id", "payload"))
+					.channel(c -> c.queue("retrieveResults"));
+		}
+
 	}
 
 }

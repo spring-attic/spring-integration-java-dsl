@@ -32,6 +32,9 @@ import org.springframework.util.Assert;
  * {@link PlatformTransactionManager} is not provided, a single instance of
  * {@link PlatformTransactionManager} will be discovered at runtime; if you have more
  * than one transaction manager, you must inject the one you want to use here.
+ * <p>
+ * When the {@code handleMessageAdvice} option is in use, this builder produces
+ * {@link TransactionHandleMessageAdvice} instance.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -43,9 +46,19 @@ public class TransactionInterceptorBuilder {
 
 	private final DefaultTransactionAttribute transactionAttribute = new DefaultTransactionAttribute();
 
-	private final TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
+	private final TransactionInterceptor transactionInterceptor;
 
 	public TransactionInterceptorBuilder() {
+		this(false);
+	}
+
+	public TransactionInterceptorBuilder(boolean handleMessageAdvice) {
+		if (handleMessageAdvice) {
+			this.transactionInterceptor = new TransactionHandleMessageAdvice();
+		}
+		else {
+			this.transactionInterceptor = new TransactionInterceptor();
+		}
 		transactionAttribute(this.transactionAttribute);
 	}
 

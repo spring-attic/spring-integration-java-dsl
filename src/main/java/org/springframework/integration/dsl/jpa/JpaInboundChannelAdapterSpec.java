@@ -81,36 +81,6 @@ public class JpaInboundChannelAdapterSpec
 		return this;
 	}
 
-	/*
-	public JpaInboundChannelAdapterSpec persistMode(PersistMode persistMode) {
-		this.jpaExecutor.setPersistMode(persistMode);
-		return this;
-	}
-	*/
-
-	/*public JpaInboundChannelAdapterSpec jpaParameters(List<JpaParameter> jpaParameters) {
-		this.jpaExecutor.setJpaParameters(jpaParameters);
-		return this;
-	}*/
-
-	/*public JpaInboundChannelAdapterSpec usePayloadAsParameterSource(Boolean usePayloadAsParameterSource) {
-		this.jpaExecutor.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
-		return this;
-	}*/
-
-
-	/*public JpaInboundChannelAdapterSpec flushSize(int flushSize) {
-		this.jpaExecutor.setFlushSize(flushSize);
-		return this;
-	}*/
-	/*
-
-	public JpaInboundChannelAdapterSpec clearOnFlush(boolean clearOnFlush) {
-		this.jpaExecutor.setClearOnFlush(clearOnFlush);
-		return this;
-	}
-	*/
-
 	public JpaInboundChannelAdapterSpec deleteAfterPoll(boolean deleteAfterPoll) {
 		this.jpaExecutor.setDeleteAfterPoll(deleteAfterPoll);
 		return this;
@@ -125,11 +95,6 @@ public class JpaInboundChannelAdapterSpec
 		this.jpaExecutor.setFlush(flush);
 		return this;
 	}
-
-	/*public JpaInboundChannelAdapterSpec parameterSourceFactory(ParameterSourceFactory parameterSourceFactory) {
-		this.jpaExecutor.setParameterSourceFactory(parameterSourceFactory);
-		return this;
-	}*/
 
 	public JpaInboundChannelAdapterSpec parameterSource(ParameterSource parameterSource) {
 		this.jpaExecutor.setParameterSource(parameterSource);

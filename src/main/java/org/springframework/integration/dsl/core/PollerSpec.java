@@ -130,17 +130,6 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
-	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
-	 * @return the spec.
-	 * @since 1.2
-	 */
-	public PollerSpec transactional() {
-		return advice(new TransactionInterceptorBuilder()
-				.build());
-	}
-
-	/**
 	 * Specify an {@link Executor} to perform the {@code pollingTask}.
 	 * @param taskExecutor the {@link Executor} to use.
 	 * @return the spec.

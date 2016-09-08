@@ -42,6 +42,18 @@ public final class Jpa {
 		return new JpaInboundChannelAdapterSpec(jpaOperations);
 	}
 
+	public static JpaOutboundChannelAdapterSpec outboundAdapter(EntityManagerFactory entityManagerFactory) {
+		return new JpaOutboundChannelAdapterSpec(entityManagerFactory);
+	}
+
+	public static JpaOutboundChannelAdapterSpec outboundAdapter(EntityManager entityManager) {
+		return new JpaOutboundChannelAdapterSpec(entityManager);
+	}
+
+	public static JpaOutboundChannelAdapterSpec outboundAdapter(JpaOperations jpaOperations) {
+		return new JpaOutboundChannelAdapterSpec(jpaOperations);
+	}
+
 	private Jpa() {
 	}
 

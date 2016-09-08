@@ -19,15 +19,11 @@ package org.springframework.integration.dsl.jpa;
 import java.util.Collection;
 import java.util.Collections;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.core.ComponentsRegistration;
 import org.springframework.integration.dsl.core.MessageSourceSpec;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.jpa.core.JpaExecutor;
-import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 
@@ -44,19 +40,7 @@ public class JpaInboundChannelAdapterSpec
 
 	private final JpaExecutor jpaExecutor;
 
-	JpaInboundChannelAdapterSpec(EntityManagerFactory entityManagerFactory) {
-		this(new JpaExecutor(entityManagerFactory));
-	}
-
-	JpaInboundChannelAdapterSpec(EntityManager entityManager) {
-		this(new JpaExecutor(entityManager));
-	}
-
-	JpaInboundChannelAdapterSpec(JpaOperations jpaOperations) {
-		this(new JpaExecutor(jpaOperations));
-	}
-
-	private JpaInboundChannelAdapterSpec(JpaExecutor jpaExecutor) {
+	JpaInboundChannelAdapterSpec(JpaExecutor jpaExecutor) {
 		this.jpaExecutor = jpaExecutor;
 		this.target = new JpaPollingChannelAdapter(this.jpaExecutor);
 	}

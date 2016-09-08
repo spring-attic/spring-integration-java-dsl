@@ -19,7 +19,9 @@ package org.springframework.integration.dsl.test.jpa;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -28,7 +30,6 @@ import java.util.List;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -74,6 +75,13 @@ public class JpaTests {
 	private MessageChannel outboundAdapterFlowInput;
 
 	@Autowired
+	@Qualifier("updatingGatewayFlow.input")
+	private MessageChannel updatingGatewayFlowInput;
+
+	@Autowired
+	private PollableChannel persistResults;
+
+	@Autowired
 	private DataSource dataSource;
 
 	@Test
@@ -90,8 +98,8 @@ public class JpaTests {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
 
 		List<?> results1 = jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results1);
-		Assert.assertTrue(results1.size() == 3);
+		assertNotNull(results1);
+		assertTrue(results1.size() == 3);
 
 		Calendar dateOfBirth = Calendar.getInstance();
 		dateOfBirth.set(1981, 9, 27);
@@ -103,15 +111,40 @@ public class JpaTests {
 				.withDateOfBirth(dateOfBirth.getTime())
 				.withLastUpdated(new Date());
 
-		Assert.assertNull(student.getRollNumber());
+		assertNull(student.getRollNumber());
 
 		this.outboundAdapterFlowInput.send(MessageBuilder.withPayload(student).build());
 
 		List<?> results2 = jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results2);
-		Assert.assertTrue(results2.size() == 4);
+		assertNotNull(results2);
+		assertTrue(results2.size() == 4);
 
-		Assert.assertNotNull(student.getRollNumber());
+		assertNotNull(student.getRollNumber());
+	}
+
+	@Test
+	public void testUpdatingGatewayFlow() {
+		Calendar dateOfBirth = Calendar.getInstance();
+		dateOfBirth.set(1981, 9, 27);
+
+		StudentDomain student = new StudentDomain()
+				.withFirstName("Artem")
+				.withLastName("Bilan")
+				.withGender(Gender.MALE)
+				.withDateOfBirth(dateOfBirth.getTime())
+				.withLastUpdated(new Date());
+
+		assertNull(student.getRollNumber());
+
+		this.updatingGatewayFlowInput.send(MessageBuilder.withPayload(student).build());
+
+		Message<?> receive = this.persistResults.receive(10_000);
+		assertNotNull(receive);
+
+		StudentDomain mergedStudent = (StudentDomain) receive.getPayload();
+		assertEquals(student.getFirstName(), mergedStudent.getFirstName());
+		assertNotNull(mergedStudent.getRollNumber());
+		assertNull(student.getRollNumber());
 	}
 
 
@@ -145,6 +178,13 @@ public class JpaTests {
 							e -> e.transactional(true));
 		}
 
+		@Bean
+		public IntegrationFlow updatingGatewayFlow() {
+			return f -> f
+					.handle(Jpa.updatingGateway(this.entityManagerFactory),
+							e -> e.transactional(true))
+					.channel(c -> c.queue("persistResults"));
+		}
 	}
 
 }

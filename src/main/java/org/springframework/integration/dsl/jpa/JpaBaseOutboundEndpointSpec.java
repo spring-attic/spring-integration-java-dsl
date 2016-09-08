@@ -47,10 +47,9 @@ public abstract class JpaBaseOutboundEndpointSpec<S extends JpaBaseOutboundEndpo
 
 	private List<JpaParameter> jpaParameters = new LinkedList<JpaParameter>();
 
-	protected JpaBaseOutboundEndpointSpec(JpaExecutor jpaExecutor, boolean producesReply) {
+	protected JpaBaseOutboundEndpointSpec(JpaExecutor jpaExecutor) {
 		this.jpaExecutor = jpaExecutor;
 		this.jpaOutboundGatewayFactoryBean.setJpaExecutor(this.jpaExecutor);
-		this.jpaOutboundGatewayFactoryBean.setProducesReply(producesReply);
 	}
 
 	public S entityClass(Class<?> entityClass) {

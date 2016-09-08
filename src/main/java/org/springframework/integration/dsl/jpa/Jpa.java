@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.jpa;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
+import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
 
 /**
@@ -31,27 +32,52 @@ import org.springframework.integration.jpa.core.JpaOperations;
 public final class Jpa {
 
 	public static JpaInboundChannelAdapterSpec inboundAdapter(EntityManagerFactory entityManagerFactory) {
-		return new JpaInboundChannelAdapterSpec(entityManagerFactory);
+		return inboundAdapter(new JpaExecutor(entityManagerFactory));
 	}
 
 	public static JpaInboundChannelAdapterSpec inboundAdapter(EntityManager entityManager) {
-		return new JpaInboundChannelAdapterSpec(entityManager);
+		return inboundAdapter(new JpaExecutor(entityManager));
 	}
 
 	public static JpaInboundChannelAdapterSpec inboundAdapter(JpaOperations jpaOperations) {
-		return new JpaInboundChannelAdapterSpec(jpaOperations);
+		return inboundAdapter(new JpaExecutor(jpaOperations));
 	}
 
-	public static JpaOutboundChannelAdapterSpec outboundAdapter(EntityManagerFactory entityManagerFactory) {
-		return new JpaOutboundChannelAdapterSpec(entityManagerFactory);
+	private static JpaInboundChannelAdapterSpec inboundAdapter(JpaExecutor jpaExecutor) {
+		return new JpaInboundChannelAdapterSpec(jpaExecutor);
 	}
 
-	public static JpaOutboundChannelAdapterSpec outboundAdapter(EntityManager entityManager) {
-		return new JpaOutboundChannelAdapterSpec(entityManager);
+	public static JpaUpdatingOutboundEndpointSpec outboundAdapter(EntityManagerFactory entityManagerFactory) {
+		return outboundAdapter(new JpaExecutor(entityManagerFactory));
 	}
 
-	public static JpaOutboundChannelAdapterSpec outboundAdapter(JpaOperations jpaOperations) {
-		return new JpaOutboundChannelAdapterSpec(jpaOperations);
+	public static JpaUpdatingOutboundEndpointSpec outboundAdapter(EntityManager entityManager) {
+		return outboundAdapter(new JpaExecutor(entityManager));
+	}
+
+	public static JpaUpdatingOutboundEndpointSpec outboundAdapter(JpaOperations jpaOperations) {
+		return outboundAdapter(new JpaExecutor(jpaOperations));
+	}
+
+	private static JpaUpdatingOutboundEndpointSpec outboundAdapter(JpaExecutor jpaExecutor) {
+		return new JpaUpdatingOutboundEndpointSpec(jpaExecutor)
+				.producesReply(false);
+	}
+
+	public static JpaUpdatingOutboundEndpointSpec updatingGateway(EntityManagerFactory entityManagerFactory) {
+		return updatingGateway(new JpaExecutor(entityManagerFactory));
+	}
+
+	public static JpaUpdatingOutboundEndpointSpec updatingGateway(EntityManager entityManager) {
+		return updatingGateway(new JpaExecutor(entityManager));
+	}
+
+	public static JpaUpdatingOutboundEndpointSpec updatingGateway(JpaOperations jpaOperations) {
+		return updatingGateway(new JpaExecutor(jpaOperations));
+	}
+
+	private static JpaUpdatingOutboundEndpointSpec updatingGateway(JpaExecutor jpaExecutor) {
+		return new JpaUpdatingOutboundEndpointSpec(jpaExecutor);
 	}
 
 	private Jpa() {

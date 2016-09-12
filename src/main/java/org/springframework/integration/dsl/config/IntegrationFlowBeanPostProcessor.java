@@ -16,15 +16,19 @@
 
 package org.springframework.integration.dsl.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationListener;
@@ -106,6 +110,17 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 				multicaster.addApplicationListener(applicationListener);
 			}
 		}
+
+		for (String beanName : this.beanFactory.getBeanDefinitionNames()) {
+			if (this.beanFactory.containsBeanDefinition(beanName)) {
+				String scope = this.beanFactory.getBeanDefinition(beanName).getScope();
+				if (StringUtils.hasText(scope) && !BeanDefinition.SCOPE_SINGLETON.equals(scope))
+					throw new BeanCreationNotAllowedException(beanName, "IntegrationFlows can not be scoped beans. " +
+							"Any dependant beans are registered as singletons, meanwhile IntegrationFlow is just a " +
+							"logical container for them. \n" +
+							"Consider to use [IntegrationFlowContext] for manual registration of IntegrationFlows.");
+			}
+		}
 	}
 
 	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String beanName) {
@@ -114,7 +129,10 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		int channelNameIndex = 0;
 		boolean registerSingleton = flow.isRegisterComponents();
 
-		for (Object component : flow.getIntegrationComponents()) {
+
+		List<Object> integrationComponents = new ArrayList<Object>(flow.getIntegrationComponents());
+		for (int i = 0; i < integrationComponents.size(); i++) {
+			Object component = integrationComponents.get(i);
 			if (component instanceof ConsumerEndpointSpec) {
 				ConsumerEndpointSpec<?, ?> endpointSpec = (ConsumerEndpointSpec<?, ?>) component;
 				MessageHandler messageHandler = endpointSpec.get().getT2();
@@ -143,6 +161,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 					endpointBeanName = generateBeanName(endpoint);
 				}
 				registerComponent(endpoint, endpointBeanName, beanName, registerSingleton);
+				integrationComponents.set(i, endpoint);
 			}
 			else {
 				Collection<?> values = this.beanFactory.getBeansOfType(component.getClass(), false, false).values();
@@ -160,6 +179,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 						if (!this.beanFactory.containsBean(channelBeanName)) {
 							DirectChannel directChannel = new DirectChannel();
 							registerComponent(directChannel, channelBeanName, beanName, registerSingleton);
+							integrationComponents.set(i, directChannel);
 						}
 					}
 					else if (component instanceof FixedSubscriberChannel) {
@@ -179,6 +199,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 							id = generateBeanName(pollingChannelAdapterFactoryBean);
 						}
 						registerComponent(pollingChannelAdapterFactoryBean, id, beanName, registerSingleton);
+						integrationComponents.set(i, pollingChannelAdapterFactoryBean);
 
 						MessageSource<?> messageSource = spec.get().getT2();
 						if (!this.beanFactory.getBeansOfType(messageSource.getClass(), false, false)
@@ -204,6 +225,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 				}
 			}
 		}
+		flow.setIntegrationComponents(integrationComponents);
 		return flow;
 	}
 

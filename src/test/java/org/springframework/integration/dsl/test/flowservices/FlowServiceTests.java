@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -143,10 +144,10 @@ public class FlowServiceTests {
 	@Component
 	public static class MyFlowAdapter extends IntegrationFlowAdapter {
 
-		private final AtomicBoolean invoked = new AtomicBoolean();
+		private final AtomicReference<Date> executionDate = new AtomicReference<>(new Date());
 
-		public Date nextExecutionTime(TriggerContext triggerContext) {
-			return this.invoked.getAndSet(true) ? null : new Date();
+		private Date nextExecutionTime(TriggerContext triggerContext) {
+			return this.executionDate.getAndSet(null);
 		}
 
 		@Override

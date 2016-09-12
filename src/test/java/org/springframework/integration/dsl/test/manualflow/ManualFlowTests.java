@@ -30,8 +30,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -46,12 +49,15 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.context.annotation.RequestScope;
 
 /**
  * @author Artem Bilan
  * @since 1.2
  */
+@ContextConfiguration(classes = ManualFlowTests.RootConfiguration.class)
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class ManualFlowTests {
@@ -63,12 +69,15 @@ public class ManualFlowTests {
 	private BeanFactory beanFactory;
 
 	@Test
-	public void testManualFlowRegistration() {
+	public void testManualFlowRegistration() throws InterruptedException {
 		IntegrationFlow myFlow = f -> f
 				.<String, String>transform(String::toUpperCase)
 				.channel(Channels::queue)
-				.transform("Hello, "::concat,
-						e -> e.poller(p -> p.fixedDelay(10)));
+				.transform("Hello, "::concat, e -> e
+						.poller(p -> p
+								.fixedDelay(10)
+								.maxMessagesPerPoll(1)
+								.receiveTimeout(10)));
 
 		String flowId = this.integrationFlowContext.register(myFlow);
 
@@ -94,11 +103,13 @@ public class ManualFlowTests {
 		assertFalse(this.beanFactory.containsBean(flowId + ".input"));
 
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
+		Thread.sleep(100);
 		assertEquals(0, taskScheduler.getActiveCount());
 	}
 
 	@Test
 	public void testWrongLifecycle() {
+
 		class MyIntegrationFlow implements IntegrationFlow {
 
 			@Override
@@ -106,7 +117,7 @@ public class ManualFlowTests {
 				flow.bridge(null);
 			}
 
-		};
+		}
 
 		IntegrationFlow testFlow = new MyIntegrationFlow();
 
@@ -137,9 +148,9 @@ public class ManualFlowTests {
 		PollableChannel resultChannel = new QueueChannel();
 
 		this.integrationFlowContext.register("dynamicFlow", flow -> flow
-				.publishSubscribeChannel(p ->
-						p.minSubscribers(1)
-								.subscribe(f -> f.channel(resultChannel))
+				.publishSubscribeChannel(p -> p
+						.minSubscribers(1)
+						.subscribe(f -> f.channel(resultChannel))
 				));
 
 		this.integrationFlowContext.messagingTemplateFor("dynamicFlow").send(new GenericMessage<>("test"));
@@ -160,6 +171,18 @@ public class ManualFlowTests {
 	}
 
 
+	@Test
+	public void testWrongIntegrationFlowScope() {
+		try {
+			new AnnotationConfigApplicationContext(InvalidIntegrationFlowScopeConfiguration.class).close();
+			fail("BeanCreationNotAllowedException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanCreationNotAllowedException.class));
+			assertThat(e.getMessage(), containsString("IntegrationFlows can not be scoped beans."));
+		}
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class RootConfiguration {
@@ -173,10 +196,22 @@ public class ManualFlowTests {
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
 			return from(() -> new GenericMessage<>("flowAdapterMessage"),
-					e ->
-							e.poller(p ->
-									p.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
+					e -> e.poller(p -> p
+							.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
 					.channel(c -> c.queue("flowAdapterOutput"));
+
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class InvalidIntegrationFlowScopeConfiguration {
+
+		@Bean
+		@RequestScope
+		public IntegrationFlow wrongScopeFlow() {
+			return flow -> flow.bridge(null);
 		}
 
 	}

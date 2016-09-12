@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -67,7 +69,7 @@ import org.springframework.integration.dsl.file.Files;
 import org.springframework.integration.dsl.support.Transformers;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
-import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -211,7 +213,7 @@ public class FileTests {
 		assertThat(receive.getPayload(), instanceOf(File.class));
 		File resultFile = (File) receive.getPayload();
 		assertThat(resultFile.getAbsolutePath(),
-				endsWith(TestUtils.applySystemFileSeparator("fileWritingFlow/foo.sitest")));
+				endsWith(TestUtils.applySystemFileSeparator("fileWritingFlow/foo.write")));
 		String fileContent = StreamUtils.copyToString(new FileInputStream(resultFile), Charset.defaultCharset());
 		assertEquals(payload, fileContent);
 	}
@@ -262,7 +264,7 @@ public class FileTests {
 		assertNotNull(receive);
 		payloads.add((String) receive.getPayload());
 
-		assertArrayEquals(new String[]{"bar", "foo"}, payloads.toArray());
+		assertArrayEquals(new String[] { "bar", "foo" }, payloads.toArray());
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
@@ -286,7 +288,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileFlow1() {
 			return IntegrationFlows.from("fileFlow1Input")
-					.<FileWritingMessageHandler>handleWithAdapter(h -> h.file(tmpDir.getRoot()).fileNameGenerator(message -> null)
+					.handleWithAdapter(h -> h.file(tmpDir.getRoot()).fileNameGenerator(message -> null)
 							, c -> c.id("fileWriting"))
 					.get();
 		}
@@ -307,7 +309,11 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileReadingFlow() {
 			return IntegrationFlows
-					.from(s -> s.file(tmpDir.getRoot()).patternFilter("*.sitest"),
+					.from(s -> s.file(tmpDir.getRoot())
+									.patternFilter("*.sitest")
+									.useWatchService(true)
+									.watchEvents(FileReadingMessageSource.WatchEventType.CREATE,
+											FileReadingMessageSource.WatchEventType.MODIFY),
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.transform(Transformers.fileToString())
 					.aggregate(a -> a.correlationExpression("1")
@@ -319,7 +325,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileWritingFlow() {
 			return IntegrationFlows.from("fileWritingInput")
-					.enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.sitest")
+					.enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.write")
 							.header("directory", new File(tmpDir.getRoot(), "fileWritingFlow")))
 					.handleWithAdapter(a -> a.fileGateway(m -> m.getHeaders().get("directory")))
 					.channel(MessageChannels.queue("fileWritingResultChannel"))

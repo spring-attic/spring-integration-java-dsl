@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl.file;
 
 import java.io.File;
+import java.nio.file.WatchService;
 import java.util.Comparator;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -270,6 +271,33 @@ public class FileInboundChannelAdapterSpec
 	public FileInboundChannelAdapterSpec scanEachPoll(boolean scanEachPoll) {
 		this.target.setScanEachPoll(scanEachPoll);
 		return _this();
+	}
+
+	/**
+	 * Switch this {@link FileReadingMessageSource} to use its internal
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * @param useWatchService the {@code boolean} flag to switch to
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * @since 1.2
+	 * @see #watchEvents
+	 * @see FileReadingMessageSource#setUseWatchService(boolean)
+	 */
+	public FileInboundChannelAdapterSpec useWatchService(boolean useWatchService) {
+		this.target.setUseWatchService(useWatchService);
+		return this;
+	}
+
+	/**
+	 * The {@link WatchService} event types.
+	 * If {@link #useWatchService} isn't {@code true}, this option is ignored.
+	 * @param watchEvents the set of {@link FileReadingMessageSource.WatchEventType}.
+	 * @since 1.2
+	 * @see #useWatchService
+	 * @see FileReadingMessageSource#setWatchEvents
+	 */
+	public FileInboundChannelAdapterSpec watchEvents(FileReadingMessageSource.WatchEventType... watchEvents) {
+		this.target.setWatchEvents(watchEvents);
+		return this;
 	}
 
 	@Override

@@ -28,6 +28,7 @@ public class AmqpAsyncOutboundGatewaySpec
 
 	AmqpAsyncOutboundGatewaySpec(AsyncRabbitTemplate template) {
 		this.target = new AsyncAmqpOutboundGateway(template);
+		this.target.setRequiresReply(true);
 	}
 
 }

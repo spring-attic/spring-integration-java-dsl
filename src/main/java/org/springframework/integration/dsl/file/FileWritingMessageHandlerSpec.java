@@ -61,6 +61,9 @@ public class FileWritingMessageHandlerSpec
 
 	FileWritingMessageHandlerSpec expectReply(boolean expectReply) {
 		this.target.setExpectReply(expectReply);
+		if (expectReply) {
+			this.target.setRequiresReply(true);
+		}
 		return _this();
 	}
 

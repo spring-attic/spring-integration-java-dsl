@@ -77,7 +77,8 @@ public final class Jpa {
 	}
 
 	private static JpaUpdatingOutboundEndpointSpec updatingGateway(JpaExecutor jpaExecutor) {
-		return new JpaUpdatingOutboundEndpointSpec(jpaExecutor);
+		return new JpaUpdatingOutboundEndpointSpec(jpaExecutor)
+				.producesReply(true);
 	}
 
 	public static JpaRetrievingOutboundGatewaySpec retrievingGateway(EntityManagerFactory entityManagerFactory) {

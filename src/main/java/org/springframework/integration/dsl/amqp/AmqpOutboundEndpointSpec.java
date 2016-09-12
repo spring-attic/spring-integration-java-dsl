@@ -33,6 +33,9 @@ public class AmqpOutboundEndpointSpec
 		this.target = new AmqpOutboundEndpoint(amqpTemplate);
 		this.target.setExpectReply(expectReply);
 		this.target.setHeaderMapper(this.headerMapper);
+		if (expectReply) {
+			this.target.setRequiresReply(true);
+		}
 	}
 
 	@Override

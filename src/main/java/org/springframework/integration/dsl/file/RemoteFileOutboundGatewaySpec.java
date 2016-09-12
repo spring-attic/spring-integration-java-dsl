@@ -42,6 +42,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 
 	protected RemoteFileOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<F> outboundGateway) {
 		this.target = outboundGateway;
+		this.target.setRequiresReply(true);
 	}
 
 	public S options(String options) {

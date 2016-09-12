@@ -22,6 +22,7 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 
 /**
@@ -65,6 +66,12 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * The {@link Lifecycle#start()} function to start all dependent integration components at once.
+	 * Since one component produces messages for the second component and so on, we should be sure that
+	 * the last components are ready to receive messages from their upstreams,
+	 * therefore we perform start in backward order.
+	 */
 	@Override
 	public void start() {
 		if (!this.running) {
@@ -73,7 +80,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 			while (iterator.hasPrevious()) {
 				Object component = iterator.previous();
 				if (component instanceof SmartLifecycle) {
-					this.lifecycles.add((SmartLifecycle) component);
+					this.lifecycles.add(0, (SmartLifecycle) component);
 					((SmartLifecycle) component).start();
 				}
 			}
@@ -85,9 +92,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	public void stop(Runnable callback) {
 		if (this.running) {
 			AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
-			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
-			while (iterator.hasPrevious()) {
-				SmartLifecycle lifecycle = iterator.previous();
+			for (SmartLifecycle lifecycle : this.lifecycles) {
 				if (lifecycle.isRunning()) {
 					lifecycle.stop(aggregatingCallback);
 				}
@@ -102,9 +107,8 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public void stop() {
 		if (this.running) {
-			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
-			while (iterator.hasPrevious()) {
-				iterator.previous().stop();
+			for (SmartLifecycle lifecycle : this.lifecycles) {
+				lifecycle.stop();
 			}
 			this.running = false;
 		}

@@ -17,7 +17,6 @@
 package org.springframework.integration.dsl.test.kafka;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -28,9 +27,7 @@ import static scala.collection.JavaConversions.asScalaBuffer;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -59,7 +56,6 @@ import org.springframework.integration.kafka.listener.MetadataStoreOffsetManager
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.ProducerMetadata;
-import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.integration.kafka.util.TopicUtils;
 import org.springframework.integration.support.MessageBuilder;
@@ -119,7 +115,6 @@ public class KafkaTests {
 
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testKafkaAdapters() {
 		try {
 			this.sendToKafkaFlowInput.send(new GenericMessage<>("foo"));
@@ -191,6 +186,7 @@ public class KafkaTests {
 					this.topics.forEach(t -> TopicUtils.ensureTopicCreated(zookeeper.connectString(), t, 1, 1));
 				}
 
+				@SuppressWarnings("unused")
 				public void destroy() {
 					this.topics.forEach(t -> {
 						AdminUtils.deleteTopic(zookeeperClient, t);

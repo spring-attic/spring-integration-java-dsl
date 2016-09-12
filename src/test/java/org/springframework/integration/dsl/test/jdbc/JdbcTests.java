@@ -109,8 +109,10 @@ public class JdbcTests {
 
 	private static class Foo {
 
+		@SuppressWarnings("unused")
 		private final int id;
 
+		@SuppressWarnings("unused")
 		private final String name;
 
 		private Foo(int id, String name) {
@@ -122,7 +124,7 @@ public class JdbcTests {
 
 	private static class ResultSetIterator<T> implements Iterator<T> {
 
-		private Connection connection;
+		private final Connection connection;
 
 		private final ResultSet rs;
 

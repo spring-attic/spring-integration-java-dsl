@@ -303,6 +303,7 @@ public class TransformerTests {
 			return name;
 		}
 
+		@SuppressWarnings("unused")
 		public void setName(String name) {
 			this.name = name;
 		}
@@ -311,6 +312,7 @@ public class TransformerTests {
 			return date;
 		}
 
+		@SuppressWarnings("unused")
 		public void setDate(Date date) {
 			this.date = date;
 		}

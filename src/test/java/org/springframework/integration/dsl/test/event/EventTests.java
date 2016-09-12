@@ -101,7 +101,6 @@ public class EventTests {
 
 
 		@Bean
-		@SuppressWarnings("unchecked")
 		public ApplicationListener<?> applicationListener() {
 			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
 			producer.setEventTypes(TestApplicationEvent1.class);
@@ -116,7 +115,6 @@ public class EventTests {
 		}
 
 		@Bean
-		@SuppressWarnings("unchecked")
 		public IntegrationFlow eventProducerFlow() {
 			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
 			producer.setEventTypes(TestApplicationEvent2.class);

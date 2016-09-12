@@ -272,6 +272,35 @@ public class FileInboundChannelAdapterSpec
 		return _this();
 	}
 
+	/**
+	 * Switch this {@link FileReadingMessageSource} to use its internal
+	 * {@link java.nio.file.WatchService} directory scanner.
+	 * @param useWatchService the {@code boolean} flag to enable the use
+	 * of a {@link java.nio.file.WatchService}.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see #watchEvents
+	 * @see FileReadingMessageSource#setUseWatchService(boolean)
+	 */
+	public FileInboundChannelAdapterSpec useWatchService(boolean useWatchService) {
+		this.target.setUseWatchService(useWatchService);
+		return this;
+	}
+
+	/**
+	 * The {@link java.nio.file.WatchService} event types.
+	 * If {@link #useWatchService} isn't {@code true}, this option is ignored.
+	 * @param watchEvents the set of {@link FileReadingMessageSource.WatchEventType}.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see #useWatchService
+	 * @see FileReadingMessageSource#setWatchEvents
+	 */
+	public FileInboundChannelAdapterSpec watchEvents(FileReadingMessageSource.WatchEventType... watchEvents) {
+		this.target.setWatchEvents(watchEvents);
+		return this;
+	}
+
 	@Override
 	protected FileReadingMessageSource doGet() {
 		throw new UnsupportedOperationException();

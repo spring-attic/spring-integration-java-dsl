@@ -17,9 +17,7 @@
 package org.springframework.integration.dsl.amqp;
 
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
-import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway;
-import org.springframework.integration.dsl.core.MessageHandlerSpec;
 
 /**
  * @author Artem Bilan

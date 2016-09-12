@@ -2920,7 +2920,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			this.registerOutputChannelIfCan(inputChannel);
 		}
 
-		@SuppressWarnings("unchecked")
 		Tuple2<ConsumerEndpointFactoryBean, ? extends MessageHandler> factoryBeanTuple2 = endpointSpec.get();
 		if (inputChannel instanceof MessageChannelReference) {
 			factoryBeanTuple2.getT1().setInputChannelName(((MessageChannelReference) inputChannel).getName());

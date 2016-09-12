@@ -63,7 +63,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -759,9 +758,11 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from("flow3Input")
 					.handle(Integer.class, new GenericHandler<Integer>() {
 
+						@SuppressWarnings("unused")
 						public void setFoo(String foo) {
 						}
 
+						@SuppressWarnings("unused")
 						public void setFoo(Integer foo) {
 						}
 
@@ -970,14 +971,17 @@ public class IntegrationFlowTests {
 			this.second = second;
 		}
 
+		@SuppressWarnings("unused")
 		public List<String> getFirst() {
 			return first;
 		}
 
+		@SuppressWarnings("unused")
 		public List<String> getSecond() {
 			return second;
 		}
 
+		@SuppressWarnings("unused")
 		public List<List<String>> buildList() {
 			return Arrays.asList(this.first, this.second);
 		}

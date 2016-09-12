@@ -251,7 +251,7 @@ public class JmsTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return IntegrationFlowDefinition::<Void>controlBus;
+			return IntegrationFlowDefinition::controlBus;
 		}
 
 		@Bean

@@ -29,6 +29,10 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link MessageHandlerSpec} for {@link AbstractMessageRouter}s.
+ *
+ * @param <S> the target {@link AbstractRouterSpec} implementation type.
+ * @param <R> the {@link AbstractMessageRouter} implementation type.
+ *
  * @author Artem Bilan
  */
 public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends AbstractMessageRouter>

@@ -26,6 +26,9 @@ import org.springframework.util.ErrorHandler;
 /**
  * A {@link JmsDestinationAccessorSpec} for {@link JmsListenerContainerSpec}s.
  *
+ * @param <S> the target {@link JmsListenerContainerSpec} implementation type.
+ * @param <C> the target {@link AbstractMessageListenerContainer} implementation type.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  */

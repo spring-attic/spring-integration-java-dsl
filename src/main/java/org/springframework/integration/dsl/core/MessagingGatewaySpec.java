@@ -24,6 +24,9 @@ import org.springframework.messaging.MessageChannel;
 /**
  * An {@link IntegrationComponentSpec} for {@link MessagingGatewaySupport}s.
  *
+ * @param <S> the target {@link MessagingGatewaySpec} implementation type.
+ * @param <G> the target {@link MessagingGatewaySupport} implementation type.
+ *
  * @author Artem Bilan
  */
 public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>, G extends MessagingGatewaySupport>
@@ -40,6 +43,7 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * A lifecycle phase to use.
 	 * @param phase the phase.
 	 * @return the spec.
 	 * @see org.springframework.context.SmartLifecycle
@@ -50,6 +54,7 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * An auto-startup flag.
 	 * @param autoStartup the autoStartup.
 	 * @return the spec.
 	 * @see org.springframework.context.SmartLifecycle
@@ -60,6 +65,7 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * A reply channel to use.
 	 * @param replyChannel the replyChannel.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setReplyChannel(MessageChannel)
@@ -70,10 +76,11 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * A reply channel name to use.
 	 * @param replyChannelName the name of replyChannel.
 	 * @return the spec.
-	 * @see MessagingGatewaySupport#setReplyChannelName(String)
 	 * @since 1.1.1
+	 * @see MessagingGatewaySupport#setReplyChannelName(String)
 	 */
 	public S replyChannel(String replyChannelName) {
 		this.target.setReplyChannelName(replyChannelName);
@@ -81,84 +88,92 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * A request channel to use.
 	 * @param requestChannel the requestChannel.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setRequestChannel(MessageChannel)
 	 */
 	public S requestChannel(MessageChannel requestChannel) {
-		target.setRequestChannel(requestChannel);
+		this.target.setRequestChannel(requestChannel);
 		return _this();
 	}
 
 	/**
+	 * A request channel name to use.
 	 * @param requestChannelName the name of requestChannel.
 	 * @return the spec.
-	 * @see MessagingGatewaySupport#setRequestChannelName(String)
 	 * @since 1.1.1
+	 * @see MessagingGatewaySupport#setRequestChannelName(String)
 	 */
 	public S requestChannel(String requestChannelName) {
-		target.setRequestChannelName(requestChannelName);
+		this.target.setRequestChannelName(requestChannelName);
 		return _this();
 	}
 
 	/**
+	 * An error channel to use.
 	 * @param errorChannel the errorChannel.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setErrorChannel(MessageChannel)
 	 */
 	public S errorChannel(MessageChannel errorChannel) {
-		target.setErrorChannel(errorChannel);
+		this.target.setErrorChannel(errorChannel);
 		return _this();
 	}
 
 	/**
+	 * An error channel name to use.
 	 * @param errorChannelName the name of errorChannel.
 	 * @return the spec.
-	 * @see MessagingGatewaySupport#setErrorChannelName(String)
 	 * @since 1.1.1
+	 * @see MessagingGatewaySupport#setErrorChannelName(String)
 	 */
 	public S errorChannel(String errorChannelName) {
-		target.setErrorChannelName(errorChannelName);
+		this.target.setErrorChannelName(errorChannelName);
 		return _this();
 	}
 
 	/**
+	 * A request timeout to use.
 	 * @param requestTimeout the requestTimeout.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setRequestTimeout(long)
 	 */
 	public S requestTimeout(long requestTimeout) {
-		target.setRequestTimeout(requestTimeout);
+		this.target.setRequestTimeout(requestTimeout);
 		return _this();
 	}
 
 	/**
+	 * A reply timeout to use.
 	 * @param replyTimeout the replyTimeout.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setReplyTimeout(long)
 	 */
 	public S replyTimeout(long replyTimeout) {
-		target.setReplyTimeout(replyTimeout);
+		this.target.setReplyTimeout(replyTimeout);
 		return _this();
 	}
 
 	/**
+	 * An {@link InboundMessageMapper} to use.
 	 * @param requestMapper the requestMapper.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setRequestMapper(InboundMessageMapper)
 	 */
 	public S requestMapper(InboundMessageMapper<?> requestMapper) {
-		target.setRequestMapper(requestMapper);
+		this.target.setRequestMapper(requestMapper);
 		return _this();
 	}
 
 	/**
+	 * An {@link OutboundMessageMapper} to use.
 	 * @param replyMapper the replyMapper.
 	 * @return the spec.
 	 * @see MessagingGatewaySupport#setReplyMapper(OutboundMessageMapper)
 	 */
 	public S replyMapper(OutboundMessageMapper<?> replyMapper) {
-		target.setReplyMapper(replyMapper);
+		this.target.setReplyMapper(replyMapper);
 		return _this();
 	}
 

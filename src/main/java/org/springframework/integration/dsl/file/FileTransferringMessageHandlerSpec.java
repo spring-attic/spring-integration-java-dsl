@@ -35,6 +35,10 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ *
+ * @param <F> the target file type.
+ * @param <S> the target {@link FileTransferringMessageHandlerSpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransferringMessageHandlerSpec<F, S>>
@@ -54,7 +58,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	}
 
 	protected FileTransferringMessageHandlerSpec(RemoteFileTemplate<F> remoteFileTemplate,
-	                                             FileExistsMode fileExistsMode) {
+			FileExistsMode fileExistsMode) {
 		this.target = new FileTransferringMessageHandler<F>(remoteFileTemplate, fileExistsMode);
 	}
 

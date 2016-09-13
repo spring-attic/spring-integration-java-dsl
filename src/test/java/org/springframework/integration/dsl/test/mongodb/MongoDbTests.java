@@ -137,7 +137,7 @@ public class MongoDbTests {
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
-	private static interface ControlBusGateway {
+	private interface ControlBusGateway {
 
 		void send(String command);
 	}

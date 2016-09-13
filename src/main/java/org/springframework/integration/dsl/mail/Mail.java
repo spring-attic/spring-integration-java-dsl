@@ -20,10 +20,12 @@ import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
 
 /**
+ * The factory for Spring Integration Mail components.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class Mail {
+public final class Mail {
 
 	public static MailSendingMessageHandlerSpec outboundAdapter(String host) {
 		return new MailSendingMessageHandlerSpec(host);
@@ -94,6 +96,9 @@ public class Mail {
 
 	public static MailHeadersBuilder headers() {
 		return new MailHeadersBuilder();
+	}
+
+	private Mail() {
 	}
 
 }

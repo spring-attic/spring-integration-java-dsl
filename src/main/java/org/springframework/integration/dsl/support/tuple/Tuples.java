@@ -17,12 +17,13 @@
 package org.springframework.integration.dsl.support.tuple;
 
 /**
+ * The {@link Tuple} factory.
+ *
  * @author Artem Bilan
  */
 public abstract class Tuples {
 	/**
 	 * Create a {@link Tuple1} with the given object.
-	 *
 	 * @param t1   The first value in the tuple.
 	 * @param <T1> The type of the first value.
 	 * @return The new {@link Tuple1}.
@@ -33,7 +34,6 @@ public abstract class Tuples {
 
 	/**
 	 * Create a {@link Tuple2} with the given objects.
-	 *
 	 * @param t1   The first value in the tuple.
 	 * @param t2   The second value in the tuple.
 	 * @param <T1> The type of the first value.
@@ -45,11 +45,11 @@ public abstract class Tuples {
 	}
 
 	/**
+	 * Build an empty {@link Tuple} instance.
 	 * @return An empty tuple
 	 */
 	public static Tuple empty() {
 		return Tuple.empty;
 	}
-
 
 }

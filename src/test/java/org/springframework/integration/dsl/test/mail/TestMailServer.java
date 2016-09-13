@@ -36,7 +36,7 @@ import org.springframework.util.Base64Utils;
  * @author Gary Russell
  *
  */
-public class TestMailServer {
+public final class TestMailServer {
 
 	public static SmtpServer smtp(int port) {
 		try {

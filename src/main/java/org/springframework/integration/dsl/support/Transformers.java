@@ -238,7 +238,7 @@ public abstract class Transformers {
 		return marshaller(marshaller, null, null, extractPayload);
 	}
 
-	public static MarshallingTransformer marshaller(Marshaller marshaller,ResultFactory resultFactory,
+	public static MarshallingTransformer marshaller(Marshaller marshaller, ResultFactory resultFactory,
 			boolean extractPayload) {
 		return marshaller(marshaller, null, resultFactory, extractPayload);
 	}
@@ -292,7 +292,7 @@ public abstract class Transformers {
 	public static UnmarshallingTransformer unmarshaller(Unmarshaller unmarshaller, SourceFactory sourceFactory,
 			boolean alwaysUseSourceFactory) {
 		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
-		if(sourceFactory != null) {
+		if (sourceFactory != null) {
 			transformer.setSourceFactory(sourceFactory);
 		}
 		transformer.setAlwaysUseSourceFactory(alwaysUseSourceFactory);
@@ -326,7 +326,7 @@ public abstract class Transformers {
 		if (xpathEvaluationType != null) {
 			transformer.setEvaluationType(xpathEvaluationType);
 		}
-	    if (nodeMapper != null) {
+		if (nodeMapper != null) {
 			transformer.setNodeMapper(nodeMapper);
 		}
 		return transformer;

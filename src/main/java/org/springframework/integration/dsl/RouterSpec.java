@@ -34,6 +34,10 @@ import org.springframework.util.StringUtils;
 
 /**
  * The {@link AbstractRouterSpec} for an {@link AbstractMappingMessageRouter}.
+ *
+ * @param <K> the key type.
+ * @param <R> the {@link AbstractMappingMessageRouter} implementation type.
+ *
  * @author Artem Bilan
  */
 public final class RouterSpec<K, R extends AbstractMappingMessageRouter> extends AbstractRouterSpec<RouterSpec<K, R>, R>

@@ -26,6 +26,8 @@ import org.springframework.integration.dsl.core.MessagingGatewaySpec;
  * A base {@link MessagingGatewaySpec} implementation for {@link AmqpInboundGateway} endpoint options.
  * Doesn't allow to specify {@code listenerContainer} options.
  *
+ * @param <S> the target {@link AmqpBaseInboundGatewaySpec} implementation type.
+ *
  * @author Artem Bilan
  *
  * @see AmqpInboundGateway

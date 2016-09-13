@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 
 	private static class InternalAggregatingMessageHandler extends AggregatingMessageHandler {
 
-		public InternalAggregatingMessageHandler() {
+		InternalAggregatingMessageHandler() {
 			super(new MessageGroupProcessorWrapper());
 		}
 
@@ -105,7 +105,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 
 		private MessageGroupProcessor delegate = new DefaultAggregatingMessageGroupProcessor();
 
-		public void setDelegate(MessageGroupProcessor delegate) {
+		void setDelegate(MessageGroupProcessor delegate) {
 			this.delegate = delegate;
 		}
 

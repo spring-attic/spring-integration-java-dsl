@@ -115,11 +115,12 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		for (String beanName : this.beanFactory.getBeanDefinitionNames()) {
 			if (this.beanFactory.containsBeanDefinition(beanName)) {
 				String scope = this.beanFactory.getBeanDefinition(beanName).getScope();
-				if (StringUtils.hasText(scope) && !BeanDefinition.SCOPE_SINGLETON.equals(scope))
+				if (StringUtils.hasText(scope) && !BeanDefinition.SCOPE_SINGLETON.equals(scope)) {
 					throw new BeanCreationNotAllowedException(beanName, "IntegrationFlows can not be scoped beans. " +
 							"Any dependant beans are registered as singletons, meanwhile IntegrationFlow is just a " +
 							"logical container for them. \n" +
 							"Consider to use [IntegrationFlowContext] for manual registration of IntegrationFlows.");
+				}
 			}
 		}
 	}

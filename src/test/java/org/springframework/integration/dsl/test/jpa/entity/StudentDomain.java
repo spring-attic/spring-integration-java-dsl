@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 the original author or authors
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,11 +43,11 @@ import javax.persistence.TemporalType;
 @Entity(name = "Student")
 @Table(name = "Student")
 @NamedQueries({
-	@NamedQuery(name = "selectAllStudents", query = "select s from Student s"),
-	@NamedQuery(name = "selectStudent", query = "select s from Student s where s.lastName = 'Last One'"),
-	@NamedQuery(name = "updateStudent",
-			query = "update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber "
-					+ "in (select max(a.rollNumber) from Student a)")
+		@NamedQuery(name = "selectAllStudents", query = "select s from Student s"),
+		@NamedQuery(name = "selectStudent", query = "select s from Student s where s.lastName = 'Last One'"),
+		@NamedQuery(name = "updateStudent",
+				query = "update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber "
+						+ "in (select max(a.rollNumber) from Student a)")
 })
 @NamedNativeQuery(resultClass = StudentDomain.class, name = "updateStudentNativeQuery",
 		query = "update Student s set s.lastName = :lastName, lastUpdated = :lastUpdated where s.rollNumber "
@@ -77,7 +77,7 @@ public class StudentDomain {
 	private Date lastUpdated;
 
 	public Long getRollNumber() {
-		return rollNumber;
+		return this.rollNumber;
 	}
 
 	public void setRollNumber(Long rollNumber) {
@@ -85,7 +85,7 @@ public class StudentDomain {
 	}
 
 	public String getFirstName() {
-		return firstName;
+		return this.firstName;
 	}
 
 	public void setFirstName(String firstName) {
@@ -93,7 +93,7 @@ public class StudentDomain {
 	}
 
 	public String getLastName() {
-		return lastName;
+		return this.lastName;
 	}
 
 	public void setLastName(String lastName) {
@@ -101,7 +101,7 @@ public class StudentDomain {
 	}
 
 	public Gender getGender() {
-		return Gender.getGenderFromIdentifier(gender);
+		return Gender.getGenderFromIdentifier(this.gender);
 	}
 
 	public void setGender(Gender gender) {
@@ -109,7 +109,7 @@ public class StudentDomain {
 	}
 
 	public Date getDateOfBirth() {
-		return dateOfBirth;
+		return this.dateOfBirth;
 	}
 
 	public void setDateOfBirth(Date dateOfBirth) {
@@ -118,7 +118,7 @@ public class StudentDomain {
 
 
 	public Date getLastUpdated() {
-		return lastUpdated;
+		return this.lastUpdated;
 	}
 
 	public void setLastUpdated(Date lastUpdated) {
@@ -156,4 +156,5 @@ public class StudentDomain {
 		setLastUpdated(lastUpdated);
 		return this;
 	}
+
 }

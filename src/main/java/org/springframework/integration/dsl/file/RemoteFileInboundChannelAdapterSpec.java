@@ -33,6 +33,10 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
 /**
  * A {@link MessageSourceSpec} for an {@link AbstractInboundFileSynchronizingMessageSource}.
  *
+ * @param <F> the target file type.
+ * @param <S> the target {@link RemoteFileInboundChannelAdapterSpec} implementation type.
+ * @param <MS> the target {@link AbstractInboundFileSynchronizingMessageSource} implementation type.
+ *
  * @author Artem Bilan
  */
 public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFileInboundChannelAdapterSpec<F, S, MS>,

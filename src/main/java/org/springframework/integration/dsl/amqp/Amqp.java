@@ -27,7 +27,7 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
  *
  * @author Artem Bilan
  */
-public abstract class Amqp {
+public final class Amqp {
 
 	/**
 	 * Create an initial {@link AmqpInboundGatewaySpec}.
@@ -50,7 +50,7 @@ public abstract class Amqp {
 	 * @since 1.1.1
 	 */
 	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
-	                                                    String... queueNames) {
+			String... queueNames) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueueNames(queueNames);
 		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer, amqpTemplate);
@@ -78,7 +78,7 @@ public abstract class Amqp {
 	 * @since 1.1.1
 	 */
 	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
-	                                                    Queue... queues) {
+			Queue... queues) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
 		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer, amqpTemplate);
@@ -108,8 +108,8 @@ public abstract class Amqp {
 	 * @return the AmqpBaseInboundGatewaySpec.
 	 * @since 1.1.1
 	 */
-	public static  AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer,
-	                                                            AmqpTemplate amqpTemplate) {
+	public static AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer,
+			AmqpTemplate amqpTemplate) {
 		return new AmqpInboundGatewaySpec(listenerContainer, amqpTemplate);
 	}
 
@@ -240,6 +240,9 @@ public abstract class Amqp {
 	public static AmqpPublishSubscribeMessageChannelSpec publishSubscribeChannel(String id,
 			ConnectionFactory connectionFactory) {
 		return new AmqpPublishSubscribeMessageChannelSpec(connectionFactory).id(id);
+	}
+
+	private Amqp() {
 	}
 
 }

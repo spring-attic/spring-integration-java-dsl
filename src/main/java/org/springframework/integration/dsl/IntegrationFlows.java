@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -180,8 +180,8 @@ public final class IntegrationFlows {
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @return new {@link IntegrationFlowBuilder}.
-	 * @see MethodInvokingMessageSource
 	 * @since 1.1
+	 * @see MethodInvokingMessageSource
 	 */
 	public static IntegrationFlowBuilder from(Object service, String methodName) {
 		return from(service, methodName, null);
@@ -195,8 +195,8 @@ public final class IntegrationFlows {
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
 	 * @return new {@link IntegrationFlowBuilder}.
-	 * @see MethodInvokingMessageSource
 	 * @since 1.1
+	 * @see MethodInvokingMessageSource
 	 */
 	public static IntegrationFlowBuilder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
@@ -362,18 +362,30 @@ public final class IntegrationFlows {
 	private IntegrationFlows() {
 	}
 
+	/**
+	 * The {@link Channels}-specific {@link Function}.
+	 */
 	public interface ChannelsFunction extends Function<Channels, MessageChannelSpec<?, ?>> {
 
 	}
 
+	/**
+	 * The {@link MessageSources}-specific {@link Function}.
+	 */
 	public interface MessageSourcesFunction extends Function<MessageSources, MessageSourceSpec<?, ?>> {
 
 	}
 
+	/**
+	 * The {@link MessageProducers}-specific {@link Function}.
+	 */
 	public interface MessageProducersFunction extends Function<MessageProducers, MessageProducerSpec<?, ?>> {
 
 	}
 
+	/**
+	 * The {@link MessagingGateways}-specific {@link Function}.
+	 */
 	public interface MessagingGatewaysFunction extends Function<MessagingGateways, MessagingGatewaySpec<?, ?>> {
 
 	}

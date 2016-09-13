@@ -78,8 +78,8 @@ public abstract class Sftp {
 	 * @param command the command to perform on the SFTP.
 	 * @param expression the remoteFilePath SpEL expression.
 	 * @return the {@link SftpOutboundGatewaySpec}
-	 * @see RemoteFileTemplate
 	 * @since 1.1
+	 * @see RemoteFileTemplate
 	 */
 	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
 			AbstractRemoteFileOutboundGateway.Command command, String expression) {
@@ -93,8 +93,8 @@ public abstract class Sftp {
 	 * @param command the command to perform on the SFTP.
 	 * @param expression the remoteFilePath SpEL expression.
 	 * @return the {@link SftpOutboundGatewaySpec}
-	 * @see RemoteFileTemplate
 	 * @since 1.1
+	 * @see RemoteFileTemplate
 	 */
 	public static SftpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate,
 			String command, String expression) {
@@ -107,11 +107,11 @@ public abstract class Sftp {
 	 * @param messageSessionCallback the {@link MessageSessionCallback} to perform SFTP operation(s)
 	 *                               with the {@code Message} context.
 	 * @return the {@link SftpOutboundGatewaySpec}
-	 * @see MessageSessionCallback
 	 * @since 1.1
+	 * @see MessageSessionCallback
 	 */
 	public static SftpOutboundGatewaySpec outboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory,
-	       MessageSessionCallback<ChannelSftp.LsEntry, ?> messageSessionCallback) {
+			MessageSessionCallback<ChannelSftp.LsEntry, ?> messageSessionCallback) {
 		return new SftpOutboundGatewaySpec(new SftpOutboundGateway(sessionFactory, messageSessionCallback));
 	}
 

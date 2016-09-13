@@ -41,6 +41,7 @@ public class ImapMailInboundChannelAdapterSpec
 	}
 
 	/**
+	 * A {@link SearchTermStrategy} to use.
 	 * @param searchTermStrategy the searchTermStrategy.
 	 * @return the spec.
 	 * @see ImapMailReceiver#setSearchTermStrategy(SearchTermStrategy)
@@ -52,6 +53,7 @@ public class ImapMailInboundChannelAdapterSpec
 	}
 
 	/**
+	 * A flag to determine if message should be marked as read.
 	 * @param shouldMarkMessagesAsRead the shouldMarkMessagesAsRead.
 	 * @return the spec.
 	 * @see ImapMailReceiver#setShouldMarkMessagesAsRead(Boolean)

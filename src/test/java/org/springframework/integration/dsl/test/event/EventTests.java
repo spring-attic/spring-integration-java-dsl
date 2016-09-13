@@ -136,18 +136,18 @@ public class EventTests {
 	}
 
 	@SuppressWarnings("serial")
-	private static class TestApplicationEvent1 extends ApplicationEvent {
+	private static final class TestApplicationEvent1 extends ApplicationEvent {
 
-		public TestApplicationEvent1() {
+		TestApplicationEvent1() {
 			super("TestApplicationEvent1");
 		}
 
 	}
 
 	@SuppressWarnings("serial")
-	private static class TestApplicationEvent2 extends ApplicationEvent {
+	private static final class TestApplicationEvent2 extends ApplicationEvent {
 
-		public TestApplicationEvent2() {
+		TestApplicationEvent2() {
 			super("TestApplicationEvent2");
 		}
 

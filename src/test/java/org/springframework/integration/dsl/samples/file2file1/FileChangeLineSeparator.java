@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.samples.file2file1;
 
 import java.io.File;
@@ -56,9 +57,9 @@ public class FileChangeLineSeparator {
 	@Bean
 	public IntegrationFlow fileToFile() {
 		return IntegrationFlows.from(Files.inboundAdapter(new File("/tmp/in"))
-										.autoCreateDirectory(true)
-										.patternFilter("*.txt"),
-											e -> e.poller(Pollers.fixedDelay(5000)))
+						.autoCreateDirectory(true)
+						.patternFilter("*.txt"),
+				e -> e.poller(Pollers.fixedDelay(5000)))
 				.transform(Transformers.fileToString())
 				.transform("payload.replaceAll('\r\n', '\n')")
 				.handle(Files.outboundAdapter("'/tmp/out'")

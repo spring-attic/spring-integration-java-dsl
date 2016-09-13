@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 the original author or authors
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,6 +39,10 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageProducerSpec} implementation for the {@link Kafka09MessageDrivenChannelAdapter}.
  *
+ * @param <K> the key type.
+ * @param <V> the value type.
+ * @param <S> the target {@link Kafka09MessageDrivenChannelAdapterSpec} implementation type.
+ *
  * @author Artem Bilan
  *
  * @since 1.2
@@ -53,6 +57,9 @@ public class Kafka09MessageDrivenChannelAdapterSpec<K, V, S extends Kafka09Messa
 	/**
 	 * A {@link ConcurrentMessageListenerContainer} configuration {@link Kafka09MessageDrivenChannelAdapterSpec}
 	 * extension.
+	 *
+	 * @param <K> the key type.
+	 * @param <V> the value type.
 	 */
 	public static class KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> extends
 			Kafka09MessageDrivenChannelAdapterSpec<K, V, KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>>
@@ -88,6 +95,9 @@ public class Kafka09MessageDrivenChannelAdapterSpec<K, V, S extends Kafka09Messa
 	/**
 	 * A helper class in the Builder pattern style to delegate options to the
 	 * {@link ConcurrentMessageListenerContainer}.
+	 *
+	 * @param <K> the key type.
+	 * @param <V> the value type.
 	 */
 	public static class KafkaMessageListenerContainerSpec<K, V> {
 

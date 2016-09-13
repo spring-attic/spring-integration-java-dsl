@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.dsl.test.reactivestreams;
 
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
 import java.lang.reflect.Method;
@@ -101,10 +101,10 @@ public abstract class AbstractPublisherIntegrationFlowVerification extends Publi
 							applicationContext.getBean("publisher", Lifecycle.class).stop();
 							return invocation.callRealMethod();
 						};
-						doAnswer(onCompleteAnswer).when(subscriber).expectCompletion(anyLong(), anyString());
-						doAnswer(onCompleteAnswer).when(subscriber).requestEndOfStream(anyLong(), anyString());
+						willAnswer(onCompleteAnswer).given(subscriber).expectCompletion(anyLong(), anyString());
+						willAnswer(onCompleteAnswer).given(subscriber).requestEndOfStream(anyLong(), anyString());
 
-						doAnswer(invocation -> {
+						willAnswer(invocation -> {
 							if (applicationContext.containsBean("input")) {
 								MessageChannel input = applicationContext.getBean("input", MessageChannel.class);
 								final Long n = (Long) invocation.getArguments()[0];
@@ -117,7 +117,8 @@ public abstract class AbstractPublisherIntegrationFlowVerification extends Publi
 
 							}
 							return invocation.callRealMethod();
-						}).when(subscriber).request(anyLong());
+						}).given(subscriber)
+								.request(anyLong());
 
 						return subscriber;
 					}

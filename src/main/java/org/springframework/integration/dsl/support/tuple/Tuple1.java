@@ -17,7 +17,7 @@
 package org.springframework.integration.dsl.support.tuple;
 
 /**
- * A tuple that holds a single value
+ * A tuple that holds a single value.
  *
  * @param <T1> The type held by this tuple
  *
@@ -28,7 +28,7 @@ public class Tuple1<T1> extends Tuple {
 
 	private static final long serialVersionUID = -1467756857377152573L;
 
-	public final T1 t1;
+	protected final T1 t1;
 
 	Tuple1(int size, T1 t1) {
 		super(1);
@@ -47,7 +47,7 @@ public class Tuple1<T1> extends Tuple {
 	public Object get(int index) {
 		switch (index) {
 			case 0:
-				return t1;
+				return this.t1;
 			default:
 				return null;
 		}
@@ -60,12 +60,15 @@ public class Tuple1<T1> extends Tuple {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
-		if (!super.equals(o))
+		}
+		if (!super.equals(o)) {
 			return false;
+		}
 
 		Tuple1<?> tuple1 = (Tuple1<?>) o;
 
@@ -76,14 +79,14 @@ public class Tuple1<T1> extends Tuple {
 	@Override
 	public int hashCode() {
 		int result = super.hashCode();
-		result = 31 * result + (this.t1 != null ? t1.hashCode() : 0);
+		result = 31 * result + (this.t1 != null ? this.t1.hashCode() : 0);
 		return result;
 	}
 
 	@Override
 	public String toString() {
 		return super.toString() +
-				(t1 != null ? "," + t1.toString() : "");
+				(this.t1 != null ? "," + this.t1.toString() : "");
 	}
 
 }

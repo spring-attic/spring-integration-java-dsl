@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -186,8 +186,8 @@ public class HttpMessageHandlerSpec
 	 * @param variable the uri template variable.
 	 * @param value the expression to evaluate value for te uri template variable.
 	 * @return the current Spec.
-	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
 	 * @since 1.1.1
+	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
 	 */
 	public HttpMessageHandlerSpec uriVariable(String variable, String value) {
 		return uriVariable(variable, PARSER.parseExpression(value));
@@ -198,8 +198,8 @@ public class HttpMessageHandlerSpec
 	 * @param valueFunction the function to evaluate value for te uri template variable.
 	 * @param <P> the payload type.
 	 * @return the current Spec.
-	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
 	 * @since 1.1.1
+	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
 	 */
 	public <P> HttpMessageHandlerSpec uriVariable(String variable, Function<Message<P>, ?> valueFunction) {
 		return uriVariable(variable, new FunctionExpression<Message<P>>(valueFunction));
@@ -213,8 +213,8 @@ public class HttpMessageHandlerSpec
 	/**
 	 * @param uriVariablesExpression to use.
 	 * @return the current Spec.
-	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
 	 * @since 1.1.1
+	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
 	 */
 	public HttpMessageHandlerSpec uriVariablesExpression(String uriVariablesExpression) {
 		return uriVariablesExpression(PARSER.parseExpression(uriVariablesExpression));
@@ -224,8 +224,8 @@ public class HttpMessageHandlerSpec
 	 * @param uriVariablesFunction to use.
 	 * @param <P> the payload type.
 	 * @return the current Spec.
-	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
 	 * @since 1.1.1
+	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
 	 */
 	public <P> HttpMessageHandlerSpec uriVariablesFunction(Function<Message<P>, Map<String, ?>> uriVariablesFunction) {
 		return uriVariablesExpression(new FunctionExpression<Message<P>>(uriVariablesFunction));

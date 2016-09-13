@@ -1,11 +1,11 @@
 /*
- * Copyright 2015-2016 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,6 +36,9 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 
 /**
+ *
+ * @param <T> the message payload type.
+ *
  * @author Artem Bilan
  * @since 1.1
  */
@@ -123,7 +126,7 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 		public void request(long n) {
 			//Reactive Streams Specification: https://github.com/reactive-streams/reactive-streams-jvm#3.9
 			if (n <= 0L) {
-				subscriber.onError(
+				this.subscriber.onError(
 						new IllegalArgumentException("Spec. Rule 3.9 - " +
 								"Cannot request a non strictly positive number: " + n));
 			}
@@ -143,7 +146,7 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 
 	}
 
-	private class MessageHandlerSubscription extends SubscriberSubscription implements MessageHandler {
+	private final class MessageHandlerSubscription extends SubscriberSubscription implements MessageHandler {
 
 		private final Queue<Long> pendingRequests = new LinkedBlockingQueue<Long>();
 
@@ -209,7 +212,7 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 	}
 
 
-	private class PollableSubscription extends SubscriberSubscription {
+	private final class PollableSubscription extends SubscriberSubscription {
 
 		private PollableSubscription(Subscriber<Message<?>> subscriber) {
 			super(subscriber);
@@ -223,7 +226,8 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 				public void run() {
 					if (n == Long.MAX_VALUE) {
 						while (!terminated && isRunning()) {
-							Message<?> receive = ((PollableChannel) messageChannel).receive(50);
+							Message<?> receive =
+									((PollableChannel) PublisherIntegrationFlow.this.messageChannel).receive(50);
 							if (receive != null) {
 								subscriber.onNext(receive);
 							}
@@ -232,7 +236,8 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 					else {
 						long i = 0;
 						while (!terminated && isRunning() && i < n) {
-							Message<?> receive = ((PollableChannel) messageChannel).receive(50);
+							Message<?> receive =
+									((PollableChannel) PublisherIntegrationFlow.this.messageChannel).receive(50);
 							if (receive != null) {
 								subscriber.onNext(receive);
 								i++;

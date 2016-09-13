@@ -29,6 +29,8 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageSourceSpec} for a {@link JmsDestinationPollingSource}.
  *
+ * @param <S> the target {@link JmsInboundChannelAdapterSpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec<S>>
@@ -85,6 +87,9 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 		return _this();
 	}
 
+	/**
+	 * A {@link JmsTemplate}-based {@link JmsInboundChannelAdapterSpec} extension.
+	 */
 	public static class JmsInboundChannelSpecTemplateAware extends
 			JmsInboundChannelAdapterSpec<JmsInboundChannelSpecTemplateAware> {
 

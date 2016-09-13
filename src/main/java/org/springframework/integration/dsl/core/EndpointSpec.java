@@ -27,10 +27,15 @@ import org.springframework.integration.dsl.support.tuple.Tuple2;
 import org.springframework.integration.dsl.support.tuple.Tuples;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
  * An {@link IntegrationComponentSpec} for endpoints.
+ *
+ * @param <S> the target {@link ConsumerEndpointSpec} implementation type.
+ * @param <F> the target {@link BeanNameAware} implementation type.
+ * @param <H> the target {@link MessageHandler} implementation type.
  *
  * @author Artem Bilan
  */
@@ -38,7 +43,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		extends IntegrationComponentSpec<S, Tuple2<F, H>>
 		implements ComponentsRegistration {
 
-	protected Collection<Object> componentToRegister = new ArrayList<Object>();
+	protected final Collection<Object> componentToRegister = new ArrayList<Object>();
 
 	@SuppressWarnings("unchecked")
 	protected EndpointSpec(H handler) {

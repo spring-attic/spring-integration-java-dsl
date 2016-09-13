@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Artem Bilan
  * @since 1.1
  */
-public abstract class Http {
+public final class Http {
 
 	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri) {
 		return outboundChannelAdapter(uri, null);
@@ -62,7 +62,7 @@ public abstract class Http {
 	}
 
 	public static <P> HttpMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
-	                                                                RestTemplate restTemplate) {
+			RestTemplate restTemplate) {
 		return outboundChannelAdapter(new FunctionExpression<Message<P>>(uriFunction), restTemplate);
 	}
 
@@ -95,7 +95,7 @@ public abstract class Http {
 	}
 
 	public static <P> HttpMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
-	                                                         RestTemplate restTemplate) {
+			RestTemplate restTemplate) {
 		return outboundGateway(new FunctionExpression<Message<P>>(uriFunction), restTemplate);
 	}
 
@@ -132,6 +132,9 @@ public abstract class Http {
 
 	public static HttpRequestHandlerEndpointSpec inboundGateway(String... path) {
 		return new HttpRequestHandlerEndpointSpec(new HttpRequestHandlingMessagingGateway(), path);
+	}
+
+	private Http() {
 	}
 
 }

@@ -32,6 +32,8 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageHandlerSpec} for a {@link JmsSendingMessageHandler}.
  *
+ * @param <S> the target {@link JmsOutboundChannelAdapterSpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSpec<S>>
@@ -120,6 +122,9 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 		return _this();
 	}
 
+	/**
+	 * A {@link JmsTemplate}-based {@link JmsOutboundChannelAdapterSpec} extension.
+	 */
 	public static class JmsOutboundChannelSpecTemplateAware extends
 			JmsOutboundChannelAdapterSpec<JmsOutboundChannelSpecTemplateAware> {
 

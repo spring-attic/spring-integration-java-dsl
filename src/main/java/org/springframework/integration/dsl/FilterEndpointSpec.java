@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,6 +34,12 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	}
 
 	/**
+	 * The default value is <code>false</code> meaning that rejected
+	 * Messages will be quietly dropped or sent to the discard channel if
+	 * available. Typically this value would not be <code>true</code> when
+	 * a discard channel is provided, but if so, it will still apply
+	 * (in such a case, the Message will be sent to the discard channel,
+	 * and <em>then</em> the exception will be thrown).
 	 * @param throwExceptionOnRejection the throwExceptionOnRejection.
 	 * @return the endpoint spec.
 	 * @see MessageFilter#setThrowExceptionOnRejection(boolean)
@@ -44,6 +50,11 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	}
 
 	/**
+	 * Specify a channel where rejected Messages should be sent. If the discard
+	 * channel is null (the default), rejected Messages will be dropped. However,
+	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
+	 * trigger an exception. That value is evaluated regardless of the presence
+	 * of a discard channel.
 	 * @param discardChannel the discardChannel.
 	 * @return the endpoint spec.
 	 * @see MessageFilter#setDiscardChannel(MessageChannel)
@@ -54,6 +65,11 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	}
 
 	/**
+	 * Specify a channel name where rejected Messages should be sent. If the discard
+	 * channel is null (the default), rejected Messages will be dropped. However,
+	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
+	 * trigger an exception. That value is evaluated regardless of the presence
+	 * of a discard channel.
 	 * @param discardChannelName the discardChannelName.
 	 * @return the endpoint spec.
 	 * @see MessageFilter#setDiscardChannelName(String)
@@ -79,6 +95,9 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	}
 
 	/**
+	 * Set to 'true' if you wish the discard processing to occur within any
+	 * request handler advice applied to this filter. Also applies to
+	 * throwing an exception on rejection. Default: true.
 	 * @param discardWithinAdvice the discardWithinAdvice.
 	 * @return the endpoint spec.
 	 * @see MessageFilter#setDiscardWithinAdvice(boolean)

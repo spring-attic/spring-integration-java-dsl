@@ -48,7 +48,7 @@ public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFac
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.notNull(beanFactory);
-		Object target = beanFactory.getBean(object);
+		Object target = beanFactory.getBean(this.object);
 		this.delegate = new MethodInvokingMessageProcessor<T>(target, this.methodName);
 	}
 

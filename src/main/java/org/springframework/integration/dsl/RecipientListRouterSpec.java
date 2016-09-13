@@ -53,7 +53,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(String channelName, String expression) {
-		return recipient(channelName, StringUtils.hasText(expression) ? PARSER.parseExpression(expression): null);
+		return recipient(channelName, StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null);
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel, String expression) {
-		return recipient(channel, StringUtils.hasText(expression) ? PARSER.parseExpression(expression): null);
+		return recipient(channel, StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null);
 	}
 
 	/**
@@ -193,7 +193,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipientFlow(String expression, IntegrationFlow subFlow) {
-		return recipientFlow(StringUtils.hasText(expression) ? PARSER.parseExpression(expression): null, subFlow);
+		return recipientFlow(StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null, subFlow);
 	}
 
 	/**

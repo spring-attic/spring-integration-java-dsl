@@ -17,7 +17,7 @@
 package org.springframework.integration.dsl.support.tuple;
 
 /**
- * A tuple that holds two values
+ * A tuple that holds two values.
  *
  * @param <T1> The type of the first value held by this tuple
  * @param <T2> The type of the second value held by this tuple
@@ -29,7 +29,7 @@ public class Tuple2<T1, T2> extends Tuple1<T1> {
 
 	private static final long serialVersionUID = -565933838909569191L;
 
-	public final T2 t2;
+	protected final T2 t2;
 
 	Tuple2(int size, T1 t1, T2 t2) {
 		super(2, t1);
@@ -48,9 +48,9 @@ public class Tuple2<T1, T2> extends Tuple1<T1> {
 	public Object get(int index) {
 		switch (index) {
 			case 0:
-				return t1;
+				return this.t1;
 			case 1:
-				return t2;
+				return this.t2;
 			default:
 				return null;
 		}
@@ -63,12 +63,15 @@ public class Tuple2<T1, T2> extends Tuple1<T1> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
-		if (!super.equals(o))
+		}
+		if (!super.equals(o)) {
 			return false;
+		}
 
 		Tuple2<?, ?> tuple2 = (Tuple2<?, ?>) o;
 

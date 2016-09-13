@@ -112,6 +112,7 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	/**
+	 * A Java Mail {@link Session} to use.
 	 * @param session the session.
 	 * @return the spec.
 	 * @see ImapMailReceiver#setSession(Session)

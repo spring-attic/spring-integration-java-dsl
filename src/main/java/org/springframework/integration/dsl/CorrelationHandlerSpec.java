@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
-import org.springframework.expression.Expression;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
@@ -44,6 +43,9 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link MessageHandlerSpec} for an {@link AbstractCorrelatingMessageHandler}.
+ *
+ * @param <S> the target {@link CorrelationHandlerSpec} implementation type.
+ * @param <H> the {@link AbstractCorrelatingMessageHandler} implementation type.
  *
  * @author Artem Bilan
  */
@@ -94,7 +96,7 @@ public abstract class
 	 * this constant value.
 	 * @param groupTimeout the group timeout in milliseconds.
 	 * @return the handler spec.
-	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
+	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
 	 * @see ValueExpression
 	 */
 	public S groupTimeout(long groupTimeout) {
@@ -105,7 +107,7 @@ public abstract class
 	/**
 	 * @param groupTimeoutExpression the group timeout expression string.
 	 * @return the handler spec.
-	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
+	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
 	 */
 	public S groupTimeoutExpression(String groupTimeoutExpression) {
 		Assert.hasText(groupTimeoutExpression);
@@ -120,7 +122,7 @@ public abstract class
 	 * <p>{@code .groupTimeout(g -> g.size() * 2000L)}.
 	 * @param groupTimeoutFunction a function invoked to resolve the group timeout in milliseconds.
 	 * @return the handler spec.
-	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression(Expression)
+	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
 	 */
 	public S groupTimeout(Function<MessageGroup, Long> groupTimeoutFunction) {
 		this.target.getT2().setGroupTimeoutExpression(new FunctionExpression<MessageGroup>(groupTimeoutFunction));
@@ -276,8 +278,8 @@ public abstract class
 	 * Default {@code true} for aggregator and {@code false} for resequencer.
 	 * @param expireGroupsUponTimeout the expireGroupsUponTimeout to set
 	 * @return the handler spec.
-	 * @see AbstractCorrelatingMessageHandler#setExpireGroupsUponTimeout
 	 * @since 1.1
+	 * @see AbstractCorrelatingMessageHandler#setExpireGroupsUponTimeout
 	 */
 	public S expireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
 		this.target.getT2().setExpireGroupsUponTimeout(expireGroupsUponTimeout);

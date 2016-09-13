@@ -1,11 +1,11 @@
 /*
- * Copyright 2015-2016 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,6 +35,8 @@ import kafka.serializer.Decoder;
 
 /**
  * A {@link MessageProducerSpec} implementation for the {@link KafkaMessageDrivenChannelAdapter}.
+ *
+ * @param <S> The {@link KafkaMessageDrivenChannelAdapterSpec} specification type.
  *
  * @author Artem Bilan
  * @author Björn Häuser
@@ -72,6 +74,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	}
 
 	/**
+	 * An autoCommitOffset flag.
 	 * @param autoCommitOffset false to not auto-commit (default true).
 	 * @return the spec.
 	 * @see KafkaMessageDrivenChannelAdapter#setAutoCommitOffset(boolean)
@@ -82,6 +85,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	}
 
 	/**
+	 * A generateMessageId flag.
 	 * @param generateMessageId true if a message id should be generated.
 	 * @return the spec.
 	 * @see KafkaMessageDrivenChannelAdapter#setGenerateMessageId(boolean)
@@ -92,6 +96,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	}
 
 	/**
+	 * A generateTimestamp flag.
 	 * @param generateTimestamp true if a timestamp should be generated.
 	 * @return the spec.
 	 * @see KafkaMessageDrivenChannelAdapter#setGenerateTimestamp(boolean)
@@ -102,6 +107,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 	}
 
 	/**
+	 * An useMessageBuilderFactory flag.
 	 * @param useMessageBuilderFactory true if the {@code MessageBuilderFactory} returned by
 	 * {@link KafkaMessageDrivenChannelAdapter#getMessageBuilderFactory()} should be used.
 	 * @return the spec.
@@ -254,8 +260,8 @@ public class KafkaMessageDrivenChannelAdapterSpec<S extends KafkaMessageDrivenCh
 		 * Specify an {@link Executor} for MessageListener tasks for the {@link KafkaMessageListenerContainer}.
 		 * @param dispatcherTaskExecutor the {@link Executor}.
 		 * @return the spec.
-		 * @see KafkaMessageListenerContainer#setDispatcherTaskExecutor(Executor)
 		 * @since 1.1.2
+		 * @see KafkaMessageListenerContainer#setDispatcherTaskExecutor(Executor)
 		 */
 		public KafkaMessageListenerContainerSpec dispatcherTaskExecutor(Executor dispatcherTaskExecutor) {
 			this.container.setDispatcherTaskExecutor(dispatcherTaskExecutor);

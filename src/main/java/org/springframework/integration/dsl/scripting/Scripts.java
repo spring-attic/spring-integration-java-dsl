@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.dsl.scripting;
 import org.springframework.core.io.Resource;
 
 /**
- * The factory for Dynamic Language Scripts (Groovy, Ruby, Python, JavaScript etc.)
+ * The factory for Dynamic Language Scripts (Groovy, Ruby, Python, JavaScript etc.).
  *
  * @author Artem Bilan
  * @since 1.1

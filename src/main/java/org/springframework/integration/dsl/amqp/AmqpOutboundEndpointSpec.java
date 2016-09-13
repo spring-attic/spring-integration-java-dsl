@@ -40,7 +40,7 @@ public class AmqpOutboundEndpointSpec
 
 	@Override
 	public AmqpOutboundEndpointSpec mappedReplyHeaders(String... headers) {
-		Assert.isTrue(expectReply, "'mappedReplyHeaders' can be applied only for gateway");
+		Assert.isTrue(this.expectReply, "'mappedReplyHeaders' can be applied only for gateway");
 		return super.mappedReplyHeaders(headers);
 	}
 

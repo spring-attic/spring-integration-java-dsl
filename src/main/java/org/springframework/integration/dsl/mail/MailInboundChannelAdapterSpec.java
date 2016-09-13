@@ -41,6 +41,10 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageSourceSpec} for a {@link MailReceivingMessageSource}.
  *
+ *
+ * @param <S> the target {@link MailInboundChannelAdapterSpec} implementation type.
+ * @param <R> the target {@link AbstractMailReceiver} implementation type.
+ *
  * @author Gary Russell
  * @author Artem Bilan
  */
@@ -110,6 +114,7 @@ public abstract class
 	}
 
 	/**
+	 * Provide the Java Mail {@link Session} to use.
 	 * @param session the session.
 	 * @return the spec.
 	 * @see AbstractMailReceiver#setSession(Session)
@@ -122,6 +127,7 @@ public abstract class
 	}
 
 	/**
+	 * The Java Mail properties.
 	 * @param javaMailProperties the javaMailProperties.
 	 * @return the spec.
 	 * @see AbstractMailReceiver#setJavaMailProperties(Properties)
@@ -152,6 +158,7 @@ public abstract class
 	}
 
 	/**
+	 * The Java Mail {@link Authenticator}.
 	 * @param javaMailAuthenticator the javaMailAuthenticator.
 	 * @return the spec.
 	 * @see AbstractMailReceiver#setJavaMailAuthenticator(Authenticator)
@@ -164,6 +171,7 @@ public abstract class
 	}
 
 	/**
+	 * The maximum for fetch size.
 	 * @param maxFetchSize the maxFetchSize.
 	 * @return the spec.
 	 * @see AbstractMailReceiver#setMaxFetchSize(int)
@@ -175,6 +183,7 @@ public abstract class
 	}
 
 	/**
+	 * A flag to specify if messages should be deleted after receive.
 	 * @param shouldDeleteMessages the shouldDeleteMessages.
 	 * @return the spec.
 	 * @see AbstractMailReceiver#setShouldDeleteMessages(boolean)

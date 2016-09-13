@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,6 +35,9 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 /**
  * A {@link EndpointSpec} for consumer endpoints.
+ *
+ * @param <S> the target {@link ConsumerEndpointSpec} implementation type.
+ * @param <H> the target {@link MessageHandler} implementation type.
  *
  * @author Artem Bilan
  */
@@ -114,8 +117,8 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@code pollingTask}.
 	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
 	 * @return the spec.
-	 * @see TransactionInterceptorBuilder
 	 * @since 1.2
+	 * @see TransactionInterceptorBuilder
 	 */
 	public S transactional(TransactionInterceptor transactionInterceptor) {
 		return advice(transactionInterceptor);

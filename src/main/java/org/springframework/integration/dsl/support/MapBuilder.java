@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,10 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * A {@code Builder} pattern implementation for the {@link Map}.
+ *
+ * @param <B> The type of target {@link MapBuilder} implementation.
+ * @param <K> The Map key type.
+ * @param <V> The Map value type.
  *
  * @author Artem Bilan
  */

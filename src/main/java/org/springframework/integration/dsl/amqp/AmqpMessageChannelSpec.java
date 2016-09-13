@@ -35,6 +35,8 @@ import org.springframework.util.ErrorHandler;
  * An {@link AmqpPollableMessageChannelSpec} for a message-driven
  * {@link org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel}.
  *
+ * @param <S> the target {@link AmqpMessageChannelSpec} implementation type.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  */

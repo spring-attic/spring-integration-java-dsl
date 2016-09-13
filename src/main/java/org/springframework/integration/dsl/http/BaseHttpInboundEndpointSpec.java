@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,6 +42,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartResolver;
 
 /**
+ *
+ * @param <S> the target {@link BaseHttpInboundEndpointSpec} implementation type.
+ * @param <E> the target {@link HttpRequestHandlingEndpointSupport} implementation type.
+ *
  * @author Artem Bilan
  * @since 1.1
  */
@@ -110,8 +114,8 @@ public abstract class
 	 * @param header the header name to add.
 	 * @param headerFunction the function to evaluate the header value against {@link HttpEntity}.
 	 * @return the current Spec.
-	 * @see HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
 	 * @since 1.1.1
+	 * @see HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
 	 */
 	public S headerFunction(String header, Function<HttpEntity<?>, ?> headerFunction) {
 		return headerExpression(header, new FunctionExpression<HttpEntity<?>>(headerFunction));
@@ -180,7 +184,10 @@ public abstract class
 		return Collections.<Object>singletonList(headerMapperToRegister);
 	}
 
-	public static class RequestMappingSpec {
+	/**
+	 * A fluent API for the {@link RequestMapping}.
+	 */
+	public static final class RequestMappingSpec {
 
 		private final RequestMapping requestMapping;
 
@@ -189,33 +196,36 @@ public abstract class
 		}
 
 		public RequestMappingSpec methods(HttpMethod... supportedMethods) {
-			requestMapping.setMethods(supportedMethods);
+			this.requestMapping.setMethods(supportedMethods);
 			return this;
 		}
 
 		public RequestMappingSpec params(String... params) {
-			requestMapping.setParams(params);
+			this.requestMapping.setParams(params);
 			return this;
 		}
 
 		public RequestMappingSpec headers(String... headers) {
-			requestMapping.setHeaders(headers);
+			this.requestMapping.setHeaders(headers);
 			return this;
 		}
 
 		public RequestMappingSpec consumes(String... consumes) {
-			requestMapping.setConsumes(consumes);
+			this.requestMapping.setConsumes(consumes);
 			return this;
 		}
 
 		public RequestMappingSpec produces(String... produces) {
-			requestMapping.setProduces(produces);
+			this.requestMapping.setProduces(produces);
 			return this;
 		}
 
 	}
 
-	public static class CrossOriginSpec {
+	/**
+	 * A fluent API for the {@link CrossOrigin}.
+	 */
+	public static final class CrossOriginSpec {
 
 		private final CrossOrigin crossOrigin = new CrossOrigin();
 

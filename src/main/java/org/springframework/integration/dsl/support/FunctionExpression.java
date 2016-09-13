@@ -41,6 +41,8 @@ import org.springframework.util.Assert;
  * Any {@link #setValue} operations and {@link #getValueType} related operations
  * throw {@link EvaluationException}.
  *
+ * @param <S> The evaluation context root object type.
+ *
  * @author Artem Bilan
  */
 public class FunctionExpression<S> implements Expression {

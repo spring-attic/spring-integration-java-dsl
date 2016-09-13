@@ -30,6 +30,8 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessagingGatewaySpec} for a {@link JmsInboundGateway}.
  *
+ * @param <S> the target {@link JmsInboundGatewaySpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
@@ -170,6 +172,12 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		return _this();
 	}
 
+	/**
+	 * An {@link AbstractMessageListenerContainer}-based {@link JmsInboundGatewaySpec} extension.
+	 *
+	 * @param <S> the target {@link JmsListenerContainerSpec} implementation type.
+	 * @param <C> the target {@link AbstractMessageListenerContainer} implementation type.
+	 */
 	public static class JmsInboundGatewayListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
 			extends JmsInboundGatewaySpec<JmsInboundGatewayListenerContainerSpec<S, C>> {
 
@@ -187,7 +195,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * @see JmsListenerContainerSpec#destination(Destination)
 		 */
 		public JmsInboundGatewayListenerContainerSpec<S, C> destination(Destination destination) {
-			spec.destination(destination);
+			this.spec.destination(destination);
 			return _this();
 		}
 
@@ -197,7 +205,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		 * @see JmsListenerContainerSpec#destination(String)
 		 */
 		public JmsInboundGatewayListenerContainerSpec<S, C> destination(String destinationName) {
-			spec.destination(destinationName);
+			this.spec.destination(destinationName);
 			return _this();
 		}
 

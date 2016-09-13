@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.test.mail;
 
 import static org.hamcrest.Matchers.containsString;
@@ -180,10 +181,10 @@ public class MailTests {
 		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
 		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
 		assertEquals("To: Foo <foo@bar>\r\n" +
-				 "From: Bar <bar@baz>\r\n" +
-				 "Subject: Test Email\r\n" +
-				 "\r\n" +
-				 "foo\r\n", message.getPayload());
+				"From: Bar <bar@baz>\r\n" +
+				"Subject: Test Email\r\n" +
+				"\r\n" +
+				"foo\r\n", message.getPayload());
 		this.imapIdleAdapter.stop();
 		assertFalse(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class));
 	}
@@ -198,7 +199,7 @@ public class MailTests {
 					.enrichHeaders(Mail.headers()
 							.subjectFunction(m -> "foo")
 							.from("foo@bar")
-							.toFunction(m -> new String[] {"bar@baz"}))
+							.toFunction(m -> new String[] { "bar@baz" }))
 					.handleWithAdapter(h -> h.mail("localhost")
 									.port(smtpServer.getPort())
 									.credentials("user", "pw")
@@ -238,11 +239,11 @@ public class MailTests {
 			return IntegrationFlows
 					.from((MessageProducers mp) ->
 							mp.imap("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX")
-							.searchTermStrategy(this::fromAndNotSeenTerm)
-							.javaMailProperties(p -> p.put("mail.debug", "false")
-									.put("mail.imap.connectionpoolsize", "5"))
-							.shouldReconnectAutomatically(false)
-							.headerMapper(mailHeaderMapper()))
+									.searchTermStrategy(this::fromAndNotSeenTerm)
+									.javaMailProperties(p -> p.put("mail.debug", "false")
+											.put("mail.imap.connectionpoolsize", "5"))
+									.shouldReconnectAutomatically(false)
+									.headerMapper(mailHeaderMapper()))
 					.channel(MessageChannels.queue("imapIdleChannel"))
 					.get();
 		}

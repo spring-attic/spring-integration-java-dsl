@@ -31,6 +31,10 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ *
+ * @param <F> the target file type.
+ * @param <S> the target {@link RemoteFileOutboundGatewaySpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutboundGatewaySpec<F, S>>

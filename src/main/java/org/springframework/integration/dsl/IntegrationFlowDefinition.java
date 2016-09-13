@@ -103,6 +103,8 @@ import org.springframework.util.StringUtils;
  * to an {@link IntegrationFlow} for the future registration in the
  * application context.
  *
+ * @param <B> the {@link IntegrationFlowDefinition} implementation type.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  * @author Gabriele Del Prete
@@ -458,8 +460,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param expression the {@code Transformer} {@link Expression}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see ExpressionEvaluatingTransformer
 	 * @since 1.1
+	 * @see ExpressionEvaluatingTransformer
 	 */
 	public B transform(String expression, Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		Assert.hasText(expression);
@@ -472,8 +474,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * to invoke the discovered service method at runtime.
 	 * @param service the service to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see ExpressionEvaluatingTransformer
 	 * @since 1.1
+	 * @see ExpressionEvaluatingTransformer
 	 */
 	public B transform(Object service) {
 		return transform(service, null);
@@ -485,8 +487,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingTransformer
 	 * @since 1.1
+	 * @see MethodInvokingTransformer
 	 */
 	public B transform(Object service, String methodName) {
 		return transform(service, methodName, null);
@@ -499,8 +501,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see ExpressionEvaluatingTransformer
 	 * @since 1.1
+	 * @see ExpressionEvaluatingTransformer
 	 */
 	public B transform(Object service, String methodName,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
@@ -538,8 +540,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingTransformer
 	 * @since 1.1
+	 * @see MethodInvokingTransformer
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec) {
 		return transform(messageProcessorSpec, (Consumer<GenericEndpointSpec<MessageTransformingHandler>>) null);
@@ -558,8 +560,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingTransformer
 	 * @since 1.1
+	 * @see MethodInvokingTransformer
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
@@ -646,8 +648,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param expression the SpEL expression.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see FilterEndpointSpec
 	 * @since 1.0.2
+	 * @see FilterEndpointSpec
 	 */
 	public B filter(String expression, Consumer<FilterEndpointSpec> endpointConfigurer) {
 		Assert.hasText(expression);
@@ -1487,8 +1489,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param expression the splitter SpEL expression.
 	 * and for {@link ExpressionEvaluatingSplitter}.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
 	 * @since 1.1
+	 * @see SplitterEndpointSpec
 	 */
 	public B split(String expression) {
 		return split(expression, (Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>>) null);
@@ -1513,8 +1515,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * {@code method} of the {@code service} at runtime.
 	 * @param service the service to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingSplitter
 	 * @since 1.1
+	 * @see MethodInvokingSplitter
 	 */
 	public B split(Object service) {
 		return split(service, null);
@@ -1526,8 +1528,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingSplitter
 	 * @since 1.1
+	 * @see MethodInvokingSplitter
 	 */
 	public B split(Object service, String methodName) {
 		return split(service, methodName, null);
@@ -1542,9 +1544,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.1
 	 * @see SplitterEndpointSpec
 	 * @see MethodInvokingSplitter
-	 * @since 1.1
 	 */
 	public B split(Object service, String methodName,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
@@ -1597,9 +1599,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param messageProcessorSpec the splitter {@link MessageProcessorSpec}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.1
 	 * @see SplitterEndpointSpec
 	 * @see org.springframework.integration.dsl.scripting.ScriptSpec
-	 * @since 1.1
 	 */
 	public B split(MessageProcessorSpec<?> messageProcessorSpec) {
 		return split(messageProcessorSpec, (Consumer<SplitterEndpointSpec<MethodInvokingSplitter>>) null);
@@ -1620,9 +1622,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
 	 * and for {@link MethodInvokingSplitter}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.1
 	 * @see SplitterEndpointSpec
 	 * @see org.springframework.integration.dsl.scripting.ScriptSpec
-	 * @since 1.1
 	 */
 	public B split(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
@@ -1722,8 +1724,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param splitterMessageHandlerSpec the {@link MessageHandlerSpec} to populate.
 	 * @param <S> the {@link AbstractMessageSplitter}
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
 	 * @since 1.1
+	 * @see SplitterEndpointSpec
 	 */
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec) {
 		return split(splitterMessageHandlerSpec, (Consumer<SplitterEndpointSpec<S>>) null);
@@ -1736,8 +1738,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <S> the {@link AbstractMessageSplitter}
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
 	 * @since 1.1
+	 * @see SplitterEndpointSpec
 	 */
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
@@ -1750,8 +1752,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * flow position.
 	 * @param splitter the {@link AbstractMessageSplitter} to populate.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see SplitterEndpointSpec
 	 * @since 1.1
+	 * @see SplitterEndpointSpec
 	 */
 	public B split(AbstractMessageSplitter splitter) {
 		return split(splitter, (Consumer<SplitterEndpointSpec<AbstractMessageSplitter>>) null);
@@ -1920,8 +1922,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param resequencer the {@link Consumer} to provide {@link ResequencingMessageHandler} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see ResequencerSpec
 	 * @since 1.1
+	 * @see ResequencerSpec
 	 */
 	public B resequence(Consumer<ResequencerSpec> resequencer) {
 		return register(new ResequencerSpec(), resequencer);
@@ -1973,8 +1975,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param aggregator the {@link Consumer} to provide {@link AggregatingMessageHandler} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see AggregatorSpec
 	 * @since 1.1
+	 * @see AggregatorSpec
 	 */
 	public B aggregate(Consumer<AggregatorSpec> aggregator) {
 		return register(new AggregatorSpec(), aggregator);
@@ -2024,8 +2026,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * of the provided service and its method with default options.
 	 * @param service the bean to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingRouter
 	 * @since 1.1
+	 * @see MethodInvokingRouter
 	 */
 	public B route(Object service) {
 		return route(service, null);
@@ -2037,8 +2039,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingRouter
 	 * @since 1.1
+	 * @see MethodInvokingRouter
 	 */
 	public B route(Object service, String methodName) {
 		return route(service, methodName, null);
@@ -2051,8 +2053,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param methodName the method to invoke.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingRouter
 	 * @since 1.1
+	 * @see MethodInvokingRouter
 	 */
 	public B route(Object service, String methodName,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
@@ -2068,8 +2070,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingRouter
 	 * @since 1.1
+	 * @see MethodInvokingRouter
 	 */
 	public B route(Object service, String methodName,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,

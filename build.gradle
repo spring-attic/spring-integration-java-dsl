@@ -13,6 +13,7 @@ plugins {
 	id 'idea'
 	id 'jacoco'
 	id 'org.sonarqube' version '1.2'
+	id 'checkstyle'
 }
 
 description = 'Spring Integration Java DSL'
@@ -87,7 +88,7 @@ ext {
 eclipse.project.natures += 'org.springframework.ide.eclipse.core.springnature'
 
 jacoco {
-	toolVersion = "0.7.6.201602180812"
+	toolVersion = "0.7.7.201606060606"
 }
 
 dependencies {
@@ -200,6 +201,11 @@ test {
 		append = false
 		destinationFile = file("$buildDir/jacoco.exec")
 	}
+}
+
+checkstyle {
+	configFile = file("${rootDir}/src/checkstyle/checkstyle.xml")
+	toolVersion = "6.16.1"
 }
 
 jacocoTestReport {

@@ -199,7 +199,7 @@ public class SftpTests {
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
-	private static interface ControlBusGateway {
+	private interface ControlBusGateway {
 
 		void send(String command);
 

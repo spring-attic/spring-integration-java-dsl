@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 
 	private ConversionService conversionService;
 
-	public LambdaMessageProcessor(Object target, Class<?> payloadType) {
+	LambdaMessageProcessor(Object target, Class<?> payloadType) {
 		Assert.notNull(target);
 		this.target = target;
 		final AtomicReference<Method> methodValue = new AtomicReference<Method>();
@@ -126,7 +126,7 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 		try {
 			return this.method.invoke(this.target, args);
 		}
-		catch(InvocationTargetException e) {
+		catch (InvocationTargetException e) {
 			throw new MessageHandlingException(message, e.getCause());
 		}
 		catch (Exception e) {

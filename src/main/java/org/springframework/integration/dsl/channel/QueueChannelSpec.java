@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.dsl.channel;
 
-import java.lang.reflect.Constructor;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.Lock;
 
 import org.springframework.integration.channel.QueueChannel;
@@ -26,7 +24,6 @@ import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Artem Bilan
@@ -51,25 +48,7 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 	@Override
 	protected QueueChannel doGet() {
 		if (this.queue != null) {
-			Constructor<?> queueConstructor =
-					ClassUtils.getConstructorIfAvailable(QueueChannel.class, Queue.class);
-			if (queueConstructor == null) {
-				if (!(this.queue instanceof BlockingQueue)) {
-					throw new IllegalArgumentException("The 'queue' must be an instance of BlockingQueue " +
-							"for Spring Integration versions less than 4.1");
-				}
-				else {
-					this.channel = new QueueChannel((BlockingQueue<Message<?>>) this.queue);
-				}
-			}
-			else {
-				try {
-					this.channel = (QueueChannel) queueConstructor.newInstance(this.queue);
-				}
-				catch (Exception e) {
-					throw new IllegalStateException(e);
-				}
-			}
+			this.channel = new QueueChannel(this.queue);
 		}
 		else if (this.capacity != null) {
 			this.channel = new QueueChannel(this.capacity);
@@ -80,6 +59,9 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 		return super.doGet();
 	}
 
+	/**
+	 * The {@link ChannelMessageStore}-specific {@link QueueChannelSpec} extension.
+	 */
 	public static class MessageStoreSpec extends QueueChannelSpec {
 
 		private final ChannelMessageStore messageGroupStore;

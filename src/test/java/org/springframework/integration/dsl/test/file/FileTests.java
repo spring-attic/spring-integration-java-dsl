@@ -286,8 +286,8 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileFlow1() {
 			return IntegrationFlows.from("fileFlow1Input")
-					.handleWithAdapter(h -> h.file(tmpDir.getRoot()).fileNameGenerator(message -> null)
-							, c -> c.id("fileWriting"))
+					.handleWithAdapter(h -> h.file(tmpDir.getRoot()).fileNameGenerator(message -> null),
+							c -> c.id("fileWriting"))
 					.get();
 		}
 

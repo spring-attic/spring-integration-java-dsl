@@ -33,8 +33,8 @@ public class Tuple implements Iterable<Object>, Serializable {
 
 	private static final long serialVersionUID = 8777121214502020842L;
 
-	static final Object[] emptyArray       = new Object[0];
-	static final Tuple    empty            = new Tuple(0);
+	private static final Object[] emptyArray = new Object[0];
+	protected static final Tuple empty = new Tuple(0);
 
 
 	protected final int size;
@@ -73,7 +73,7 @@ public class Tuple implements Iterable<Object>, Serializable {
 	 * @return The size of this {@literal Tuple}.
 	 */
 	public int size() {
-		return size;
+		return this.size;
 	}
 
 	@Override
@@ -83,10 +83,12 @@ public class Tuple implements Iterable<Object>, Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		Tuple tuple = (Tuple) o;
 

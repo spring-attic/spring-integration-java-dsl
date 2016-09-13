@@ -25,6 +25,8 @@ import org.springframework.integration.dsl.core.MessageProducerSpec;
 /**
  * The base {@link MessageProducerSpec} implementation for a {@link AmqpInboundChannelAdapter}.
  *
+ * @param <S> the target {@link AmqpBaseInboundChannelAdapterSpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public class AmqpBaseInboundChannelAdapterSpec<S extends AmqpBaseInboundChannelAdapterSpec<S>>
@@ -34,7 +36,7 @@ public class AmqpBaseInboundChannelAdapterSpec<S extends AmqpBaseInboundChannelA
 
 	AmqpBaseInboundChannelAdapterSpec(AmqpInboundChannelAdapter producer) {
 		super(producer);
-		this.target.setHeaderMapper(headerMapper);
+		this.target.setHeaderMapper(this.headerMapper);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import org.springframework.util.ErrorHandler;
 /**
  * A {@link JmsMessageChannelSpec} for subscribable {@link AbstractJmsChannel}s.
  *
+ * @param <S> the target {@link JmsMessageChannelSpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends JmsPollableMessageChannelSpec<S> {
@@ -40,7 +42,7 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Configure the type of the container; must be an
+	 * Configure the type of the container.
 	 * {@link AbstractMessageListenerContainer}. Defaults to
 	 * {@link DefaultMessageListenerContainer}.
 	 * @param containerType the containerType.
@@ -218,8 +220,8 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	/**
 	 * @param subscriptionShared the subscription shared {@code boolean} flag.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setSubscriptionShared
 	 * @since 1.1.1
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setSubscriptionShared
 	 */
 	public S subscriptionShared(boolean subscriptionShared) {
 		this.jmsChannelFactoryBean.setSubscriptionShared(subscriptionShared);

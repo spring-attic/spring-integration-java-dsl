@@ -29,6 +29,8 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageProducerSpec} for {@link JmsMessageDrivenChannelAdapter}s.
  *
+ * @param <S> the target {@link JmsMessageDrivenChannelAdapterSpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChannelAdapterSpec<S>>
@@ -63,8 +65,8 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	/**
 	 * @param headerMapper the headerMapper.
 	 * @return the spec.
-	 * @see ChannelPublishingJmsMessageListener#setHeaderMapper(JmsHeaderMapper)
 	 * @since 1.2
+	 * @see ChannelPublishingJmsMessageListener#setHeaderMapper(JmsHeaderMapper)
 	 */
 	public S headerMapper(JmsHeaderMapper headerMapper) {
 		this.target.getListener().setHeaderMapper(headerMapper);
@@ -81,7 +83,11 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		return _this();
 	}
 
-
+	/**
+	 *
+	 * @param <S> the target {@link JmsListenerContainerSpec} implementation type.
+	 * @param <C> the target {@link AbstractMessageListenerContainer} implementation type.
+	 */
 	public static class
 			JmsMessageDrivenChannelAdapterListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
 			extends JmsMessageDrivenChannelAdapterSpec<JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>> {
@@ -100,17 +106,18 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		 * @see JmsListenerContainerSpec#destination(Destination)
 		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> destination(Destination destination) {
-			spec.destination(destination);
+			this.spec.destination(destination);
 			return _this();
 		}
 
 		/**
+		 * Specify a destination name to use.
 		 * @param destinationName the destinationName.
 		 * @return the spec.
 		 * @see JmsListenerContainerSpec#destination(String)
 		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> destination(String destinationName) {
-			spec.destination(destinationName);
+			this.spec.destination(destinationName);
 			return _this();
 		}
 

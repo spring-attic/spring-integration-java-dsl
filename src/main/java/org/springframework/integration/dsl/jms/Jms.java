@@ -25,13 +25,14 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 /**
  * Factory class for JMS components.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  */
-public abstract class Jms {
+public final class Jms {
 
 	/**
-	 * The factory to produce a {@link JmsPollableMessageChannelSpec}
+	 * The factory to produce a {@link JmsPollableMessageChannelSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param <S>               the {@link JmsPollableMessageChannelSpec} inheritor type
 	 * @return the {@link JmsPollableMessageChannelSpec} instance
@@ -42,7 +43,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsPollableMessageChannelSpec}
+	 * The factory to produce a {@link JmsPollableMessageChannelSpec}.
 	 * @param id                the bean name for the target {@code PollableChannel} component
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param <S>               the {@link JmsPollableMessageChannelSpec} inheritor type
@@ -54,7 +55,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageChannelSpec}
+	 * The factory to produce a {@link JmsMessageChannelSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param <S>               the {@link JmsMessageChannelSpec} inheritor type
 	 * @return the {@link JmsMessageChannelSpec} instance
@@ -65,19 +66,19 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageChannelSpec}
+	 * The factory to produce a {@link JmsMessageChannelSpec}.
 	 * @param id                the bean name for the target {@code MessageChannel} component
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param <S>               the {@link JmsMessageChannelSpec} inheritor type
 	 * @return the {@link JmsMessageChannelSpec} instance
 	 */
 	public static <S extends JmsMessageChannelSpec<S>> JmsMessageChannelSpec<S> channel(String id,
-	                                                                                    ConnectionFactory connectionFactory) {
+			ConnectionFactory connectionFactory) {
 		return new JmsMessageChannelSpec<S>(connectionFactory).id(id);
 	}
 
 	/**
-	 * The factory to produce a {@link JmsPublishSubscribeMessageChannelSpec}
+	 * The factory to produce a {@link JmsPublishSubscribeMessageChannelSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPublishSubscribeMessageChannelSpec} instance
 	 */
@@ -86,18 +87,18 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsPublishSubscribeMessageChannelSpec}
+	 * The factory to produce a {@link JmsPublishSubscribeMessageChannelSpec}.
 	 * @param id                the bean name for the target {@code MessageChannel} component
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPublishSubscribeMessageChannelSpec} instance
 	 */
 	public static JmsPublishSubscribeMessageChannelSpec publishSubscribeChannel(String id,
-	                                                                            ConnectionFactory connectionFactory) {
+			ConnectionFactory connectionFactory) {
 		return new JmsPublishSubscribeMessageChannelSpec(connectionFactory).id(id);
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundChannelAdapterSpec}
+	 * The factory to produce a {@link JmsOutboundChannelAdapterSpec}.
 	 * @param jmsTemplate the JmsTemplate to build on
 	 * @param <S>         the {@link JmsOutboundChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsOutboundChannelAdapterSpec} instance
@@ -108,7 +109,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundChannelAdapterSpec}
+	 * The factory to produce a {@link JmsOutboundChannelAdapterSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsOutboundChannelAdapterSpec} instance
 	 */
@@ -118,7 +119,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsInboundChannelAdapterSpec}
+	 * The factory to produce a {@link JmsInboundChannelAdapterSpec}.
 	 * @param jmsTemplate the JmsTemplate to build on
 	 * @param <S>         the {@link JmsInboundChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsInboundChannelAdapterSpec} instance
@@ -129,7 +130,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsInboundChannelAdapterSpec}
+	 * The factory to produce a {@link JmsInboundChannelAdapterSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsInboundChannelAdapterSpec} instance
 	 */
@@ -139,7 +140,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundGatewaySpec}
+	 * The factory to produce a {@link JmsOutboundGatewaySpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsOutboundGatewaySpec} instance
 	 */
@@ -148,7 +149,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundGatewaySpec}
+	 * The factory to produce a {@link JmsOutboundGatewaySpec}.
 	 * @param listenerContainer the JMS {@link AbstractMessageListenerContainer} to build on
 	 * @param <S> the {@link JmsInboundGatewaySpec} inheritor type
 	 * @return the {@link JmsOutboundGatewaySpec} instance
@@ -159,7 +160,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundGatewaySpec}
+	 * The factory to produce a {@link JmsOutboundGatewaySpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsOutboundGatewaySpec} instance
 	 */
@@ -169,22 +170,21 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsOutboundGatewaySpec}
+	 * The factory to produce a {@link JmsOutboundGatewaySpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
 	 *                          to instantiate listener container
 	 * @param <S>               the {@link JmsListenerContainerSpec} inheritor type
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
-	 * @param <S>               the {@link JmsMessageDrivenChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsOutboundGatewaySpec} instance
 	 */
 	public static <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
 	JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<S, C> inboundGateway(ConnectionFactory connectionFactory,
-	                                                                               Class<C> containerClass) {
+			Class<C> containerClass) {
 		try {
 			JmsListenerContainerSpec<S, C> spec =
 					new JmsListenerContainerSpec<S, C>(containerClass)
-					.connectionFactory(connectionFactory);
+							.connectionFactory(connectionFactory);
 			return new JmsInboundGatewaySpec.JmsInboundGatewayListenerContainerSpec<S, C>(spec);
 		}
 		catch (Exception e) {
@@ -193,7 +193,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to build on
 	 * @param <S>               the {@link JmsMessageDrivenChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
@@ -207,7 +207,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory)}.
@@ -215,68 +215,66 @@ public abstract class Jms {
 	@Deprecated
 	public static JmsMessageDrivenChannelAdapterSpec
 			.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
-				messageDriverChannelAdapter(ConnectionFactory connectionFactory) {
+	messageDriverChannelAdapter(ConnectionFactory connectionFactory) {
 		return messageDrivenChannelAdapter(connectionFactory);
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
 	 *                          to instantiate listener container
 	 * @param <S>               the {@link JmsListenerContainerSpec} inheritor type
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
-	 * @param <S>               the {@link JmsMessageDrivenChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory, Class)}.
 	 */
 	@Deprecated
 	public static <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
-			JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>
-				messageDriverChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
+	JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>
+	messageDriverChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
 		return messageDrivenChannelAdapter(connectionFactory, containerClass);
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to build on
 	 * @param <S>               the {@link JmsMessageDrivenChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
 	public static <S extends JmsMessageDrivenChannelAdapterSpec<S>>
-			JmsMessageDrivenChannelAdapterSpec<S> messageDrivenChannelAdapter(
-					AbstractMessageListenerContainer listenerContainer) {
+	JmsMessageDrivenChannelAdapterSpec<S> messageDrivenChannelAdapter(
+			AbstractMessageListenerContainer listenerContainer) {
 		return new JmsMessageDrivenChannelAdapterSpec<S>(listenerContainer);
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
 	public static JmsMessageDrivenChannelAdapterSpec
 			.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
-				messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
+	messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
 		return messageDrivenChannelAdapter(connectionFactory, DefaultMessageListenerContainer.class);
 	}
 
 	/**
-	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param containerClass    the {@link AbstractMessageListenerContainer} implementation class
 	 *                          to instantiate listener container
 	 * @param <S>               the {@link JmsListenerContainerSpec} inheritor type
 	 * @param <C>               the {@link AbstractMessageListenerContainer} inheritor type
-	 * @param <S>               the {@link JmsMessageDrivenChannelAdapterSpec} inheritor type
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
 	public static <S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
 	JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>
-			messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
+	messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Class<C> containerClass) {
 		try {
 			JmsListenerContainerSpec<S, C> spec =
 					new JmsListenerContainerSpec<S, C>(containerClass)
-					.connectionFactory(connectionFactory);
+							.connectionFactory(connectionFactory);
 			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>(spec);
 		}
 		catch (Exception e) {
@@ -285,7 +283,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsListenerContainerSpec}
+	 * The factory to produce a {@link JmsListenerContainerSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param destination       the {@link Destination} to listen to
 	 * @return the {@link JmsListenerContainerSpec} instance
@@ -304,7 +302,7 @@ public abstract class Jms {
 	}
 
 	/**
-	 * The factory to produce a {@link JmsListenerContainerSpec}
+	 * The factory to produce a {@link JmsListenerContainerSpec}.
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @param destinationName   the destination name to listen to
 	 * @return the {@link JmsListenerContainerSpec} instance
@@ -320,6 +318,9 @@ public abstract class Jms {
 		catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
+	}
+
+	private Jms() {
 	}
 
 }

@@ -23,6 +23,11 @@ import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;
 
 /**
+ * A base {@link IntegrationComponentSpec} for {@link JmsDestinationAccessor}s.
+ *
+ * @param <S> the target {@link JmsDestinationAccessorSpec} implementation type.
+ * @param <A> the target {@link JmsDestinationAccessor} implementation type.
+ *
  * @author Artem Bilan
  */
 public abstract class
@@ -39,6 +44,7 @@ public abstract class
 	}
 
 	/**
+	 * A {@link DestinationResolver} to use.
 	 * @param destinationResolver the {@link DestinationResolver} to use.
 	 * @return the spec
 	 * @see JmsDestinationAccessor#setDestinationResolver
@@ -49,7 +55,7 @@ public abstract class
 	}
 
 	/**
-	 *
+	 * A {@code pubSubDomain} flag.
 	 * @param pubSubDomain the {@code pubSubDomain} flag.
 	 * @return the spec
 	 * @see JmsDestinationAccessor#setPubSubDomain(boolean)
@@ -60,6 +66,7 @@ public abstract class
 	}
 
 	/**
+	 * A session acknowledgement mode.
 	 * @param sessionAcknowledgeMode the acknowledgement mode constant
 	 * @return the spec
 	 * @see javax.jms.Session#AUTO_ACKNOWLEDGE etc.
@@ -71,6 +78,7 @@ public abstract class
 	}
 
 	/**
+	 * A session acknowledgement mode name.
 	 * @param constantName the name of the {@link javax.jms.Session} acknowledge mode constant.
 	 * @return the spec.
 	 * @see JmsDestinationAccessor#setSessionAcknowledgeModeName
@@ -81,6 +89,7 @@ public abstract class
 	}
 
 	/**
+	 * A session transaction mode.
 	 * @param sessionTransacted the transaction mode.
 	 * @return the spec.
 	 * @see JmsDestinationAccessor#setSessionTransacted

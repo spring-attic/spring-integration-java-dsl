@@ -32,6 +32,8 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageChannelSpec} for a {@link AbstractAmqpChannel}s.
  *
+ * @param <S> the target {@link AmqpPollableMessageChannelSpec} implementation type.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  */
@@ -159,9 +161,9 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 	 * Default false.
 	 * @param extract true to enable mapping.
 	 * @return the spec.
+	 * @since 1.2
 	 * @see #outboundHeaderMapper(AmqpHeaderMapper)
 	 * @see #inboundHeaderMapper(AmqpHeaderMapper)
-	 * @since 1.2
 	 */
 	public S extractPayload(boolean extract) {
 		this.amqpChannelFactoryBean.setExtractPayload(extract);
@@ -173,8 +175,8 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 	 * is true. Defaults to a {@code DefaultAmqpHeaderMapper}.
 	 * @param mapper the mapper.
 	 * @return the spec.
-	 * @see #extractPayload(boolean)
 	 * @since 1.2
+	 * @see #extractPayload(boolean)
 	 */
 	public S outboundHeaderMapper(AmqpHeaderMapper mapper) {
 		this.amqpChannelFactoryBean.setOutboundHeaderMapper(mapper);
@@ -186,8 +188,8 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 	 * is true. Defaults to a {@code DefaultAmqpHeaderMapper}.
 	 * @param mapper the mapper.
 	 * @return the spec.
-	 * @see #extractPayload(boolean)
 	 * @since 1.2
+	 * @see #extractPayload(boolean)
 	 */
 	public S inboundHeaderMapper(AmqpHeaderMapper mapper) {
 		this.amqpChannelFactoryBean.setInboundHeaderMapper(mapper);

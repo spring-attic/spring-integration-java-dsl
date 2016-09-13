@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dsl.mail;
 
 import java.util.Properties;
@@ -34,7 +35,7 @@ public class MailSendingMessageHandlerSpec
 
 	private final JavaMailSenderImpl sender = new JavaMailSenderImpl();
 
-	MailSendingMessageHandlerSpec (String host) {
+	MailSendingMessageHandlerSpec(String host) {
 		this.sender.setHost(host);
 		this.target = new MailSendingMessageHandler(this.sender);
 	}

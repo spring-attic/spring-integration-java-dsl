@@ -30,6 +30,8 @@ import org.springframework.jms.support.destination.DestinationResolver;
 /**
  * A {@link MessageChannelSpec} for an {@link AbstractJmsChannel}.
  *
+ * @param <S> the target {@link JmsPollableMessageChannelSpec} implementation type.
+ *
  * @author Artem Bilan
  */
 public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSpec<S>>

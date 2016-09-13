@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	}
 
 	/**
-	 * The script lang (Groovy, ruby, python etc.)
+	 * The script lang (Groovy, ruby, python etc.).
 	 * @param lang the script lang
 	 * @return the current spec
 	 * @see ScriptSpec#lang
@@ -64,7 +64,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	}
 
 	/**
-	 * The {@link ScriptVariableGenerator} to use
+	 * The {@link ScriptVariableGenerator} to use.
 	 * @param variableGenerator the {@link ScriptVariableGenerator}
 	 * @return the current spec
 	 * @see ScriptSpec#variableGenerator
@@ -75,7 +75,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	}
 
 	/**
-	 * The script variables to use
+	 * The script variables to use.
 	 * @param variables the script variables
 	 * @return the current spec
 	 * @see ScriptSpec#variables(MapBuilder)
@@ -86,7 +86,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	}
 
 	/**
-	 * The script variables to use
+	 * The script variables to use.
 	 * @param variables the script variables
 	 * @return the current spec
 	 * @see ScriptSpec#variables(Map)
@@ -97,7 +97,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	}
 
 	/**
-	 * The script variable to use
+	 * The script variable to use.
 	 * @param name the name of variable
 	 * @param value the value of variable
 	 * @return the current spec
@@ -109,7 +109,7 @@ public class ScriptMessageSourceSpec extends MessageSourceSpec<ScriptMessageSour
 	}
 
 	/**
-	 * The refreshCheckDelay in milliseconds for refreshable script resource
+	 * The refreshCheckDelay in milliseconds for refreshable script resource.
 	 * @param refreshCheckDelay the refresh check delay milliseconds
 	 * @return the current spec
 	 * @see ScriptSpec#refreshCheckDelay

@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.dsl.test.reactivestreams;
 
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -102,7 +102,7 @@ public class PublishSubscribePublisherIntegrationFlowVerification extends Abstra
 
 					@Override
 					public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent,
-					                                Exception ex) {
+							Exception ex) {
 						super.afterSendCompletion(message, channel, sent, ex);
 						if (this.count.incrementAndGet() == elements) {
 							if (completionSignalRequired) {
@@ -123,11 +123,12 @@ public class PublishSubscribePublisherIntegrationFlowVerification extends Abstra
 			Publisher<Message<String>> publisher = getPublisher();
 			if (this.testMethod.equals("stochastic_spec103_mustSignalOnMethodsSequentially")) {
 				publisher = spy(publisher);
-				doAnswer(invocation -> {
+				willAnswer(invocation -> {
 					Subscriber<Object> subscriber = (Subscriber<Object>) invocation.getArguments()[0];
 					invocation.getArguments()[0] = new WrappedSubscriber(subscriber);
 					return invocation.callRealMethod();
-				}).when(publisher).subscribe(any(Subscriber.class));
+				}).given(publisher)
+						.subscribe(any(Subscriber.class));
 			}
 			return publisher;
 		}
@@ -139,7 +140,7 @@ public class PublishSubscribePublisherIntegrationFlowVerification extends Abstra
 					.toReactivePublisher();
 		}
 
-		private class WrappedSubscriber implements Subscriber<Object> {
+		private final class WrappedSubscriber implements Subscriber<Object> {
 
 			private final Subscriber<Object> delegate;
 
@@ -169,7 +170,7 @@ public class PublishSubscribePublisherIntegrationFlowVerification extends Abstra
 
 		}
 
-		private class WrappedSubscription implements Subscription {
+		private final class WrappedSubscription implements Subscription {
 
 			private final Subscription delegate;
 
@@ -181,7 +182,7 @@ public class PublishSubscribePublisherIntegrationFlowVerification extends Abstra
 
 			@Override
 			public void request(long n) {
-				delegate.request(n);
+				this.delegate.request(n);
 				for (int i = 0; i < n; i++) {
 					this.input.send(new GenericMessage<>(Math.random()));
 				}
@@ -189,7 +190,7 @@ public class PublishSubscribePublisherIntegrationFlowVerification extends Abstra
 
 			@Override
 			public void cancel() {
-				delegate.cancel();
+				this.delegate.cancel();
 			}
 
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.springframework.integration.mail.MailHeaders;
 import org.springframework.messaging.Message;
 
 /**
+ * The Mail specific {@link MapBuilder} implementation.
+ *
  * @author Artem Bilan
  * @author Gary Russell
  */
@@ -101,6 +103,8 @@ public class MailHeadersBuilder extends MapBuilder<MailHeadersBuilder, String, O
 	}
 
 	/**
+	 * A multipart mode ro use.
+	 * Possible values are 0 through 3.
 	 * @param multipartMode header value
 	 * @return this
 	 * @see org.springframework.mail.javamail.MimeMessageHelper

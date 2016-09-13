@@ -23,6 +23,9 @@ import org.springframework.messaging.MessageChannel;
  * An {@link IntegrationComponentSpec} for
  * {@link org.springframework.integration.core.MessageProducer}s.
  *
+ * @param <S> the target {@link MessageProducerSpec} implementation type.
+ * @param <P> the target {@link MessageProducerSupport} implementation type.
+ *
  * @author Artem Bilan
  */
 public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P extends MessageProducerSupport>

@@ -1,11 +1,11 @@
 /*
- * Copyright 2015-2016 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static scala.collection.JavaConversions.asScalaBuffer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +68,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.gs.collections.impl.list.mutable.FastList;
-
 import kafka.admin.AdminUtils;
 import kafka.api.OffsetRequest;
 import kafka.serializer.Encoder;
@@ -82,6 +80,7 @@ import kafka.utils.TestZKUtils;
 import kafka.utils.Utils;
 import kafka.utils.ZKStringSerializer$;
 import kafka.zk.EmbeddedZookeeper;
+import scala.collection.JavaConversions;
 
 /**
  * @author Artem Bilan
@@ -176,7 +175,7 @@ public class KafkaTests {
 
 		@Bean(destroyMethod = "destroy")
 		public InitializingBean topicManager(EmbeddedZookeeper zookeeper, ZkClient zookeeperClient,
-		                                     List<KafkaServer> kafkaServers) {
+				List<KafkaServer> kafkaServers) {
 			return new InitializingBean() {
 
 				private final List<String> topics = Arrays.asList(TEST_TOPIC, TEST_TOPIC2, TEST_TOPIC3);
@@ -190,7 +189,8 @@ public class KafkaTests {
 				public void destroy() {
 					this.topics.forEach(t -> {
 						AdminUtils.deleteTopic(zookeeperClient, t);
-						TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), t, 0, 5000L);
+						TestUtils.waitUntilMetadataIsPropagated(JavaConversions.asScalaBuffer(kafkaServers),
+								t, 0, 5000L);
 					});
 				}
 
@@ -213,7 +213,7 @@ public class KafkaTests {
 
 		@Bean
 		public IntegrationFlow listeningFromKafkaFlow(ConnectionFactory connectionFactory,
-		                                              MetadataStoreOffsetManager offsetManager) {
+				MetadataStoreOffsetManager offsetManager) {
 			return IntegrationFlows
 					.from(Kafka.messageDriverChannelAdapter(connectionFactory, TEST_TOPIC)
 							.autoCommitOffset(false)
@@ -235,7 +235,7 @@ public class KafkaTests {
 									e -> e.id("kafkaProducer")))
 							.subscribe(sf -> sf.handle(kafkaMessageHandler(serverAddress, TEST_TOPIC3),
 									e -> e.id("kafkaProducer3")))
-							);
+					);
 		}
 
 		@SuppressWarnings("unchecked")

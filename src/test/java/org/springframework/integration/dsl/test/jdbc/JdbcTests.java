@@ -107,7 +107,7 @@ public class JdbcTests {
 		}
 	}
 
-	private static class Foo {
+	private static final class Foo {
 
 		@SuppressWarnings("unused")
 		private final int id;
@@ -122,7 +122,7 @@ public class JdbcTests {
 
 	}
 
-	private static class ResultSetIterator<T> implements Iterator<T> {
+	private static final class ResultSetIterator<T> implements Iterator<T> {
 
 		private final Connection connection;
 

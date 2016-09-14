@@ -23,6 +23,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -166,6 +167,7 @@ public class AmqpTests {
 	private AmqpHeaderMapper mapperOut;
 
 	@Test
+	@Ignore("Will work after upgrade to SI-4.3.2. See https://jira.spring.io/browse/INT-4103")
 	public void unitTestChannel() {
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT,
 				TestUtils.getPropertyValue(this.unitChannel, "defaultDeliveryMode"));

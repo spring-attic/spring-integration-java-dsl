@@ -29,6 +29,16 @@ import org.springframework.util.Assert;
  */
 public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileSplitter> {
 
+	private final boolean iterator;
+
+	private boolean markers;
+
+	private boolean markersJson;
+
+	private Charset charset;
+
+	private boolean applySequence;
+
 	FileSplitterSpec() {
 		this(true);
 	}
@@ -38,7 +48,8 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	}
 
 	FileSplitterSpec(boolean iterator, boolean markers) {
-		this.target = new FileSplitter(iterator, markers);
+		this.iterator = iterator;
+		this.markers = markers;
 	}
 
 	public FileSplitterSpec charset(String charset) {
@@ -47,8 +58,58 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	}
 
 	public FileSplitterSpec charset(Charset charset) {
-		this.target.setCharset(charset);
-		return _this();
+		this.charset = charset;
+		return this;
+	}
+
+	/**
+	 * Specify if {@link FileSplitter} should emit
+	 * {@link org.springframework.integration.file.splitter.FileSplitter.FileMarker}s
+	 * Defaults to {@code false}.
+	 * @return the FileSplitterSpec
+	 * @since 1.2
+	 * @see FileSplitter
+	 */
+	public FileSplitterSpec markers() {
+		return markers(false);
+	}
+
+	/**
+	 * Specify if {@link FileSplitter} should emit
+	 * {@link org.springframework.integration.file.splitter.FileSplitter.FileMarker}s
+	 * and if they should be converted to the JSON string representation.
+	 * Defaults to {@code false} for markers and {@code false} for markersJson.
+	 * @param asJson the asJson flag to use.
+	 * @return the FileSplitterSpec
+	 * @since 1.2
+	 * @see FileSplitter
+	 */
+	public FileSplitterSpec markers(boolean asJson) {
+		this.markers = true;
+		this.markersJson = asJson;
+		return this;
+	}
+
+	/**
+	 * A {@code boolean} flag to indicate if {@code sequenceDetails} should be
+	 * applied for messages based on the lines from file.
+	 * Defaults to {@code false}.
+	 * @param applySequence the applySequence flag to use.
+	 * @return the FileSplitterSpec
+	 * @since 1.2
+	 * @see org.springframework.integration.splitter.AbstractMessageSplitter#setApplySequence(boolean)
+	 */
+	public FileSplitterSpec applySequence(boolean applySequence) {
+		this.applySequence = applySequence;
+		return this;
+	}
+
+
+	@Override
+	protected FileSplitter doGet() {
+		FileSplitter fileSplitter = new FileSplitter(this.iterator, this.markers, this.markersJson);
+		fileSplitter.setApplySequence(this.applySequence);
+		return fileSplitter;
 	}
 
 }

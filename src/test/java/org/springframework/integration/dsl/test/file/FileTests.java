@@ -70,6 +70,7 @@ import org.springframework.integration.dsl.support.Transformers;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.splitter.FileSplitter;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.support.MessageBuilder;
@@ -245,10 +246,16 @@ public class FileTests {
 		file.close();
 
 		Message<?> receive = this.fileSplittingResultChannel.receive(10000);
-		assertNotNull(receive); //HelloWorld
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(FileSplitter.FileMarker.class)); // FileMarker.Mark.START
 		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.fileSplittingResultChannel.receive(10000);
+		assertNotNull(receive); //HelloWorld
+		receive = this.fileSplittingResultChannel.receive(10000);
 		assertNotNull(receive); //äöüß
+		receive = this.fileSplittingResultChannel.receive(10000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(FileSplitter.FileMarker.class)); // FileMarker.Mark.END
 		assertNull(this.fileSplittingResultChannel.receive(1));
 	}
 
@@ -382,7 +389,7 @@ public class FileTests {
 					.from(s -> s.file(tmpDir.getRoot())
 									.patternFilter("foo.tmp"),
 							e -> e.poller(p -> p.fixedDelay(100)))
-					.split(Files.splitter())
+					.split(Files.splitter().markers().applySequence(true))
 					.channel(c -> c.queue("fileSplittingResultChannel"))
 					.get();
 		}

@@ -112,7 +112,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 			}
 		}
 
-		for (String beanName : this.beanFactory.getBeanDefinitionNames()) {
+		for (String beanName : this.beanFactory.getBeanNamesForType(IntegrationFlow.class)) {
 			if (this.beanFactory.containsBeanDefinition(beanName)) {
 				String scope = this.beanFactory.getBeanDefinition(beanName).getScope();
 				if (StringUtils.hasText(scope) && !BeanDefinition.SCOPE_SINGLETON.equals(scope)) {

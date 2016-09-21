@@ -187,6 +187,12 @@ public class ManualFlowTests {
 	@EnableIntegration
 	public static class RootConfiguration {
 
+		@Bean
+		@RequestScope
+		public Date foo() {
+			return new Date();
+		}
+
 	}
 
 	private static class MyFlowAdapter extends IntegrationFlowAdapter {

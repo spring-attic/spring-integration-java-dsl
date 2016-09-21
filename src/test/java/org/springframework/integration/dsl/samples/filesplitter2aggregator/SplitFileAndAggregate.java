@@ -100,9 +100,10 @@ public class SplitFileAndAggregate {
 
 		@ReleaseStrategy
 		public boolean release(List<Message<?>> messages) {
-			return messages.stream()
-					.anyMatch(m ->
-							FileSplitter.FileMarker.Mark.END.name().equals(m.getHeaders().get(FileHeaders.MARKER)));
+			return FileSplitter.FileMarker.Mark.END.name()
+					.equals(messages.get(messages.size() - 1)
+							.getHeaders()
+							.get(FileHeaders.MARKER));
 		}
 
 		@Aggregator

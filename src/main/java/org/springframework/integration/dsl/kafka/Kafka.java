@@ -88,13 +88,14 @@ public abstract class Kafka {
 	@Deprecated
 	public static KafkaMessageDrivenChannelAdapterSpec messageDriverChannelAdapter(
 			KafkaMessageListenerContainer messageListenerContainer) {
-		return new KafkaMessageDrivenChannelAdapterSpec(messageListenerContainer);
+		return messageDrivenChannelAdapter(messageListenerContainer);
 	}
 
 	/**
 	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}.
 	 * @param messageListenerContainer the {@link KafkaMessageListenerContainer}.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.
+	 * @since 1.2
 	 */
 	@SuppressWarnings("rawtypes")
 	public static KafkaMessageDrivenChannelAdapterSpec messageDrivenChannelAdapter(
@@ -113,9 +114,7 @@ public abstract class Kafka {
 	@Deprecated
 	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
 	messageDriverChannelAdapter(ConnectionFactory connectionFactory, Partition... partitions) {
-		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(connectionFactory,
-						partitions));
+		return messageDrivenChannelAdapter(connectionFactory, partitions);
 	}
 
 	/**
@@ -124,6 +123,7 @@ public abstract class Kafka {
 	 * @param connectionFactory the {@link ConnectionFactory}.
 	 * @param partitions the {@link Partition} vararg.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
+	 * @since 1.2
 	 */
 	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Partition... partitions) {
@@ -143,8 +143,7 @@ public abstract class Kafka {
 	@Deprecated
 	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
 	messageDriverChannelAdapter(ConnectionFactory connectionFactory, String... topics) {
-		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(connectionFactory, topics));
+		return messageDrivenChannelAdapter(connectionFactory, topics);
 	}
 
 	/**
@@ -153,6 +152,7 @@ public abstract class Kafka {
 	 * @param connectionFactory the {@link ConnectionFactory}.
 	 * @param topics the Kafka topic name vararg.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
+	 * @since 1.2
 	 */
 	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory, String... topics) {

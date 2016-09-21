@@ -16,18 +16,20 @@
 
 package org.springframework.integration.dsl.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
 
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.dsl.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
@@ -45,7 +47,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	private final List<Advice> adviceChain = new LinkedList<Advice>();
 
-	private TransactionInterceptor transactionInterceptor;
+	private final Collection<Object> componentToRegister = new ArrayList<Object>();
 
 	PollerSpec(Trigger trigger) {
 		this.target = new PollerMetadata();
@@ -76,6 +78,21 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	public PollerSpec errorHandler(ErrorHandler errorHandler) {
 		this.target.setErrorHandler(errorHandler);
 		return this;
+	}
+
+	/**
+	 * Specify a {@link MessageChannel} to use for sending error message in case
+	 * of polling failures.
+	 * @param errorChannel the {@link MessageChannel} to use.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see MessagePublishingErrorHandler
+	 */
+	public PollerSpec errorChannel(MessageChannel errorChannel) {
+		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+		errorHandler.setDefaultErrorChannel(errorChannel);
+		this.componentToRegister.add(errorHandler);
+		return errorHandler(errorHandler);
 	}
 
 	/**
@@ -131,8 +148,9 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * @since 1.2
 	 */
 	public PollerSpec transactional() {
-		this.transactionInterceptor = new TransactionInterceptorBuilder().build();
-		return transactional(this.transactionInterceptor);
+		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder().build();
+		this.componentToRegister.add(transactionInterceptor);
+		return transactional(transactionInterceptor);
 	}
 
 	/**
@@ -163,12 +181,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		if (this.transactionInterceptor != null) {
-			return Collections.<Object>singletonList(this.transactionInterceptor);
-		}
-		else {
-			return null;
-		}
+		return this.componentToRegister;
 	}
 
 }

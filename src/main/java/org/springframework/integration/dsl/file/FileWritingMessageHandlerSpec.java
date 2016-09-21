@@ -30,6 +30,7 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -115,6 +116,71 @@ public class FileWritingMessageHandlerSpec
 	 */
 	public FileWritingMessageHandlerSpec appendNewLine(boolean appendNewLine) {
 		this.target.setAppendNewLine(appendNewLine);
+		return this;
+	}
+
+	/**
+	 * Set the buffer size to use while writing to files; default 8192.
+	 * @param bufferSize the buffer size.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see FileWritingMessageHandler#setBufferSize(int)
+	 */
+	public FileWritingMessageHandlerSpec bufferSize(int bufferSize) {
+		this.target.setBufferSize(bufferSize);
+		return this;
+	}
+
+	/**
+	 * Set the frequency to flush buffers when {@link FileExistsMode#APPEND_NO_FLUSH} is
+	 * being used.
+	 * @param flushInterval the interval.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see FileWritingMessageHandler#setBufferSize(int)
+	 */
+	public FileWritingMessageHandlerSpec flushInterval(long flushInterval) {
+		this.target.setFlushInterval(flushInterval);
+		return this;
+	}
+
+	/**
+	 * Specify a {@link TaskScheduler} for flush task when the {@link FileExistsMode#APPEND_NO_FLUSH} is in use.
+	 * @param taskScheduler the {@link TaskScheduler} to use.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see FileWritingMessageHandler#setTaskScheduler(TaskScheduler)
+	 */
+	public FileWritingMessageHandlerSpec taskScheduler(TaskScheduler taskScheduler) {
+		this.target.setTaskScheduler(taskScheduler);
+		return this;
+	}
+
+	/**
+	 * Specify a {@link FileWritingMessageHandler.MessageFlushPredicate} for flush task
+	 * when the {@link FileExistsMode#APPEND_NO_FLUSH} is in use.
+	 * @param flushPredicate the {@link FileWritingMessageHandler.MessageFlushPredicate} to use.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see FileWritingMessageHandler#setFlushPredicate(FileWritingMessageHandler.MessageFlushPredicate)
+	 */
+	public FileWritingMessageHandlerSpec flushPredicate(
+			FileWritingMessageHandler.MessageFlushPredicate flushPredicate) {
+		this.target.setFlushPredicate(flushPredicate);
+		return this;
+	}
+
+	/**
+	 * Set to true to preserve the destination file timestamp. If true and
+	 * the payload is a {@link File}, the payload's {@code lastModified} time will be
+	 * transferred to the destination file.
+	 * @param preserveTimestamp the {@code boolean} flag to use.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see FileWritingMessageHandler#setPreserveTimestamp(boolean)
+	 */
+	public FileWritingMessageHandlerSpec preserveTimestamp(boolean preserveTimestamp) {
+		this.target.setPreserveTimestamp(preserveTimestamp);
 		return this;
 	}
 

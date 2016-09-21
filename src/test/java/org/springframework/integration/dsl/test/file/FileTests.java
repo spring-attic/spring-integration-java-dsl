@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -68,6 +70,7 @@ import org.springframework.integration.dsl.support.Transformers;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -131,6 +134,13 @@ public class FileTests {
 	@Qualifier("fileSplittingResultChannel")
 	private PollableChannel fileSplittingResultChannel;
 
+	@Autowired
+	@Qualifier("fileTriggerFlow.input")
+	private MessageChannel fileTriggerFlowInput;
+
+	@Autowired
+	private CountDownLatch flushPredicateCalled;
+
 	@Test
 	public void testFileHandler() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(FileHeaders.FILENAME, "foo").build();
@@ -156,6 +166,9 @@ public class FileTests {
 		this.fileFlow1Input.send(message);
 
 		assertTrue(new File(tmpDir.getRoot(), "foo").exists());
+
+		this.fileTriggerFlowInput.send(new GenericMessage<>("trigger"));
+		assertTrue(this.flushPredicateCalled.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -284,9 +297,25 @@ public class FileTests {
 		}
 
 		@Bean
+		public IntegrationFlow fileTriggerFlow() {
+			return f -> f.handle("fileWriting.handler", "trigger");
+		}
+
+		@Bean
+		public CountDownLatch flushPredicateCalled() {
+			return new CountDownLatch(1);
+		}
+
+		@Bean
 		public IntegrationFlow fileFlow1() {
 			return IntegrationFlows.from("fileFlow1Input")
-					.handleWithAdapter(h -> h.file(tmpDir.getRoot()).fileNameGenerator(message -> null),
+					.handleWithAdapter(h -> h.file(tmpDir.getRoot())
+									.fileNameGenerator(message -> null)
+									.fileExistsMode(FileExistsMode.APPEND_NO_FLUSH)
+									.flushPredicate((fileAbsolutePath, lastWrite, filterMessage) -> {
+										flushPredicateCalled().countDown();
+										return true;
+									}),
 							c -> c.id("fileWriting"))
 					.get();
 		}

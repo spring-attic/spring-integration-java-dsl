@@ -76,6 +76,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
@@ -176,6 +177,8 @@ public class FileTests {
 		file.close();
 	}
 
+	@Autowired
+	private PollableChannel filePollingErrorChannel;
 
 	@Test
 	public void testFileReadingFlow() throws Exception {
@@ -200,6 +203,11 @@ public class FileTests {
 		List<String> result = (List<String>) payload;
 		assertEquals(25, result.size());
 		result.forEach(s -> assertTrue(evens.contains(Integer.parseInt(s))));
+
+		new File(tmpDir.getRoot(), "a.sitest").createNewFile();
+		Message<?> receive = this.filePollingErrorChannel.receive(60000);
+		assertNotNull(receive);
+		assertThat(receive, instanceOf(ErrorMessage.class));
 	}
 
 	@Test
@@ -312,12 +320,20 @@ public class FileTests {
 									.useWatchService(true)
 									.watchEvents(FileReadingMessageSource.WatchEventType.CREATE,
 											FileReadingMessageSource.WatchEventType.MODIFY),
-							e -> e.poller(Pollers.fixedDelay(100)))
+							e -> e.poller(Pollers.fixedDelay(100)
+									.errorChannel(filePollingErrorChannel())))
+					.filter(File.class, p -> !p.getName().startsWith("a"),
+							e -> e.throwExceptionOnRejection(true))
 					.transform(Transformers.fileToString())
 					.aggregate(a -> a.correlationExpression("1")
 							.releaseStrategy(g -> g.size() == 25))
 					.channel(MessageChannels.queue("fileReadingResultChannel"))
 					.get();
+		}
+
+		@Bean
+		public PollableChannel filePollingErrorChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean

@@ -31,9 +31,10 @@ import org.springframework.kafka.support.TopicPartitionInitialOffset;
  * Factory class for Kafka-0.9 components.
  *
  * @author Artem Bilan
+ * @author Nasko Vasilev
  * @since 1.2
  */
-public abstract class Kafka09 {
+public final class Kafka09 {
 
 	/**
 	 * Create an initial {@link Kafka09ProducerMessageHandlerSpec}.
@@ -69,7 +70,7 @@ public abstract class Kafka09 {
 	 * @return the Kafka09MessageDrivenChannelAdapterSpec.
 	 */
 	public static <K, V, A extends Kafka09MessageDrivenChannelAdapterSpec<K, V, A>>
-	Kafka09MessageDrivenChannelAdapterSpec<K, V, A> messageDriverChannelAdapter(
+	Kafka09MessageDrivenChannelAdapterSpec<K, V, A> messageDrivenChannelAdapter(
 			AbstractMessageListenerContainer<K, V> listenerContainer) {
 		return new Kafka09MessageDrivenChannelAdapterSpec<K, V, A>(listenerContainer);
 	}
@@ -85,8 +86,8 @@ public abstract class Kafka09 {
 	 */
 	public static <K, V>
 	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties) {
-		return messageDriverChannelAdapter(
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties) {
+		return messageDrivenChannelAdapter(
 				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						containerProperties));
 	}
@@ -102,8 +103,8 @@ public abstract class Kafka09 {
 	 */
 	public static <K, V>
 	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, TopicPartitionInitialOffset... topicPartitions) {
-		return messageDriverChannelAdapter(
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, TopicPartitionInitialOffset... topicPartitions) {
+		return messageDrivenChannelAdapter(
 				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						topicPartitions));
 	}
@@ -119,8 +120,8 @@ public abstract class Kafka09 {
 	 */
 	public static <K, V>
 	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, String... topics) {
-		return messageDriverChannelAdapter(
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, String... topics) {
+		return messageDrivenChannelAdapter(
 				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						topics));
 	}
@@ -136,17 +137,20 @@ public abstract class Kafka09 {
 	 */
 	public static <K, V>
 	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-	messageDriverChannelAdapter(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
-		return messageDriverChannelAdapter(
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
+		return messageDrivenChannelAdapter(
 				new Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
 						topicPattern));
 	}
 
 	private static <K, V>
 	Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-	messageDriverChannelAdapter(Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V> spec) {
+	messageDrivenChannelAdapter(Kafka09MessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V> spec) {
 		return new Kafka09MessageDrivenChannelAdapterSpec
 				.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>(spec);
+	}
+
+	private Kafka09() {
 	}
 
 }

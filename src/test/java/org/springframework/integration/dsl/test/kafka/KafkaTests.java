@@ -84,6 +84,7 @@ import scala.collection.JavaConversions;
 
 /**
  * @author Artem Bilan
+ * @author Nasko Vasilev
  * @since 1.1
  */
 @ContextConfiguration
@@ -215,7 +216,7 @@ public class KafkaTests {
 		public IntegrationFlow listeningFromKafkaFlow(ConnectionFactory connectionFactory,
 				MetadataStoreOffsetManager offsetManager) {
 			return IntegrationFlows
-					.from(Kafka.messageDriverChannelAdapter(connectionFactory, TEST_TOPIC)
+					.from(Kafka.messageDrivenChannelAdapter(connectionFactory, TEST_TOPIC)
 							.autoCommitOffset(false)
 							.payloadDecoder(String::new)
 							.keyDecoder(b -> Integer.valueOf(new String(b)))

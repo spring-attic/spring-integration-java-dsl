@@ -85,6 +85,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Nasko Vasilev
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -127,7 +128,7 @@ public class JmsTests {
 	private MessageHandler jmsOutboundGatewayHandler;
 
 	@Autowired
-	private AtomicBoolean jmsMessageDriverChannelCalled;
+	private AtomicBoolean jmsMessageDrivenChannelCalled;
 
 	@Autowired
 	private AtomicBoolean jmsInboundGatewayChannelCalled;
@@ -169,7 +170,7 @@ public class JmsTests {
 		assertNotNull(receive);
 		assertEquals("hello through the jms", receive.getPayload());
 
-		assertTrue(this.jmsMessageDriverChannelCalled.get());
+		assertTrue(this.jmsMessageDrivenChannelCalled.get());
 
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
@@ -313,7 +314,7 @@ public class JmsTests {
 		}
 
 		@Bean
-		public AtomicBoolean jmsMessageDriverChannelCalled() {
+		public AtomicBoolean jmsMessageDrivenChannelCalled() {
 			return new AtomicBoolean();
 		}
 
@@ -324,7 +325,7 @@ public class JmsTests {
 
 				@Override
 				public Message<?> preSend(Message<?> message, MessageChannel channel) {
-					jmsMessageDriverChannelCalled().set(true);
+					jmsMessageDrivenChannelCalled().set(true);
 					return super.preSend(message, channel);
 				}
 

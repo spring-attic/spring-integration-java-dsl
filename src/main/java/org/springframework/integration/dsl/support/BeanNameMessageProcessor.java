@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package org.springframework.integration.dsl.support;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.messaging.Message;
@@ -32,24 +35,45 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  */
-public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware {
+public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware, Lifecycle {
 
-	private final String object;
+	private final String beanName;
 
 	private final String methodName;
 
+	private final AtomicBoolean running = new AtomicBoolean();
+
 	private MessageProcessor<T> delegate;
 
+	private BeanFactory beanFactory;
+
 	public BeanNameMessageProcessor(String object, String methodName) {
-		this.object = object;
+		this.beanName = object;
 		this.methodName = methodName;
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.notNull(beanFactory);
-		Object target = beanFactory.getBean(this.object);
-		this.delegate = new MethodInvokingMessageProcessor<T>(target, this.methodName);
+		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public void start() {
+		if (!this.running.getAndSet(true)) {
+			Object target = this.beanFactory.getBean(this.beanName);
+			this.delegate = new MethodInvokingMessageProcessor<T>(target, this.methodName);
+		}
+	}
+
+	@Override
+	public void stop() {
+		this.running.set(false);
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running.get();
 	}
 
 	@Override

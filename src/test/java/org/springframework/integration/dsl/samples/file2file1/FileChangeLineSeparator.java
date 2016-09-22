@@ -18,12 +18,10 @@ package org.springframework.integration.dsl.samples.file2file1;
 
 import java.io.File;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.core.Pollers;
@@ -37,9 +35,7 @@ import org.springframework.integration.dsl.support.Transformers;
  * @since 1.1
  *
  */
-@Configuration
-@EnableIntegration
-@EnableAutoConfiguration
+@SpringBootApplication
 public class FileChangeLineSeparator {
 
 	public static void main(String[] args) throws Exception {

@@ -191,13 +191,20 @@ dependencies {
 [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:all,-options,-processing']
 
 test {
-	// suppress all console output during testing unless running `gradle -i`
-	logging.captureStandardOutput(LogLevel.INFO)
-	maxHeapSize = "1024m"
 	jacoco {
 		append = false
 		destinationFile = file("$buildDir/jacoco.exec")
 	}
+}
+
+tasks.withType(Test).all {
+	// suppress all console output during testing unless running `gradle -i`
+	logging.captureStandardOutput(LogLevel.INFO)
+	maxHeapSize = "1024m"
+	if (name == 'springIoJdk8Test') {
+		exclude '**/*KafkaTests*'
+	}
+
 }
 
 checkstyle {

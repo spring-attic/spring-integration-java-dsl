@@ -18,20 +18,17 @@ package org.springframework.integration.dsl.context;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -53,17 +50,24 @@ import org.springframework.util.Assert;
  * messages to the {@link IntegrationFlow}
  * <li> remove the {@link IntegrationFlow} by its {@code id} from this {@link IntegrationFlowContext}
  * </ul>
+ * <p>
+ * For convenience an associated {@link IntegrationFlowRegistration} is returned after registration.
+ * It can be used for access to the target {@link IntegrationFlow} or for manipulation with its lifecycle.
  *
  * @author Artem Bilan
+ *
  * @since 1.2
+ *
+ * @see IntegrationFlowRegistration
  */
 public final class IntegrationFlowContext implements BeanFactoryAware {
 
-	private final Map<String, IntegrationFlow> registry = new HashMap<String, IntegrationFlow>();
-
-	private final Map<String, MessageChannel> flowInputChannelCache = new ConcurrentHashMap<String, MessageChannel>();
+	private final Map<String, IntegrationFlowRegistration> registry =
+			new HashMap<String, IntegrationFlowRegistration>();
 
 	private ConfigurableListableBeanFactory beanFactory;
+
+	private AutowiredAnnotationBeanPostProcessor autowiredAnnotationBeanPostProcessor;
 
 	private IntegrationFlowContext() {
 	}
@@ -75,69 +79,62 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 						"'ConfigurableListableBeanFactory'. " +
 						"Consider using 'GenericApplicationContext' implementation.");
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.autowiredAnnotationBeanPostProcessor = new AutowiredAnnotationBeanPostProcessor();
+		this.autowiredAnnotationBeanPostProcessor.setBeanFactory(this.beanFactory);
 	}
 
 	/**
-	 * Register provided {@link IntegrationFlow} with generated {@code id}
-	 * in the application context as a bean together with all its dependant components.
-	 * And preform its lifecycle start.
+	 * Associate provided {@link IntegrationFlow} with an {@link IntegrationFlowRegistrationBuilder}
+	 * for additional options and farther registration in the application context.
 	 * @param integrationFlow the {@link IntegrationFlow} to register
-	 * @return a generated id for the provided {@link IntegrationFlow}
+	 * @return the IntegrationFlowRegistrationBuilder associated with the provided {@link IntegrationFlow}
 	 */
-	public String register(IntegrationFlow integrationFlow) {
-		return register(integrationFlow, true);
+	public IntegrationFlowRegistrationBuilder registration(IntegrationFlow integrationFlow) {
+		return new IntegrationFlowRegistrationBuilder(integrationFlow);
 	}
 
-	/**
-	 * Register provided {@link IntegrationFlow} with generated {@code id}
-	 * in the application context as a bean together with all its dependant components.
-	 * And preform its lifecycle start if {@code autoStartup == true}.
-	 * @param integrationFlow the {@link IntegrationFlow} to register
-	 * @param autoStartup to start or not the {@link IntegrationFlow} automatically after registration
-	 * @return a generated id for the provided {@link IntegrationFlow}
-	 */
-	public String register(IntegrationFlow integrationFlow, boolean autoStartup) {
-		String id = generateBeanName(integrationFlow);
-		register(id, integrationFlow, autoStartup);
-		return id;
-	}
+	private void register(IntegrationFlowRegistrationBuilder builder) {
+		IntegrationFlow integrationFlow = builder.integrationFlowRegistration.getIntegrationFlow();
+		String flowId = builder.integrationFlowRegistration.getId();
+		if (flowId == null) {
+			flowId = generateBeanName(integrationFlow, null);
+			builder.id(flowId);
+		}
+		IntegrationFlow theFlow = (IntegrationFlow) registerBean(integrationFlow, flowId, null);
+		builder.integrationFlowRegistration.setIntegrationFlow(theFlow);
 
-	/**
-	 * Register provided {@link IntegrationFlow} under provided {@code id}
-	 * in the application context as a bean together with all its dependant components.
-	 * And preform its lifecycle start.
-	 * @param flowId the bean name to register for
-	 * @param integrationFlow the {@link IntegrationFlow} to register
-	 */
-	public void register(String flowId, IntegrationFlow integrationFlow) {
-		register(flowId, integrationFlow, true);
-	}
-
-	/**
-	 * Register provided {@link IntegrationFlow} under provided {@code id}
-	 * in the application context as a bean together with all its dependant components.
-	 * And preform its lifecycle start.
-	 * @param flowId the bean name to register for
-	 * @param integrationFlow the {@link IntegrationFlow} to register
-	 * @param autoStartup to start or not the {@link IntegrationFlow} automatically after registration
-	 */
-	public void register(String flowId, IntegrationFlow integrationFlow, boolean autoStartup) {
-		IntegrationFlow theFlow = (IntegrationFlow) this.beanFactory.initializeBean(integrationFlow, flowId);
-		this.beanFactory.registerSingleton(flowId, theFlow);
-
-		if (autoStartup) {
-			if (theFlow instanceof Lifecycle) {
-				((Lifecycle) theFlow).start();
-			}
-			else {
-				throw new IllegalStateException("For 'autoStartup' mode the 'IntegrationFlow' " +
-						"must be an instance of 'Lifecycle'.\n" +
-						"Consider to implement it for [" + integrationFlow + "]. " +
-						"Or start dependent components on their own.");
-			}
+		for (Map.Entry<Object, String> entry : builder.additionalBeans.entrySet()) {
+			registerBean(entry.getKey(), entry.getValue(), flowId);
 		}
 
-		this.registry.put(flowId, theFlow);
+		if (builder.autoStartup) {
+			builder.integrationFlowRegistration.start();
+		}
+		this.registry.put(flowId, builder.integrationFlowRegistration);
+	}
+
+	private Object registerBean(Object bean, String beanName, String parentName) {
+		if (beanName == null) {
+			beanName = generateBeanName(bean, parentName);
+		}
+
+		bean = this.beanFactory.initializeBean(bean, beanName);
+		this.beanFactory.registerSingleton(beanName, bean);
+		this.autowiredAnnotationBeanPostProcessor.processInjection(bean);
+		if (parentName != null) {
+			this.beanFactory.registerDependentBean(parentName, beanName);
+		}
+		return bean;
+	}
+
+	/**
+	 * Obtain an {@link IntegrationFlowRegistration} for the {@link IntegrationFlow}
+	 * associated with the provided {@code flowId}.
+	 * @param flowId the bean name to obtain
+	 * @return the IntegrationFlowRegistration for provided {@code id} or {@code null}
+	 */
+	public IntegrationFlowRegistration getRegistrationById(String flowId) {
+		return this.registry.get(flowId);
 	}
 
 	/**
@@ -147,12 +144,9 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 */
 	public synchronized void remove(String flowId) {
 		if (this.registry.containsKey(flowId)) {
-			IntegrationFlow theFlow = this.registry.remove(flowId);
-			if (theFlow instanceof Lifecycle) {
-				((Lifecycle) theFlow).stop();
-			}
+			IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
+			flowRegistration.stop();
 			((DefaultSingletonBeanRegistry) this.beanFactory).destroySingleton(flowId);
-			this.flowInputChannelCache.remove(flowId);
 		}
 		else {
 			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. "
@@ -170,60 +164,65 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 * @return the {@link MessagingTemplate} instance
 	 */
 	public MessagingTemplate messagingTemplateFor(String flowId) {
-		MessageChannel channel = this.flowInputChannelCache.get(flowId);
-		if (channel == null) {
-			Object o = this.registry.get(flowId);
-			if (o instanceof StandardIntegrationFlow) {
-				StandardIntegrationFlow integrationFlow = (StandardIntegrationFlow) o;
-				Object next = integrationFlow.getIntegrationComponents().iterator().next();
-				if (next instanceof MessageChannel) {
-					channel = (MessageChannel) next;
-					this.flowInputChannelCache.put(flowId, channel);
-				}
-				else {
-					throw new IllegalStateException("The 'IntegrationFlow' [" + integrationFlow + "] " +
-							"doesn't start with 'MessageChannel' for direct message sending.");
-				}
-			}
-			else {
-				throw new IllegalStateException("Only 'StandardIntegrationFlow' instances " +
-						"(e.g. extracted from 'IntegrationFlow' Lambdas) can be used for direct 'send' operation. " +
-						"But [" + o + "] ins't one of them.\n" +
-						"Consider 'BeanFactory.getBean()' usage for sending messages " +
-						"to the required 'MessageChannel'.");
-			}
-		}
-
-		MessagingTemplate messagingTemplate = new MessagingTemplate(channel) {
-
-			@Override
-			public Message<?> receive() {
-				return receiveAndConvert(Message.class);
-			}
-
-			@Override
-			public <T> T receiveAndConvert(Class<T> targetClass) {
-				throw new UnsupportedOperationException("The 'receive()/receiveAndConvert()' isn't supported on " +
-						"the 'IntegrationFlow' input channel.");
-			}
-
-		};
-		messagingTemplate.setBeanFactory(this.beanFactory);
-		return messagingTemplate;
+		return this.registry.get(flowId).getMessagingTemplate();
 	}
 
-	private String generateBeanName(Object instance) {
+	private String generateBeanName(Object instance, String parentName) {
 		if (instance instanceof NamedComponent && ((NamedComponent) instance).getComponentName() != null) {
 			return ((NamedComponent) instance).getComponentName();
 		}
-		String generatedBeanName = instance.getClass().getName();
-		String id = instance.getClass().getName();
+		String generatedBeanName = (parentName != null ? parentName : "") + instance.getClass().getName();
+		String id = generatedBeanName;
 		int counter = -1;
 		while (counter == -1 || this.beanFactory.containsBean(id)) {
 			counter++;
 			id = generatedBeanName + BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + counter;
 		}
 		return id;
+	}
+
+	/**
+	 * A Builder pattern implementation for the options to register {@link IntegrationFlow}
+	 * in the application context.
+	 */
+	public final class IntegrationFlowRegistrationBuilder {
+
+		private Map<Object, String> additionalBeans = new HashMap<Object, String>();
+
+		private final IntegrationFlowRegistration integrationFlowRegistration;
+
+		private boolean autoStartup = true;
+
+		private IntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
+			this.integrationFlowRegistration = new IntegrationFlowRegistration(integrationFlow);
+			this.integrationFlowRegistration.setBeanFactory(IntegrationFlowContext.this.beanFactory);
+			this.integrationFlowRegistration.setIntegrationFlowContext(IntegrationFlowContext.this);
+		}
+
+		public IntegrationFlowRegistrationBuilder id(String id) {
+			this.integrationFlowRegistration.setId(id);
+			return this;
+		}
+
+		public IntegrationFlowRegistrationBuilder autoStartup(boolean autoStartup) {
+			this.autoStartup = autoStartup;
+			return this;
+		}
+
+		public IntegrationFlowRegistrationBuilder addBean(Object bean) {
+			return addBean(null, bean);
+		}
+
+		public IntegrationFlowRegistrationBuilder addBean(String name, Object bean) {
+			this.additionalBeans.put(bean, name);
+			return this;
+		}
+
+		public IntegrationFlowRegistration register() {
+			IntegrationFlowContext.this.register(this);
+			return this.integrationFlowRegistration;
+		}
+
 	}
 
 }

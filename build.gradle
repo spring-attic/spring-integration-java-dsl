@@ -220,6 +220,7 @@ jacocoTestReport {
 	}
 }
 
+check.dependsOn javadoc
 build.dependsOn jacocoTestReport
 
 task sourcesJar(type: Jar) {

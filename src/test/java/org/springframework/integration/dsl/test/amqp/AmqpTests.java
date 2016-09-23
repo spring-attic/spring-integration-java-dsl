@@ -16,11 +16,9 @@
 
 package org.springframework.integration.dsl.test.amqp;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -127,17 +125,13 @@ public class AmqpTests {
 	}
 
 	@Test
-	public void test41() {
-		try {
-			IntegrationFlowBuilder flow = IntegrationFlows.from(Amqp.channel("test41", this.rabbitConnectionFactory)
-					.autoStartup(false)
-					.templateChannelTransacted(true));
-			assertTrue(TestUtils.getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional",
-					Boolean.class));
-		}
-		catch (UnsupportedOperationException e) {
-			assertThat(e.getMessage(), containsString("Requires Spring Integration 4.1 or higher."));
-		}
+	public void testTemplateChannelTransacted() {
+		IntegrationFlowBuilder flow = IntegrationFlows.from(Amqp.channel("testTemplateChannelTransacted",
+				this.rabbitConnectionFactory)
+				.autoStartup(false)
+				.templateChannelTransacted(true));
+		assertTrue(TestUtils.getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional",
+				Boolean.class));
 	}
 
 	@Autowired
@@ -247,12 +241,12 @@ public class AmqpTests {
 		@Bean
 		public AbstractAmqpChannel unitChannel(ConnectionFactory rabbitConnectionFactory) {
 			return Amqp.pollableChannel(rabbitConnectionFactory)
-							.queueName("foo")
-							.channelTransacted(true)
-							.extractPayload(true)
-							.inboundHeaderMapper(mapperIn())
-							.outboundHeaderMapper(mapperOut())
-							.defaultDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
+					.queueName("foo")
+					.channelTransacted(true)
+					.extractPayload(true)
+					.inboundHeaderMapper(mapperIn())
+					.outboundHeaderMapper(mapperOut())
+					.defaultDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)
 					.get();
 		}
 

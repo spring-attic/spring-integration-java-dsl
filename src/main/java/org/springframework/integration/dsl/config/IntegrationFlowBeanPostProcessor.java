@@ -28,6 +28,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -72,6 +73,8 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 
 	private ConfigurableListableBeanFactory beanFactory;
 
+	private AutowiredAnnotationBeanPostProcessor autowiredAnnotationBeanPostProcessor;
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
@@ -80,6 +83,8 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		);
 
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.autowiredAnnotationBeanPostProcessor = new AutowiredAnnotationBeanPostProcessor();
+		this.autowiredAnnotationBeanPostProcessor.setBeanFactory(this.beanFactory);
 	}
 
 	@Override
@@ -268,13 +273,14 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		if (component instanceof ApplicationListener) {
 			this.applicationListeners.add((ApplicationListener<?>) component);
 		}
+		this.autowiredAnnotationBeanPostProcessor.processInjection(component);
+		this.beanFactory.initializeBean(component, beanName);
 		if (registerSingleton) {
 			this.beanFactory.registerSingleton(beanName, component);
 			if (parentName != null) {
 				this.beanFactory.registerDependentBean(parentName, beanName);
 			}
 		}
-		this.beanFactory.initializeBean(component, beanName);
 	}
 
 	private String generateBeanName(Object instance) {
@@ -282,7 +288,7 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 			return ((NamedComponent) instance).getComponentName();
 		}
 		String generatedBeanName = instance.getClass().getName();
-		String id = instance.getClass().getName();
+		String id = generatedBeanName;
 		int counter = -1;
 		while (counter == -1 || this.beanFactory.containsBean(id)) {
 			counter++;

@@ -21,10 +21,12 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
@@ -44,6 +46,8 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -77,11 +81,22 @@ public class ManualFlowTests {
 						.poller(p -> p
 								.fixedDelay(10)
 								.maxMessagesPerPoll(1)
-								.receiveTimeout(10)));
+								.receiveTimeout(10)))
+				.handle(new BeanFactoryHandler());
 
-		String flowId = this.integrationFlowContext.register(myFlow);
+		BeanFactoryHandler additionalBean = new BeanFactoryHandler();
+		IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(myFlow)
+						.addBean(additionalBean)
+						.register();
 
-		MessagingTemplate messagingTemplate = this.integrationFlowContext.messagingTemplateFor(flowId);
+		BeanFactoryHandler bean =
+				this.beanFactory.getBean(flowRegistration.getId() + BeanFactoryHandler.class.getName() + "#0",
+						BeanFactoryHandler.class);
+		assertSame(additionalBean, bean);
+		assertSame(this.beanFactory, bean.beanFactory);
+
+		MessagingTemplate messagingTemplate = flowRegistration.getMessagingTemplate();
 		messagingTemplate.setReceiveTimeout(10000);
 
 		assertEquals("Hello, FOO", messagingTemplate.convertSendAndReceive("foo", String.class));
@@ -97,10 +112,11 @@ public class ManualFlowTests {
 			assertThat(e.getMessage(), containsString("The 'receive()/receiveAndConvert()' isn't supported"));
 		}
 
-		this.integrationFlowContext.remove(flowId);
+		flowRegistration.destroy();
 
-		assertFalse(this.beanFactory.containsBean(flowId));
-		assertFalse(this.beanFactory.containsBean(flowId + ".input"));
+		assertFalse(this.beanFactory.containsBean(flowRegistration.getId()));
+		assertFalse(this.beanFactory.containsBean(flowRegistration.getId() + ".input"));
+		assertFalse(this.beanFactory.containsBean(flowRegistration.getId() + BeanFactoryHandler.class.getName() + "#0"));
 
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
 		Thread.sleep(100);
@@ -122,10 +138,12 @@ public class ManualFlowTests {
 		IntegrationFlow testFlow = new MyIntegrationFlow();
 
 		// This is fine because we are not going to start it automatically.
-		assertNotNull(this.integrationFlowContext.register(testFlow, false));
+		assertNotNull(this.integrationFlowContext.registration(testFlow)
+				.autoStartup(false)
+				.register());
 
 		try {
-			this.integrationFlowContext.register(testFlow);
+			this.integrationFlowContext.registration(testFlow).register();
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
@@ -147,11 +165,13 @@ public class ManualFlowTests {
 	public void testDynamicSubFlow() {
 		PollableChannel resultChannel = new QueueChannel();
 
-		this.integrationFlowContext.register("dynamicFlow", flow -> flow
-				.publishSubscribeChannel(p -> p
+		this.integrationFlowContext.registration(flow ->
+				flow.publishSubscribeChannel(p -> p
 						.minSubscribers(1)
 						.subscribe(f -> f.channel(resultChannel))
-				));
+				))
+				.id("dynamicFlow")
+				.register();
 
 		this.integrationFlowContext.messagingTemplateFor("dynamicFlow").send(new GenericMessage<>("test"));
 
@@ -162,7 +182,7 @@ public class ManualFlowTests {
 
 	@Test
 	public void testDynamicAdapterFlow() {
-		this.integrationFlowContext.register(new MyFlowAdapter());
+		this.integrationFlowContext.registration(new MyFlowAdapter()).register();
 		PollableChannel resultChannel = this.beanFactory.getBean("flowAdapterOutput", PollableChannel.class);
 
 		Message<?> receive = resultChannel.receive(1000);
@@ -218,6 +238,19 @@ public class ManualFlowTests {
 		@RequestScope
 		public IntegrationFlow wrongScopeFlow() {
 			return flow -> flow.bridge(null);
+		}
+
+	}
+
+	private final class BeanFactoryHandler extends AbstractReplyProducingMessageHandler {
+
+		@Autowired
+		private BeanFactory beanFactory;
+
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			Objects.requireNonNull(this.beanFactory);
+			return requestMessage;
 		}
 
 	}

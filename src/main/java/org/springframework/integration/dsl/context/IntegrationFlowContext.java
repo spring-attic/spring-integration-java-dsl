@@ -118,9 +118,9 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 			beanName = generateBeanName(bean, parentName);
 		}
 
+		this.autowiredAnnotationBeanPostProcessor.processInjection(bean);
 		bean = this.beanFactory.initializeBean(bean, beanName);
 		this.beanFactory.registerSingleton(beanName, bean);
-		this.autowiredAnnotationBeanPostProcessor.processInjection(bean);
 		if (parentName != null) {
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}

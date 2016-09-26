@@ -273,8 +273,8 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		if (component instanceof ApplicationListener) {
 			this.applicationListeners.add((ApplicationListener<?>) component);
 		}
-		this.beanFactory.initializeBean(component, beanName);
 		this.autowiredAnnotationBeanPostProcessor.processInjection(component);
+		this.beanFactory.initializeBean(component, beanName);
 		if (registerSingleton) {
 			this.beanFactory.registerSingleton(beanName, component);
 			if (parentName != null) {

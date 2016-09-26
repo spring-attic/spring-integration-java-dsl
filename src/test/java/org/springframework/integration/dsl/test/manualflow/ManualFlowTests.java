@@ -116,6 +116,7 @@ public class ManualFlowTests {
 
 		assertFalse(this.beanFactory.containsBean(flowRegistration.getId()));
 		assertFalse(this.beanFactory.containsBean(flowRegistration.getId() + ".input"));
+		assertFalse(this.beanFactory.containsBean(flowRegistration.getId() + BeanFactoryHandler.class.getName() + "#0"));
 
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
 		Thread.sleep(100);

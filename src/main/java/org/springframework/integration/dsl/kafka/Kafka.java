@@ -28,7 +28,7 @@ import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.TopicPartitionInitialOffset;
 
 /**
- * Factory class for Kafka-0.9, 0.10 components.
+ * Factory class for Apache Kafka components.
  *
  * @author Artem Bilan
  * @author Nasko Vasilev

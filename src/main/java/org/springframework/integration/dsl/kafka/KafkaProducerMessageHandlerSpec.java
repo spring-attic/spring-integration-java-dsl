@@ -30,6 +30,7 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.ProducerListener;
+import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
 
 /**
@@ -230,6 +231,11 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 
 		public KafkaProducerMessageHandlerTemplateSpec<K, V> producerListener(ProducerListener<K, V> producerListener) {
 			this.kafkaTemplate.setProducerListener(producerListener);
+			return this;
+		}
+
+		public KafkaProducerMessageHandlerTemplateSpec<K, V> messageConverter(RecordMessageConverter messageConverter) {
+			this.kafkaTemplate.setMessageConverter(messageConverter);
 			return this;
 		}
 

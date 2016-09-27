@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,6 @@ package org.springframework.integration.dsl.kafka;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.kafka.clients.producer.Producer;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -32,45 +27,36 @@ import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
-import org.springframework.integration.kafka.support.KafkaProducerContext;
-import org.springframework.integration.kafka.support.ProducerConfiguration;
-import org.springframework.integration.kafka.support.ProducerFactoryBean;
-import org.springframework.integration.kafka.support.ProducerMetadata;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.ProducerListener;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * A {@link MessageHandlerSpec} implementation for the {@link KafkaProducerMessageHandler}.
  *
+ * @param <K> the key type.
+ * @param <V> the value type.
+ *
  * @author Artem Bilan
- * @since 1.1
+ * @since 1.2
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class KafkaProducerMessageHandlerSpec
-		extends MessageHandlerSpec<KafkaProducerMessageHandlerSpec, KafkaProducerMessageHandler>
-		implements ComponentsRegistration {
+public class KafkaProducerMessageHandlerSpec<K, V>
+		extends MessageHandlerSpec<KafkaProducerMessageHandlerSpec<K, V>, KafkaProducerMessageHandler<K, V>> {
 
-	private final KafkaProducerContext kafkaProducerContext;
+	protected final KafkaTemplate<K, V> kafkaTemplate;
 
-	private final Properties producerProperties;
-
-	private final Map<String, ProducerConfiguration<?, ?>> producerConfigurations =
-			new HashMap<String, ProducerConfiguration<?, ?>>();
-
-	KafkaProducerMessageHandlerSpec(Properties producerProperties) {
-		this.producerProperties = producerProperties;
-		this.kafkaProducerContext = new KafkaProducerContext();
-		this.kafkaProducerContext.setBeanName(null);
-		this.target = new KafkaProducerMessageHandler(this.kafkaProducerContext);
+	KafkaProducerMessageHandlerSpec(KafkaTemplate<K, V> kafkaTemplate) {
+		this.target = new KafkaProducerMessageHandler<K, V>(kafkaTemplate);
+		this.kafkaTemplate = kafkaTemplate;
 	}
 
 	/**
 	 * Configure the Kafka topic to send messages.
 	 * @param topic the Kafka topic name.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public KafkaProducerMessageHandlerSpec topic(String topic) {
+	public KafkaProducerMessageHandlerSpec<K, V> topic(String topic) {
 		return topicExpression(new LiteralExpression(topic));
 	}
 
@@ -81,7 +67,7 @@ public class KafkaProducerMessageHandlerSpec
 	 * @param topicExpression the topic SpEL expression.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec topicExpression(String topicExpression) {
+	public KafkaProducerMessageHandlerSpec<K, V> topicExpression(String topicExpression) {
 		return topicExpression(PARSER.parseExpression(topicExpression));
 	}
 
@@ -90,9 +76,8 @@ public class KafkaProducerMessageHandlerSpec
 	 * request Message as a root object of evaluation context.
 	 * @param topicExpression the topic expression.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public KafkaProducerMessageHandlerSpec topicExpression(Expression topicExpression) {
+	public KafkaProducerMessageHandlerSpec<K, V> topicExpression(Expression topicExpression) {
 		this.target.setTopicExpression(topicExpression);
 		return _this();
 	}
@@ -110,7 +95,7 @@ public class KafkaProducerMessageHandlerSpec
 	 * @return the current {@link KafkaProducerMessageHandlerSpec}.
 	 * @see FunctionExpression
 	 */
-	public <P> KafkaProducerMessageHandlerSpec topic(Function<Message<P>, String> topicFunction) {
+	public <P> KafkaProducerMessageHandlerSpec<K, V> topic(Function<Message<P>, String> topicFunction) {
 		return topicExpression(new FunctionExpression<Message<P>>(topicFunction));
 	}
 
@@ -120,7 +105,7 @@ public class KafkaProducerMessageHandlerSpec
 	 * @param messageKeyExpression the message key SpEL expression.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec messageKeyExpression(String messageKeyExpression) {
+	public KafkaProducerMessageHandlerSpec<K, V> messageKeyExpression(String messageKeyExpression) {
 		return messageKeyExpression(PARSER.parseExpression(messageKeyExpression));
 	}
 
@@ -128,9 +113,8 @@ public class KafkaProducerMessageHandlerSpec
 	 * Configure the message key to store message in Kafka topic.
 	 * @param messageKey the message key to use.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public KafkaProducerMessageHandlerSpec messageKey(String messageKey) {
+	public KafkaProducerMessageHandlerSpec<K, V> messageKey(String messageKey) {
 		return messageKeyExpression(new LiteralExpression(messageKey));
 	}
 
@@ -139,10 +123,9 @@ public class KafkaProducerMessageHandlerSpec
 	 * request Message as a root object of evaluation context.
 	 * @param messageKeyExpression the message key expression.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public KafkaProducerMessageHandlerSpec messageKeyExpression(Expression messageKeyExpression) {
-		target.setMessageKeyExpression(messageKeyExpression);
+	public KafkaProducerMessageHandlerSpec<K, V> messageKeyExpression(Expression messageKeyExpression) {
+		this.target.setMessageKeyExpression(messageKeyExpression);
 		return _this();
 	}
 
@@ -159,7 +142,7 @@ public class KafkaProducerMessageHandlerSpec
 	 * @return the current {@link KafkaProducerMessageHandlerSpec}.
 	 * @see FunctionExpression
 	 */
-	public <P> KafkaProducerMessageHandlerSpec messageKey(Function<Message<P>, ?> messageKeyFunction) {
+	public <P> KafkaProducerMessageHandlerSpec<K, V> messageKey(Function<Message<P>, ?> messageKeyFunction) {
 		return messageKeyExpression(new FunctionExpression<Message<P>>(messageKeyFunction));
 	}
 
@@ -167,9 +150,8 @@ public class KafkaProducerMessageHandlerSpec
 	 * Configure a partitionId of Kafka topic.
 	 * @param partitionId the partitionId to use.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public KafkaProducerMessageHandlerSpec partitionId(Integer partitionId) {
+	public KafkaProducerMessageHandlerSpec<K, V> partitionId(Integer partitionId) {
 		return partitionIdExpression(new ValueExpression<Integer>(partitionId));
 	}
 
@@ -178,9 +160,8 @@ public class KafkaProducerMessageHandlerSpec
 	 * request Message as a root object of evaluation context.
 	 * @param partitionIdExpression the partitionId expression to use.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public KafkaProducerMessageHandlerSpec partitionIdExpression(String partitionIdExpression) {
+	public KafkaProducerMessageHandlerSpec<K, V> partitionIdExpression(String partitionIdExpression) {
 		return partitionIdExpression(PARSER.parseExpression(partitionIdExpression));
 	}
 
@@ -195,9 +176,8 @@ public class KafkaProducerMessageHandlerSpec
 	 * @param partitionIdFunction the partitionId function.
 	 * @param <P> the expected payload type.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public <P> KafkaProducerMessageHandlerSpec partitionId(Function<Message<P>, Integer> partitionIdFunction) {
+	public <P> KafkaProducerMessageHandlerSpec<K, V> partitionId(Function<Message<P>, Integer> partitionIdFunction) {
 		return partitionIdExpression(new FunctionExpression<Message<P>>(partitionIdFunction));
 	}
 
@@ -206,55 +186,58 @@ public class KafkaProducerMessageHandlerSpec
 	 * request Message as a root object of evaluation context.
 	 * @param partitionIdExpression the partitionId expression to use.
 	 * @return the spec.
-	 * @since 1.1.1
 	 */
-	public KafkaProducerMessageHandlerSpec partitionIdExpression(Expression partitionIdExpression) {
+	public KafkaProducerMessageHandlerSpec<K, V> partitionIdExpression(Expression partitionIdExpression) {
 		this.target.setPartitionIdExpression(partitionIdExpression);
 		return _this();
 	}
 
 	/**
-	 * Add Kafka Producer to this {@link KafkaProducerMessageHandler}
-	 * for the provided {@code topic} and {@code brokerList}.
-	 * @param producerMetadata the {@link ProducerMetadata} - options for Kafka {@link Producer}.
-	 * @param brokerList the Kafka brokers ({@code metadata.broker.list})
-	 * in the format {@code host1:port1,host2:port2}.
+	 * A {@code boolean} indicating if the {@link KafkaProducerMessageHandler}
+	 * should wait for the send operation results or not. Defaults to {@code false}.
+	 * In {@code sync} mode a downstream send operation exception will be re-thrown.
+	 * @param sync the send mode; async by default.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec addProducer(ProducerMetadata producerMetadata, String brokerList) {
-		Assert.notNull(producerMetadata);
-		Assert.hasText(brokerList);
-		try {
-			ProducerFactoryBean producerFactoryBean =
-					new ProducerFactoryBean(producerMetadata, brokerList, this.producerProperties);
-			Producer producer = producerFactoryBean.getObject();
-			this.producerConfigurations.put(producerMetadata.getTopic(),
-					new ProducerConfiguration(producerMetadata, producer));
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
-		return _this();
+	public KafkaProducerMessageHandlerSpec<K, V> sync(boolean sync) {
+		this.target.setSync(sync);
+		return this;
 	}
 
 	/**
-	 * Add Kafka Producer to this {@link KafkaProducerMessageHandler}
-	 * for the provided {@link ProducerConfiguration}.
-	 * @param producerConfiguration the {@link ProducerConfiguration} - options for Kafka {@link Producer}.
+	 * Specify a timeout in milliseconds how long {@link KafkaProducerMessageHandler}
+	 * should wait wait for send operation results. Defaults to 10 seconds.
+	 * @param sendTimeout the timeout to wait for result fo send operation.
 	 * @return the spec.
-	 * @since 1.1.3
 	 */
-	public KafkaProducerMessageHandlerSpec addProducer(ProducerConfiguration producerConfiguration) {
-		Assert.notNull(producerConfiguration);
-		this.producerConfigurations.put(producerConfiguration.getProducerMetadata().getTopic(),
-					producerConfiguration);
-		return _this();
+	public KafkaProducerMessageHandlerSpec<K, V> sendTimeout(long sendTimeout) {
+		this.target.setSendTimeout(sendTimeout);
+		return this;
 	}
 
-	@Override
-	public Collection<Object> getComponentsToRegister() {
-		this.kafkaProducerContext.setProducerConfigurations(this.producerConfigurations);
-		return Collections.<Object>singleton(this.kafkaProducerContext);
+	/**
+	 * A {@link KafkaTemplate}-based {@link KafkaProducerMessageHandlerSpec} extension.
+	 *
+	 * @param <K> the key type.
+	 * @param <V> the value type.
+	 */
+	public static class KafkaProducerMessageHandlerTemplateSpec<K, V> extends KafkaProducerMessageHandlerSpec<K, V>
+			implements ComponentsRegistration {
+
+		KafkaProducerMessageHandlerTemplateSpec(ProducerFactory<K, V> producerFactory) {
+			super(new KafkaTemplate<K, V>(producerFactory));
+		}
+
+		public KafkaProducerMessageHandlerTemplateSpec<K, V> producerListener(ProducerListener<K, V> producerListener) {
+			this.kafkaTemplate.setProducerListener(producerListener);
+			return this;
+		}
+
+		@Override
+		public Collection<Object> getComponentsToRegister() {
+			return Collections.<Object>singleton(this.kafkaTemplate);
+		}
+
 	}
 
 }

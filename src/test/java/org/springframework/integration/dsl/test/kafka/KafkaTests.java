@@ -24,22 +24,18 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.Map;
+import java.util.stream.Stream;
 
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -47,48 +43,31 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.kafka.Kafka;
 import org.springframework.integration.dsl.kafka.KafkaProducerMessageHandlerSpec;
 import org.springframework.integration.expression.ValueExpression;
-import org.springframework.integration.kafka.core.ConnectionFactory;
-import org.springframework.integration.kafka.core.DefaultConnectionFactory;
-import org.springframework.integration.kafka.core.ZookeeperConfiguration;
-import org.springframework.integration.kafka.listener.Acknowledgment;
-import org.springframework.integration.kafka.listener.MetadataStoreOffsetManager;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
-import org.springframework.integration.kafka.support.KafkaHeaders;
-import org.springframework.integration.kafka.support.ProducerMetadata;
-import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
-import org.springframework.integration.kafka.util.TopicUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.gs.collections.impl.list.mutable.FastList;
-import kafka.admin.AdminUtils;
-import kafka.api.OffsetRequest;
-import kafka.serializer.Encoder;
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
-import kafka.utils.IntEncoder;
-import kafka.utils.SystemTime$;
-import kafka.utils.TestUtils;
-import kafka.utils.TestZKUtils;
-import kafka.utils.Utils;
-import kafka.utils.ZKStringSerializer$;
-import kafka.zk.EmbeddedZookeeper;
-import scala.collection.JavaConversions;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
  * @author Nasko Vasilev
  * @since 1.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class KafkaTests {
 
@@ -97,6 +76,9 @@ public class KafkaTests {
 	private static final String TEST_TOPIC2 = "test-topic2";
 
 	private static final String TEST_TOPIC3 = "test-topic3";
+
+	@ClassRule
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC, TEST_TOPIC2, TEST_TOPIC3);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -107,11 +89,11 @@ public class KafkaTests {
 
 	@Autowired
 	@Qualifier("kafkaProducer.handler")
-	private KafkaProducerMessageHandler kafkaProducer;
+	private KafkaProducerMessageHandler<?, ?> kafkaProducer;
 
 	@Autowired
 	@Qualifier("kafkaProducer3.handler")
-	private KafkaProducerMessageHandler kafkaProducer3;
+	private KafkaProducerMessageHandler<?, ?> kafkaProducer3;
 
 
 	@Test
@@ -121,7 +103,7 @@ public class KafkaTests {
 			fail("IllegalArgumentException expected");
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage(), containsString("is not in the range [0...1]"));
+			assertThat(e.getMessage(), containsString("10 is not in the range"));
 		}
 
 		this.kafkaProducer.setPartitionIdExpression(new ValueExpression<>(0));
@@ -136,9 +118,10 @@ public class KafkaTests {
 			assertTrue(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT));
 			Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
 			acknowledgment.acknowledge();
-			assertEquals(TEST_TOPIC, headers.get(KafkaHeaders.TOPIC));
-			assertEquals(i + 1, headers.get(KafkaHeaders.MESSAGE_KEY));
-			assertEquals((long) (i + 1), headers.get(KafkaHeaders.NEXT_OFFSET));
+			assertEquals(TEST_TOPIC, headers.get(KafkaHeaders.RECEIVED_TOPIC));
+			assertEquals(i + 1, headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY));
+			assertEquals(0, headers.get(KafkaHeaders.RECEIVED_PARTITION_ID));
+			assertEquals((long) i, headers.get(KafkaHeaders.OFFSET));
 		}
 
 		Message<String> message = MessageBuilder.withPayload("BAR").setHeader(KafkaHeaders.TOPIC, TEST_TOPIC2).build();
@@ -150,132 +133,53 @@ public class KafkaTests {
 
 	@Configuration
 	@EnableIntegration
-	public static class ContextConfiguration implements DisposableBean {
+	public static class ContextConfiguration {
+
 
 		@Bean
-		public EmbeddedZookeeper zookeeper() {
-			return new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
+		public ConsumerFactory<Integer, String> consumerFactory() {
+			Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka);
+			props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+			return new DefaultKafkaConsumerFactory<>(props);
 		}
 
-		@Bean(destroyMethod = "close")
-		public ZkClient zookeeperClient(EmbeddedZookeeper zookeeper) {
-			return new ZkClient(zookeeper.connectString(), 6000, 6000, ZKStringSerializer$.MODULE$);
-		}
 
 		@Bean
-		@DependsOn("zookeeper")
-		public KafkaServer kafkaServer() {
-			Properties brokerConfigProperties = TestUtils.createBrokerConfig(1, TestUtils.choosePort(), false);
-			return TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
-		}
-
-		@Bean
-		public String serverAddress(KafkaServer kafkaServer) {
-			return kafkaServer.config().hostName() + ":" + kafkaServer.config().port();
-		}
-
-		@Bean(destroyMethod = "destroy")
-		public InitializingBean topicManager(EmbeddedZookeeper zookeeper, ZkClient zookeeperClient,
-				List<KafkaServer> kafkaServers) {
-			return new InitializingBean() {
-
-				private final List<String> topics = Arrays.asList(TEST_TOPIC, TEST_TOPIC2, TEST_TOPIC3);
-
-				@Override
-				public void afterPropertiesSet() throws Exception {
-					this.topics.forEach(t -> TopicUtils.ensureTopicCreated(zookeeper.connectString(), t, 1, 1));
-				}
-
-				@SuppressWarnings("unused")
-				public void destroy() {
-					this.topics.forEach(t -> {
-						AdminUtils.deleteTopic(zookeeperClient, t);
-						TestUtils.waitUntilMetadataIsPropagated(JavaConversions.asScalaBuffer(kafkaServers),
-								t, 0, 5000L);
-					});
-				}
-
-			};
-		}
-
-		@Bean
-		@DependsOn("topicManager")
-		public ConnectionFactory connectionFactory(EmbeddedZookeeper zookeeper) {
-			return new DefaultConnectionFactory(new ZookeeperConfiguration(zookeeper.connectString()));
-		}
-
-		@Bean
-		public MetadataStoreOffsetManager offsetManager(ConnectionFactory connectionFactory) {
-			MetadataStoreOffsetManager offsetManager = new MetadataStoreOffsetManager(connectionFactory);
-			// start reading at the end of the
-			offsetManager.setReferenceTimestamp(OffsetRequest.LatestTime());
-			return offsetManager;
-		}
-
-		@Bean
-		public IntegrationFlow listeningFromKafkaFlow(ConnectionFactory connectionFactory,
-				MetadataStoreOffsetManager offsetManager) {
+		public IntegrationFlow listeningFromKafkaFlow() {
 			return IntegrationFlows
-					.from(Kafka.messageDrivenChannelAdapter(connectionFactory, TEST_TOPIC)
-							.autoCommitOffset(false)
-							.payloadDecoder(String::new)
-							.keyDecoder(b -> Integer.valueOf(new String(b)))
+					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(), TEST_TOPIC)
 							.configureListenerContainer(c ->
-									c.offsetManager(offsetManager)
-											.maxFetch(100)))
+									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL)))
 					.<String, String>transform(String::toUpperCase)
 					.channel(c -> c.queue("listeningFromKafkaResults"))
 					.get();
 		}
 
 		@Bean
-		public IntegrationFlow sendToKafkaFlow(String serverAddress) {
-			return f -> f.<String>split(p -> FastList.newWithNValues(100, () -> p), null)
+		public ProducerFactory<Integer, String> producerFactory() {
+			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(embeddedKafka));
+		}
+
+		@Bean
+		public IntegrationFlow sendToKafkaFlow() {
+			return f -> f.<String>split(p -> Stream.generate(() -> p).limit(100).iterator(), null)
 					.publishSubscribeChannel(c -> c
-							.subscribe(sf -> sf.handle(kafkaMessageHandler(serverAddress, TEST_TOPIC),
+							.subscribe(sf -> sf.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC),
 									e -> e.id("kafkaProducer")))
-							.subscribe(sf -> sf.handle(kafkaMessageHandler(serverAddress, TEST_TOPIC3),
+							.subscribe(sf -> sf.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC3),
 									e -> e.id("kafkaProducer3")))
 					);
 		}
 
-		@SuppressWarnings("unchecked")
-		private KafkaProducerMessageHandlerSpec kafkaMessageHandler(String serverAddress, String topic) {
-			Encoder<?> intEncoder = new IntEncoder(null);
+		private KafkaProducerMessageHandlerSpec<Integer, String>
+		kafkaMessageHandler(ProducerFactory<Integer, String> producerFactory, String topic) {
 			return Kafka
-					.outboundChannelAdapter(props -> props
-							.put("queue.buffering.max.ms", "15000"))
+					.outboundChannelAdapter(producerFactory)
 					.messageKey(m -> m
 							.getHeaders()
 							.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
-					.partitionId(m -> 1)
-					.addProducer(
-							new ProducerMetadata<>(topic, Integer.class, String.class,
-									new EncoderAdaptingSerializer<>((Encoder<Integer>) intEncoder),
-									new StringSerializer()),
-							serverAddress);
-		}
-
-		@Override
-		public void destroy() throws Exception {
-			try {
-				kafkaServer().shutdown();
-			}
-			catch (Exception e) {
-				// do nothing
-			}
-			try {
-				Utils.rm(kafkaServer().config().logDirs());
-			}
-			catch (Exception e) {
-				// do nothing
-			}
-			try {
-				zookeeper().shutdown();
-			}
-			catch (Exception e) {
-				// do nothing
-			}
+					.partitionId(m -> 10)
+					.topicExpression("headers[kafka_topic] ?: '" + topic + "'");
 		}
 
 	}

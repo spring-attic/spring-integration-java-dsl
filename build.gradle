@@ -68,11 +68,10 @@ ext {
 	mailVersion = '1.5.5'
 	reactiveStreamsVersion = '1.0.0'
 	reactorVersion = '2.0.8.RELEASE'
-	scalaVersion = '2.10'
 	slf4jVersion = '1.7.21'
 	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.2.RELEASE'
-	springIntegrationKafkaVersion = '1.3.1.RELEASE'
-	springKafkaVersion = '1.0.4.RELEASE'
+	springIntegrationKafkaVersion = '2.1.0.RELEASE'
+	springKafkaVersion = '1.1.1.RELEASE'
 	springBootVersion = '1.4.1.RELEASE'
 	testNgVersion = '6.8.21'
 	tomcatVersion = '8.5.2'
@@ -121,18 +120,7 @@ dependencies {
 		compile("org.springframework.integration:$it:$springIntegrationVersion", optional)
 	}
 
-	compile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
-		optional it
-		exclude group: 'org.apache.avro', module: 'avro'
-		exclude group: 'org.apache.avro', module: 'avro-compiler'
-		exclude group: 'com.yammer.metrics', module: 'metrics-core'
-		exclude group: 'com.yammer.metrics', module: 'metrics-annotation'
-		exclude group: 'org.apache.velocity', module: 'velocity'
-		exclude group: 'log4j', module: 'log4j'
-		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-	}
-
-	compile("org.springframework.kafka:spring-kafka:$springKafkaVersion", optional)
+	compile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion", optional)
 
 	compile("org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion") {
 		optional it
@@ -148,6 +136,7 @@ dependencies {
 	compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
 
 	testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
+	testCompile "org.springframework.kafka:spring-kafka-test:$springKafkaVersion"
 
 	testCompile("org.springframework.boot:spring-boot-starter-web:$springBootVersion") {
 		exclude module: 'spring-boot-starter-logging'
@@ -165,11 +154,6 @@ dependencies {
 	testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
 
-	testCompile("org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test") {
-		exclude group: 'log4j', module: 'log4j'
-		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-	}
-
 	testCompile("org.reactivestreams:reactive-streams-tck:$reactiveStreamsVersion") {
 		exclude group: 'org.reactivestreams', module: 'reactive-streams-examples'
 	}
@@ -185,6 +169,8 @@ dependencies {
 	testRuntime "org.python:jython-standalone:$jythonVersion"
 	testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
 	testRuntime "org.apache.httpcomponents:httpclient:$commonsHttpClientVersion"
+
+
 }
 
 // enable all compiler warnings; individual projects may customize further

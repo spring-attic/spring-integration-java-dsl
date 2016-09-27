@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,19 @@
 
 package org.springframework.integration.dsl.kafka;
 
-import java.util.Properties;
+import java.util.regex.Pattern;
 
-import org.springframework.integration.dsl.support.Consumer;
-import org.springframework.integration.dsl.support.PropertiesBuilder;
-import org.springframework.integration.kafka.core.ConnectionFactory;
-import org.springframework.integration.kafka.core.Partition;
-import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.integration.kafka.support.ZookeeperConnect;
-import org.springframework.util.Assert;
+import org.apache.kafka.common.TopicPartition;
+
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.config.ContainerProperties;
+import org.springframework.kafka.support.TopicPartitionInitialOffset;
 
 /**
- * Factory class for Kafka components.
+ * Factory class for Apache Kafka components.
  *
  * @author Artem Bilan
  * @author Nasko Vasilev
@@ -36,133 +37,117 @@ import org.springframework.util.Assert;
 public final class Kafka {
 
 	/**
-	 * Create an initial {@link KafkaHighLevelConsumerMessageSourceSpec}.
-	 * @param zookeeperConnect the zookeeperConnect.
-	 * @return the KafkaHighLevelConsumerMessageSourceSpec.
-	 * @deprecated since Spring Integration Kafka 1.3
-	 */
-	@Deprecated
-	public static KafkaHighLevelConsumerMessageSourceSpec inboundChannelAdapter(ZookeeperConnect zookeeperConnect) {
-		return new KafkaHighLevelConsumerMessageSourceSpec(zookeeperConnect);
-	}
-
-	/**
 	 * Create an initial {@link KafkaProducerMessageHandlerSpec}.
-	 * @return the KafkaProducerMessageHandlerSpec.
+	 * @param kafkaTemplate the {@link KafkaTemplate} to use
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the Kafka09ProducerMessageHandlerSpec.
 	 */
-	public static KafkaProducerMessageHandlerSpec outboundChannelAdapter() {
-		return outboundChannelAdapter((Properties) null);
+	public static <K, V> KafkaProducerMessageHandlerSpec<K, V>
+	outboundChannelAdapter(KafkaTemplate<K, V> kafkaTemplate) {
+		return new KafkaProducerMessageHandlerSpec<K, V>(kafkaTemplate);
 	}
 
 	/**
-	 * Create an initial {@link KafkaProducerMessageHandlerSpec} with Kafka Producer properties.
-	 * @param producerProperties the {@link PropertiesBuilder} Java 8 Lambda.
+	 * Create an initial {@link KafkaProducerMessageHandlerSpec} with ProducerFactory.
+	 * @param producerFactory the {@link ProducerFactory} Java 8 Lambda.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the KafkaProducerMessageHandlerSpec.
 	 * @see <a href="https://kafka.apache.org/documentation.html#producerconfigs">Kafka Producer Configs</a>
 	 */
-	public static KafkaProducerMessageHandlerSpec outboundChannelAdapter(
-			Consumer<PropertiesBuilder> producerProperties) {
-		Assert.notNull(producerProperties);
-		PropertiesBuilder properties = new PropertiesBuilder();
-		producerProperties.accept(properties);
-		return outboundChannelAdapter(properties.get());
-	}
-
-	/**
-	 * Create an initial {@link KafkaProducerMessageHandlerSpec} with Kafka Producer properties.
-	 * @param producerProperties the producerProperties.
-	 * @return the KafkaProducerMessageHandlerSpec.
-	 * @see <a href="https://kafka.apache.org/documentation.html#producerconfigs">Kafka Producer Configs</a>
-	 */
-	public static KafkaProducerMessageHandlerSpec outboundChannelAdapter(Properties producerProperties) {
-		return new KafkaProducerMessageHandlerSpec(producerProperties);
+	public static <K, V> KafkaProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec<K, V>
+	outboundChannelAdapter(ProducerFactory<K, V> producerFactory) {
+		return new KafkaProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec<K, V>(producerFactory);
 	}
 
 	/**
 	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}.
-	 * @param messageListenerContainer the {@link KafkaMessageListenerContainer}.
-	 * @return the KafkaMessageDrivenChannelAdapterSpec.
-	 * @deprecated - use {@link #messageDrivenChannelAdapter(KafkaMessageListenerContainer)}.
+	 * @param listenerContainer the {@link AbstractMessageListenerContainer}.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @param <A> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
+	 * @return the Kafka09MessageDrivenChannelAdapterSpec.
 	 */
-	@SuppressWarnings("rawtypes")
-	@Deprecated
-	public static KafkaMessageDrivenChannelAdapterSpec messageDriverChannelAdapter(
-			KafkaMessageListenerContainer messageListenerContainer) {
-		return messageDrivenChannelAdapter(messageListenerContainer);
-	}
-
-	/**
-	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}.
-	 * @param messageListenerContainer the {@link KafkaMessageListenerContainer}.
-	 * @return the KafkaMessageDrivenChannelAdapterSpec.
-	 * @since 1.2
-	 */
-	@SuppressWarnings("rawtypes")
-	public static KafkaMessageDrivenChannelAdapterSpec messageDrivenChannelAdapter(
-			KafkaMessageListenerContainer messageListenerContainer) {
-		return new KafkaMessageDrivenChannelAdapterSpec(messageListenerContainer);
+	public static <K, V, A extends KafkaMessageDrivenChannelAdapterSpec<K, V, A>>
+	KafkaMessageDrivenChannelAdapterSpec<K, V, A> messageDrivenChannelAdapter(
+			AbstractMessageListenerContainer<K, V> listenerContainer) {
+		return new KafkaMessageDrivenChannelAdapterSpec<K, V, A>(listenerContainer);
 	}
 
 	/**
 	 * Create an initial
 	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
-	 * @param connectionFactory the {@link ConnectionFactory}.
-	 * @param partitions the {@link Partition} vararg.
+	 * @param consumerFactory the {@link ConsumerFactory}.
+	 * @param containerProperties the {@link ContainerProperties} to use.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
-	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory, Partition...)}.
 	 */
-	@Deprecated
-	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDriverChannelAdapter(ConnectionFactory connectionFactory, Partition... partitions) {
-		return messageDrivenChannelAdapter(connectionFactory, partitions);
-	}
-
-	/**
-	 * Create an initial
-	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
-	 * @param connectionFactory the {@link ConnectionFactory}.
-	 * @param partitions the {@link Partition} vararg.
-	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
-	 * @since 1.2
-	 */
-	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDrivenChannelAdapter(ConnectionFactory connectionFactory, Partition... partitions) {
+	public static <K, V>
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties) {
 		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(connectionFactory,
-						partitions));
+				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
+						containerProperties));
 	}
 
 	/**
 	 * Create an initial
 	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
-	 * @param connectionFactory the {@link ConnectionFactory}.
-	 * @param topics the Kafka topic name vararg.
+	 * @param consumerFactory the {@link ConsumerFactory}.
+	 * @param topicPartitions the {@link TopicPartition} vararg.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
-	 * @deprecated - use {@link #messageDrivenChannelAdapter(ConnectionFactory, String...)}.
 	 */
-	@Deprecated
-	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDriverChannelAdapter(ConnectionFactory connectionFactory, String... topics) {
-		return messageDrivenChannelAdapter(connectionFactory, topics);
-	}
-
-	/**
-	 * Create an initial
-	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
-	 * @param connectionFactory the {@link ConnectionFactory}.
-	 * @param topics the Kafka topic name vararg.
-	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
-	 * @since 1.2
-	 */
-	public static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDrivenChannelAdapter(ConnectionFactory connectionFactory, String... topics) {
+	public static <K, V>
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, TopicPartitionInitialOffset... topicPartitions) {
 		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec(connectionFactory, topics));
+				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
+						topicPartitions));
 	}
 
-	private static KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec
-	messageDrivenChannelAdapter(KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec spec) {
-		return new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec(spec);
+	/**
+	 * Create an initial
+	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
+	 * @param consumerFactory the {@link ConsumerFactory}.
+	 * @param topics the topics vararg.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
+	 */
+	public static <K, V>
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, String... topics) {
+		return messageDrivenChannelAdapter(
+				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
+						topics));
+	}
+
+	/**
+	 * Create an initial
+	 * {@link KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec}.
+	 * @param consumerFactory the {@link ConsumerFactory}.
+	 * @param topicPattern the topicPattern vararg.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
+	 */
+	public static <K, V>
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
+		return messageDrivenChannelAdapter(
+				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V>(consumerFactory,
+						topicPattern));
+	}
+
+	private static <K, V>
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
+	messageDrivenChannelAdapter(KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V> spec) {
+		return new KafkaMessageDrivenChannelAdapterSpec
+				.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>(spec);
 	}
 
 	private Kafka() {

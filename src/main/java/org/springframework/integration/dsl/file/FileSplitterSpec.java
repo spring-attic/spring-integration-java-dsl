@@ -20,7 +20,6 @@ import java.nio.charset.Charset;
 
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.file.splitter.FileSplitter;
-import org.springframework.util.Assert;
 
 /**
  * The {@link MessageHandlerSpec} for the {@link FileSplitter}.
@@ -53,7 +52,6 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	}
 
 	public FileSplitterSpec charset(String charset) {
-		Assert.hasText(charset);
 		return charset(Charset.forName(charset));
 	}
 
@@ -109,6 +107,7 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	protected FileSplitter doGet() {
 		FileSplitter fileSplitter = new FileSplitter(this.iterator, this.markers, this.markersJson);
 		fileSplitter.setApplySequence(this.applySequence);
+		fileSplitter.setCharset(this.charset);
 		return fileSplitter;
 	}
 

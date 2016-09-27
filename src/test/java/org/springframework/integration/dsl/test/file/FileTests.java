@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -238,6 +239,10 @@ public class FileTests {
 		assertEquals(payload, fileContent);
 	}
 
+	@Autowired
+	@Qualifier("fileSplitter.handler")
+	private MessageHandler fileSplitter;
+
 	@Test
 	public void testFileSplitterFlow() throws Exception {
 		FileOutputStream file = new FileOutputStream(new File(tmpDir.getRoot(), "foo.tmp"));
@@ -257,6 +262,8 @@ public class FileTests {
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(FileSplitter.FileMarker.class)); // FileMarker.Mark.END
 		assertNull(this.fileSplittingResultChannel.receive(1));
+
+		assertEquals(StandardCharsets.US_ASCII, TestUtils.getPropertyValue(this.fileSplitter, "charset"));
 	}
 
 	@Autowired
@@ -389,7 +396,11 @@ public class FileTests {
 					.from(s -> s.file(tmpDir.getRoot())
 									.patternFilter("foo.tmp"),
 							e -> e.poller(p -> p.fixedDelay(100)))
-					.split(Files.splitter().markers().applySequence(true))
+					.split(Files.splitter()
+							.markers()
+							.charset(StandardCharsets.US_ASCII)
+							.applySequence(true),
+							e -> e.id("fileSplitter"))
 					.channel(c -> c.queue("fileSplittingResultChannel"))
 					.get();
 		}

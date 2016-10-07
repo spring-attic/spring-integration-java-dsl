@@ -197,4 +197,24 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		return _this();
 	}
 
+	/**
+	 * Allow async replies. If the handler reply is a {@code ListenableFuture} send
+	 * the output when it is satisfied rather than sending the future as the result.
+	 * Only subclasses that support this feature should set it.
+	 * @param async true to allow.
+	 * @return the endpoint spec.
+	 * @since 1.2
+	 * @see AbstractReplyProducingMessageHandler#setAsync(boolean)
+	 */
+	public S async(boolean async) {
+		H handler = this.target.getT2();
+		if (handler instanceof AbstractReplyProducingMessageHandler) {
+			((AbstractReplyProducingMessageHandler) handler).setAsync(async);
+		}
+		else {
+			logger.warn("'async' can be applied only for AbstractReplyProducingMessageHandler");
+		}
+		return _this();
+	}
+
 }

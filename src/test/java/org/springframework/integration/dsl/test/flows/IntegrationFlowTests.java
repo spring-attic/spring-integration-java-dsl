@@ -19,7 +19,6 @@ package org.springframework.integration.dsl.test.flows;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -27,15 +26,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -53,7 +47,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.IntegrationComponentScan;
@@ -80,7 +73,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.transformer.PayloadDeserializingTransformer;
 import org.springframework.integration.transformer.PayloadSerializingTransformer;
-import org.springframework.integration.xml.transformer.support.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -160,18 +152,6 @@ public class IntegrationFlowTests {
 	@Autowired
 	@Qualifier("delayedAdvice")
 	private DelayedAdvice delayedAdvice;
-
-	@Autowired
-	@Qualifier("splitResequenceFlow.input")
-	private MessageChannel splitInput;
-
-	@Autowired
-	@Qualifier("xpathHeaderEnricherInput")
-	private MessageChannel xpathHeaderEnricherInput;
-
-	@Autowired
-	@Qualifier("splitAggregateInput")
-	private MessageChannel splitAggregateInput;
 
 	@Autowired
 	private MessageStore messageStore;
@@ -320,74 +300,6 @@ public class IntegrationFlowTests {
 	}
 
 	@Test
-	public void testSplitterResequencer() {
-		QueueChannel replyChannel = new QueueChannel();
-
-		this.splitInput.send(MessageBuilder.withPayload("")
-				.setReplyChannel(replyChannel)
-				.setHeader("foo", "bar")
-				.build());
-
-		for (int i = 0; i < 12; i++) {
-			Message<?> receive = replyChannel.receive(2000);
-			assertNotNull(receive);
-			assertFalse(receive.getHeaders().containsKey("foo"));
-			assertTrue(receive.getHeaders().containsKey("FOO"));
-			assertEquals("BAR", receive.getHeaders().get("FOO"));
-			assertEquals(i + 1, receive.getPayload());
-		}
-	}
-
-	@Test
-	public void testSplitterAggregator() {
-		List<Character> payload = Arrays.asList('a', 'b', 'c', 'd', 'e');
-
-		QueueChannel replyChannel = new QueueChannel();
-		this.splitAggregateInput.send(MessageBuilder.withPayload(payload)
-				.setReplyChannel(replyChannel)
-				.build());
-
-		Message<?> receive = replyChannel.receive(2000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(List.class));
-		@SuppressWarnings("unchecked")
-		List<Object> result = (List<Object>) receive.getPayload();
-		for (int i = 0; i < payload.size(); i++) {
-			assertEquals(payload.get(i), result.get(i));
-		}
-	}
-
-	@Test
-	public void testHeaderEnricher() {
-		QueueChannel replyChannel = new QueueChannel();
-
-		Message<String> message =
-				MessageBuilder.withPayload("<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>")
-						.setReplyChannel(replyChannel)
-						.build();
-
-		try {
-			this.xpathHeaderEnricherInput.send(message);
-			fail("Expected MessageDispatchingException");
-		}
-		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), instanceOf(MessageDispatchingException.class));
-			assertThat(e.getMessage(), containsString("Dispatcher has no subscribers"));
-		}
-
-		this.controlBus.send("@xpathHeaderEnricher.start()");
-		this.xpathHeaderEnricherInput.send(message);
-
-		Message<?> result = replyChannel.receive(2000);
-		assertNotNull(result);
-		MessageHeaders headers = result.getHeaders();
-		assertEquals("1", headers.get("one"));
-		assertEquals("2", headers.get("two"));
-		assertThat(headers.getReplyChannel(), instanceOf(String.class));
-	}
-
-	@Test
 	public void testClaimCheck() {
 		QueueChannel replyChannel = new QueueChannel();
 
@@ -525,23 +437,6 @@ public class IntegrationFlowTests {
 	}
 
 
-	@Autowired
-	@Qualifier("publishSubscribeFlow.input")
-	private MessageChannel subscriberAggregateFlowInput;
-
-	@Autowired
-	private PollableChannel subscriberAggregateResult;
-
-	@Test
-	public void testSubscriberAggregateFlow() {
-		this.subscriberAggregateFlowInput.send(new GenericMessage<>("test"));
-
-		Message<?> receive1 = this.subscriberAggregateResult.receive(10000);
-		assertNotNull(receive1);
-		assertEquals("Hello World!", receive1.getPayload());
-	}
-
-
 	@MessagingGateway(defaultRequestChannel = "controlBus")
 	private interface ControlBusGateway {
 
@@ -642,31 +537,6 @@ public class IntegrationFlowTests {
 					.<Integer>handle((p, h) -> p * 3)
 					.channel(c -> c.queue("subscriber3Results"));
 		}
-
-		@Bean
-		public IntegrationFlow publishSubscribeFlow() {
-			return flow -> flow
-					.publishSubscribeChannel(s -> s
-							.applySequence(true)
-							.subscribe(f -> f
-									.handle((p, h) -> "Hello")
-									.channel("publishSubscribeAggregateFlow.input"))
-							.subscribe(f -> f
-									.handle((p, h) -> "World!")
-									.channel("publishSubscribeAggregateFlow.input"))
-					);
-		}
-
-		@Bean
-		public IntegrationFlow publishSubscribeAggregateFlow() {
-			return flow -> flow
-					.aggregate(a -> a.outputProcessor(g -> g.getMessages()
-							.stream()
-							.<String>map(m -> (String) m.getPayload())
-							.collect(Collectors.joining(" "))))
-					.channel(c -> c.queue("subscriberAggregateResult"));
-		}
-
 
 		@Bean
 		public IntegrationFlow wireTapFlow1() {
@@ -848,64 +718,6 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
-		public Executor taskExecutor() {
-			return Executors.newCachedThreadPool();
-		}
-
-		@Bean
-		public TestSplitterPojo testSplitterData() {
-			List<String> first = new ArrayList<>();
-			first.add("1,2,3");
-			first.add("4,5,6");
-
-			List<String> second = new ArrayList<>();
-			second.add("7,8,9");
-			second.add("10,11,12");
-
-			return new TestSplitterPojo(first, second);
-		}
-
-		@Bean
-		public IntegrationFlow splitResequenceFlow() {
-			return f -> f.enrichHeaders(s -> s.header("FOO", "BAR"))
-					.split("testSplitterData", "buildList", c -> c.applySequence(false))
-					.channel(c -> c.executor(this.taskExecutor()))
-					.split(Message.class, target -> target.getPayload(), c -> c.applySequence(false))
-					.channel(MessageChannels.executor(this.taskExecutor()))
-					.split(s -> s.applySequence(false).get().getT2().setDelimiters(","))
-					.channel(c -> c.executor(this.taskExecutor()))
-					.<String, Integer>transform(Integer::parseInt)
-					.enrichHeaders(h ->
-							h.headerFunction(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Message::getPayload))
-					.resequence(r -> r.releasePartialSequences(true).correlationExpression("'foo'"))
-					.headerFilter("foo", false);
-		}
-
-		@Bean
-		public IntegrationFlow splitAggregateFlow() {
-			return IntegrationFlows.from("splitAggregateInput", true)
-					.split()
-					.channel(MessageChannels.executor(taskExecutor()))
-					.resequence()
-					.aggregate()
-					.get();
-		}
-
-		@Bean
-		public IntegrationFlow xpathHeaderEnricherFlow() {
-			return IntegrationFlows.from("xpathHeaderEnricherInput")
-					.enrichHeaders(
-							s -> s.header("one",
-									new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne"))
-									.header("two",
-											new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"))
-									.headerChannelsToString(),
-							c -> c.autoStartup(false).id("xpathHeaderEnricher")
-					)
-					.get();
-		}
-
-		@Bean
 		public IntegrationFlow gatewayFlow() {
 			return IntegrationFlows.from("gatewayInput")
 					.gateway("gatewayRequest", g -> g.errorChannel("gatewayError").replyTimeout(10L))
@@ -956,34 +768,6 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from(MessageChannels.direct())
 					.fixedSubscriberChannel()
 					.get();
-		}
-
-	}
-
-	private static final class TestSplitterPojo {
-
-		final List<String> first;
-
-		final List<String> second;
-
-		private TestSplitterPojo(List<String> first, List<String> second) {
-			this.first = first;
-			this.second = second;
-		}
-
-		@SuppressWarnings("unused")
-		public List<String> getFirst() {
-			return first;
-		}
-
-		@SuppressWarnings("unused")
-		public List<String> getSecond() {
-			return second;
-		}
-
-		@SuppressWarnings("unused")
-		public List<List<String>> buildList() {
-			return Arrays.asList(this.first, this.second);
 		}
 
 	}

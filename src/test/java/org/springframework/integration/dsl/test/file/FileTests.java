@@ -364,7 +364,7 @@ public class FileTests {
 									.watchEvents(FileReadingMessageSource.WatchEventType.CREATE,
 											FileReadingMessageSource.WatchEventType.MODIFY),
 							e -> e.poller(Pollers.fixedDelay(100)
-									.errorChannel(filePollingErrorChannel())))
+									.errorChannel("filePollingErrorChannel")))
 					.filter(File.class, p -> !p.getName().startsWith("a"),
 							e -> e.throwExceptionOnRejection(true))
 					.transform(Transformers.fileToString())
@@ -397,9 +397,9 @@ public class FileTests {
 									.patternFilter("foo.tmp"),
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.split(Files.splitter()
-							.markers()
-							.charset(StandardCharsets.US_ASCII)
-							.applySequence(true),
+									.markers()
+									.charset(StandardCharsets.US_ASCII)
+									.applySequence(true),
 							e -> e.id("fileSplitter"))
 					.channel(c -> c.queue("fileSplittingResultChannel"))
 					.get();

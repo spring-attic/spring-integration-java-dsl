@@ -96,6 +96,21 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	}
 
 	/**
+	 * Specify a bean name for the {@link MessageChannel} to use for sending error message in case
+	 * of polling failures.
+	 * @param errorChannelName the bean name for {@link MessageChannel} to use.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see MessagePublishingErrorHandler
+	 */
+	public PollerSpec errorChannel(String errorChannelName) {
+		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+		errorHandler.setDefaultErrorChannelName(errorChannelName);
+		this.componentToRegister.add(errorHandler);
+		return errorHandler(errorHandler);
+	}
+
+	/**
 	 * @param maxMessagesPerPoll the maxMessagesPerPoll to set.
 	 * @return the spec.
 	 * @see PollerMetadata#setMaxMessagesPerPoll

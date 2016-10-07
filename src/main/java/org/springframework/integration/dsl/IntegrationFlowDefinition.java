@@ -32,6 +32,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.BarrierMessageHandler;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
@@ -2875,6 +2876,49 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		addComponent(aggregatingMessageHandler);
 		ScatterGatherHandler messageHandler = new ScatterGatherHandler(recipientListRouter, aggregatingMessageHandler);
 		return register(new ScatterGatherSpec(messageHandler), scatterGather);
+	}
+
+	/**
+	 * Populate a {@link BarrierMessageHandler} instance for provided timeout.
+	 * @param timeout the timeout in milliseconds.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B barrier(long timeout) {
+		return barrier(timeout, null);
+	}
+
+	/**
+	 * Populate a {@link BarrierMessageHandler} instance for provided timeout
+	 * and options from {@link BarrierSpec}.
+	 * @param timeout the timeout in milliseconds.
+	 * @param barrierConfigurer the {@link Consumer} to provide {@link BarrierMessageHandler} options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B barrier(long timeout, Consumer<BarrierSpec> barrierConfigurer) {
+		return barrier(timeout, barrierConfigurer, null);
+	}
+
+	/**
+	 * Populate a {@link BarrierMessageHandler} instance for provided timeout
+	 * and options from {@link BarrierSpec} and endpoint options from {@link GenericEndpointSpec}.
+	 * @param timeout the timeout in milliseconds.
+	 * @param barrierConfigurer the {@link Consumer} to provide {@link BarrierMessageHandler} options.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B barrier(long timeout, Consumer<BarrierSpec> barrierConfigurer,
+			Consumer<GenericEndpointSpec<BarrierMessageHandler>> endpointConfigurer) {
+
+		BarrierSpec barrierSpec = new BarrierSpec(timeout);
+
+		if (barrierConfigurer != null) {
+			barrierConfigurer.accept(barrierSpec);
+		}
+
+		return handle(barrierSpec, endpointConfigurer);
 	}
 
 	/**

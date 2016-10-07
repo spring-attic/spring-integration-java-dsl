@@ -18,6 +18,7 @@ package org.springframework.integration.dsl;
 
 import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
+import org.springframework.integration.splitter.DefaultMessageSplitter;
 
 /**
  * A {@link ConsumerEndpointSpec} for a {@link AbstractMessageSplitter} implementations.
@@ -34,13 +35,34 @@ public final class SplitterEndpointSpec<S extends AbstractMessageSplitter>
 	}
 
 	/**
+	 * Set the applySequence flag to the specified value. Defaults to {@code true}.
 	 * @param applySequence the applySequence.
 	 * @return the endpoint spec.
 	 * @see AbstractMessageSplitter#setApplySequence(boolean)
 	 */
 	public SplitterEndpointSpec<S> applySequence(boolean applySequence) {
-		this.target.getT2().setApplySequence(applySequence);
+		this.handler.setApplySequence(applySequence);
 		return _this();
+	}
+
+	/**
+	 * Set delimiters to tokenize String values. The default is
+	 * <code>null</code> indicating that no tokenizing should occur.
+	 * If delimiters are provided, they will be applied to any String payload.
+	 * Only applied if provided {@code splitter} is instance of {@link DefaultMessageSplitter}.
+	 * @param delimiters The delimiters.
+	 * @return the endpoint spec.
+	 * @since 1.2
+	 * @see DefaultMessageSplitter#setDelimiters(String)
+	 */
+	public SplitterEndpointSpec<S> delimiters(String delimiters) {
+		if (this.handler instanceof DefaultMessageSplitter) {
+			((DefaultMessageSplitter) this.handler).setDelimiters(delimiters);
+		}
+		else {
+			logger.warn("'delimiters' can be applied only for the DefaultMessageSplitter");
+		}
+		return this;
 	}
 
 }

@@ -39,7 +39,7 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	protected volatile T target;
 
-	protected String id;
+	private String id;
 
 	/**
 	 * Configure the component identifier. Used as the {@code beanName} to register the

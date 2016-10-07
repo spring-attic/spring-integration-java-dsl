@@ -94,7 +94,7 @@ public class ReactiveStreamsTests {
 		this.messageSource.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		String[] strings = results.toArray(new String[results.size()]);
-		assertArrayEquals(new String[]{"A", "B", "C", "D", "E", "F"}, strings);
+		assertArrayEquals(new String[] { "A", "B", "C", "D", "E", "F" }, strings);
 	}
 
 	@Test
@@ -110,7 +110,7 @@ public class ReactiveStreamsTests {
 
 		Future<List<Integer>> future =
 				Executors.newSingleThreadExecutor().submit(() ->
-						Streams.from(new String[]{"11,12,13"})
+						Streams.from(new String[] { "11,12,13" })
 								.map(v -> v.split(","))
 								.map(Arrays::asList)
 								.<String>split()
@@ -150,7 +150,7 @@ public class ReactiveStreamsTests {
 		public Publisher<Message<Integer>> pollableReactiveFlow() {
 			return IntegrationFlows
 					.from("inputChannel")
-					.split(e -> e.get().getT2().setDelimiters(","))
+					.split(s -> s.delimiters(","))
 					.<String, Integer>transform(Integer::parseInt)
 					.channel(Channels::queue)
 					.toReactivePublisher();

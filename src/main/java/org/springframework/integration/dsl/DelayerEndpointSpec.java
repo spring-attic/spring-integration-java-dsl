@@ -25,6 +25,7 @@ import org.aopalliance.aop.Advice;
 import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.util.Assert;
 
 /**
  * A {@link ConsumerEndpointSpec} for a {@link DelayHandler}.
@@ -37,7 +38,8 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 
 	DelayerEndpointSpec(DelayHandler delayHandler) {
 		super(delayHandler);
-		this.target.getT2().setDelayedAdviceChain(this.delayedAdvice);
+		Assert.notNull(delayHandler, "'delayHandler' must not be null.");
+		this.handler.setDelayedAdviceChain(this.delayedAdvice);
 	}
 
 	/**
@@ -46,7 +48,7 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	 * @see DelayHandler#setDefaultDelay(long)
 	 */
 	public DelayerEndpointSpec defaultDelay(long defaultDelay) {
-		this.target.getT2().setDefaultDelay(defaultDelay);
+		this.handler.setDefaultDelay(defaultDelay);
 		return _this();
 	}
 
@@ -56,7 +58,7 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	 * @see DelayHandler#setIgnoreExpressionFailures(boolean)
 	 */
 	public DelayerEndpointSpec ignoreExpressionFailures(boolean ignoreExpressionFailures) {
-		this.target.getT2().setIgnoreExpressionFailures(ignoreExpressionFailures);
+		this.handler.setIgnoreExpressionFailures(ignoreExpressionFailures);
 		return _this();
 	}
 
@@ -65,7 +67,7 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	 * @return the endpoint spec.
 	 */
 	public DelayerEndpointSpec messageStore(MessageGroupStore messageStore) {
-		this.target.getT2().setMessageStore(messageStore);
+		this.handler.setMessageStore(messageStore);
 		return _this();
 	}
 

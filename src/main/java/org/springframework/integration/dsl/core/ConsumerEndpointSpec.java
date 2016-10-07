@@ -44,12 +44,14 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>, H extends MessageHandler>
 		extends EndpointSpec<S, ConsumerEndpointFactoryBean, H> {
 
-	private final List<Advice> adviceChain = new LinkedList<Advice>();
+	protected final List<Advice> adviceChain = new LinkedList<Advice>();
 
 	protected ConsumerEndpointSpec(H messageHandler) {
 		super(messageHandler);
-		this.target.getT1().setHandler(messageHandler);
-		this.target.getT1().setAdviceChain(this.adviceChain);
+		if (messageHandler != null) {
+			this.endpointFactoryBean.setHandler(messageHandler);
+		}
+		this.endpointFactoryBean.setAdviceChain(this.adviceChain);
 		if (messageHandler instanceof AbstractReplyProducingMessageHandler) {
 			((AbstractReplyProducingMessageHandler) messageHandler).setAdviceChain(this.adviceChain);
 		}
@@ -57,19 +59,19 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	@Override
 	public S phase(int phase) {
-		this.target.getT1().setPhase(phase);
+		this.endpointFactoryBean.setPhase(phase);
 		return _this();
 	}
 
 	@Override
 	public S autoStartup(boolean autoStartup) {
-		this.target.getT1().setAutoStartup(autoStartup);
+		this.endpointFactoryBean.setAutoStartup(autoStartup);
 		return _this();
 	}
 
 	@Override
 	public S poller(PollerMetadata pollerMetadata) {
-		this.target.getT1().setPollerMetadata(pollerMetadata);
+		this.endpointFactoryBean.setPollerMetadata(pollerMetadata);
 		return _this();
 	}
 
@@ -155,9 +157,9 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractReplyProducingMessageHandler#setRequiresReply(boolean)
 	 */
 	public S requiresReply(boolean requiresReply) {
-		H handler = this.target.getT2();
-		if (handler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) handler).setRequiresReply(requiresReply);
+		assertHandler();
+		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
+			((AbstractReplyProducingMessageHandler) this.handler).setRequiresReply(requiresReply);
 		}
 		else {
 			logger.warn("'requiresReply' can be applied only for AbstractReplyProducingMessageHandler");
@@ -171,9 +173,9 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractReplyProducingMessageHandler#setSendTimeout(long)
 	 */
 	public S sendTimeout(long sendTimeout) {
-		H handler = this.target.getT2();
-		if (handler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) handler).setSendTimeout(sendTimeout);
+		assertHandler();
+		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
+			((AbstractReplyProducingMessageHandler) this.handler).setSendTimeout(sendTimeout);
 		}
 		else {
 			logger.warn("'sendTimeout' can be applied only for AbstractReplyProducingMessageHandler");
@@ -187,12 +189,32 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractMessageHandler#setOrder(int)
 	 */
 	public S order(int order) {
-		H handler = this.target.getT2();
-		if (handler instanceof AbstractMessageHandler) {
-			((AbstractMessageHandler) handler).setOrder(order);
+		assertHandler();
+		if (this.handler instanceof AbstractMessageHandler) {
+			((AbstractMessageHandler) this.handler).setOrder(order);
 		}
 		else {
 			logger.warn("'order' can be applied only for AbstractMessageHandler");
+		}
+		return _this();
+	}
+
+	/**
+	 * Allow async replies. If the handler reply is a {@code ListenableFuture} send
+	 * the output when it is satisfied rather than sending the future as the result.
+	 * Only subclasses that support this feature should set it.
+	 * @param async true to allow.
+	 * @return the endpoint spec.
+	 * @since 1.2
+	 * @see AbstractReplyProducingMessageHandler#setAsync(boolean)
+	 */
+	public S async(boolean async) {
+		assertHandler();
+		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
+			((AbstractReplyProducingMessageHandler) this.handler).setAsync(async);
+		}
+		else {
+			logger.warn("'async' can be applied only for AbstractReplyProducingMessageHandler");
 		}
 		return _this();
 	}

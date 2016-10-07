@@ -47,7 +47,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	private final List<Advice> adviceChain = new LinkedList<Advice>();
 
-	private final Collection<Object> componentToRegister = new ArrayList<Object>();
+	private final Collection<Object> componentsToRegister = new ArrayList<Object>();
 
 	PollerSpec(Trigger trigger) {
 		this.target = new PollerMetadata();
@@ -91,7 +91,22 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	public PollerSpec errorChannel(MessageChannel errorChannel) {
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 		errorHandler.setDefaultErrorChannel(errorChannel);
-		this.componentToRegister.add(errorHandler);
+		this.componentsToRegister.add(errorHandler);
+		return errorHandler(errorHandler);
+	}
+
+	/**
+	 * Specify a bean name for the {@link MessageChannel} to use for sending error message in case
+	 * of polling failures.
+	 * @param errorChannelName the bean name for {@link MessageChannel} to use.
+	 * @return the spec.
+	 * @since 1.2
+	 * @see MessagePublishingErrorHandler
+	 */
+	public PollerSpec errorChannel(String errorChannelName) {
+		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+		errorHandler.setDefaultErrorChannelName(errorChannelName);
+		this.componentsToRegister.add(errorHandler);
 		return errorHandler(errorHandler);
 	}
 
@@ -149,7 +164,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 */
 	public PollerSpec transactional() {
 		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder().build();
-		this.componentToRegister.add(transactionInterceptor);
+		this.componentsToRegister.add(transactionInterceptor);
 		return transactional(transactionInterceptor);
 	}
 
@@ -181,7 +196,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return this.componentToRegister;
+		return this.componentsToRegister;
 	}
 
 }

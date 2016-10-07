@@ -45,13 +45,16 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 
 	protected final Collection<Object> componentToRegister = new ArrayList<Object>();
 
+	protected H handler;
+
+	protected F endpointFactoryBean;
+
 	@SuppressWarnings("unchecked")
 	protected EndpointSpec(H handler) {
-		Assert.notNull(handler);
 		try {
 			Class<?> fClass = ResolvableType.forClass(this.getClass()).as(EndpointSpec.class).resolveGenerics()[1];
-			F endpointFactoryBean = (F) fClass.newInstance();
-			this.target = Tuples.of(endpointFactoryBean, handler);
+			this.endpointFactoryBean = (F) fClass.newInstance();
+			this.handler = handler;
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -60,30 +63,9 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 
 	@Override
 	public S id(String id) {
-		this.target.getT1().setBeanName(id);
+		this.endpointFactoryBean.setBeanName(id);
 		return super.id(id);
 	}
-
-	/**
-	 * @param phase the phase.
-	 * @return the endpoint spec.
-	 * @see SmartLifecycle
-	 */
-	public abstract S phase(int phase);
-
-	/**
-	 * @param autoStartup the autoStartup.
-	 * @return the endpoint spec
-	 * @see SmartLifecycle
-	 */
-	public abstract S autoStartup(boolean autoStartup);
-
-	/**
-	 * @param pollerMetadata the pollerMetadata
-	 * @return the endpoint spec.
-	 * @see AbstractPollingEndpoint
-	 */
-	public abstract S poller(PollerMetadata pollerMetadata);
 
 	/**
 	 * @param pollers the pollers
@@ -106,14 +88,44 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		if (componentsToRegister != null) {
 			this.componentToRegister.addAll(componentsToRegister);
 		}
-		return this.poller(pollerMetadataSpec.get());
+		return poller(pollerMetadataSpec.get());
 	}
+
+	/**
+	 * @param pollerMetadata the pollerMetadata
+	 * @return the endpoint spec.
+	 * @see AbstractPollingEndpoint
+	 */
+	public abstract S poller(PollerMetadata pollerMetadata);
+
+	/**
+	 * @param phase the phase.
+	 * @return the endpoint spec.
+	 * @see SmartLifecycle
+	 */
+	public abstract S phase(int phase);
+
+	/**
+	 * @param autoStartup the autoStartup.
+	 * @return the endpoint spec
+	 * @see SmartLifecycle
+	 */
+	public abstract S autoStartup(boolean autoStartup);
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
 		return this.componentToRegister.isEmpty()
 				? null
 				: this.componentToRegister;
+	}
+
+	@Override
+	protected Tuple2<F, H> doGet() {
+		return Tuples.of(this.endpointFactoryBean, this.handler);
+	}
+
+	protected void assertHandler() {
+		Assert.state(this.handler != null, "'this.handler' must not be null.");
 	}
 
 }

@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.spy;
@@ -43,10 +44,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.channel.QueueChannelSpec;
@@ -59,9 +62,12 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.router.XPathRouter;
 import org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector;
+import org.springframework.integration.xml.transformer.support.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -97,6 +103,14 @@ public class XmlTests {
 
 	@Autowired
 	private PollableChannel wrongMessagesWireTapChannel;
+
+	@Autowired
+	@Qualifier("xpathHeaderEnricherInput")
+	private MessageChannel xpathHeaderEnricherInput;
+
+	@Autowired
+	@Qualifier("controlBusFlow.input")
+	private MessageChannel controlBusFlowInput;
 
 	@Test
 	public void testXpathFlow() {
@@ -153,6 +167,35 @@ public class XmlTests {
 		assertThat(payload, containsString("hello"));
 	}
 
+	@Test
+	public void testHeaderEnricher() {
+		QueueChannel replyChannel = new QueueChannel();
+
+		Message<String> message =
+				MessageBuilder.withPayload("<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>")
+						.setReplyChannel(replyChannel)
+						.build();
+
+		try {
+			this.xpathHeaderEnricherInput.send(message);
+			fail("Expected MessageDispatchingException");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e.getCause(), instanceOf(MessageDispatchingException.class));
+			assertThat(e.getMessage(), containsString("Dispatcher has no subscribers"));
+		}
+
+		this.controlBusFlowInput.send(new GenericMessage<>("@xpathHeaderEnricher.start()"));
+		this.xpathHeaderEnricherInput.send(message);
+
+		Message<?> result = replyChannel.receive(2000);
+		assertNotNull(result);
+		MessageHeaders headers = result.getHeaders();
+		assertEquals("1", headers.get("one"));
+		assertEquals("2", headers.get("two"));
+		assertThat(headers.getReplyChannel(), instanceOf(String.class));
+	}
 
 	@Configuration
 	@EnableIntegration
@@ -214,6 +257,25 @@ public class XmlTests {
 							Tuples.of("testParam3", new LiteralExpression("hello"))
 					))
 					.channel(receivedChannel());
+		}
+
+		@Bean
+		public IntegrationFlow controlBusFlow() {
+			return IntegrationFlowDefinition::controlBus;
+		}
+
+		@Bean
+		public IntegrationFlow xpathHeaderEnricherFlow() {
+			return IntegrationFlows.from("xpathHeaderEnricherInput")
+					.enrichHeaders(
+							s -> s.header("one",
+									new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne"))
+									.header("two",
+											new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"))
+									.headerChannelsToString(),
+							c -> c.autoStartup(false).id("xpathHeaderEnricher")
+					)
+					.get();
 		}
 
 	}

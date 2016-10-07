@@ -40,7 +40,7 @@ public class ScatterGatherSpec extends ConsumerEndpointSpec<ScatterGatherSpec, S
 	 * @return the current {@link ScatterGatherSpec} instance.
 	 */
 	public ScatterGatherSpec gatherChannel(MessageChannel gatherChannel) {
-		this.target.getT2().setGatherChannel(gatherChannel);
+		this.handler.setGatherChannel(gatherChannel);
 		return this;
 	}
 
@@ -53,7 +53,7 @@ public class ScatterGatherSpec extends ConsumerEndpointSpec<ScatterGatherSpec, S
 	 * @return the current {@link ScatterGatherSpec} instance.
 	 */
 	public ScatterGatherSpec gatherTimeout(long gatherTimeout) {
-		this.target.getT2().setGatherTimeout(gatherTimeout);
+		this.handler.setGatherTimeout(gatherTimeout);
 		return this;
 	}
 

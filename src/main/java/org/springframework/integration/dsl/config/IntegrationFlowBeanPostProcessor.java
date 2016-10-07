@@ -200,6 +200,16 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 					}
 					else if (component instanceof SourcePollingChannelAdapterSpec) {
 						SourcePollingChannelAdapterSpec spec = (SourcePollingChannelAdapterSpec) component;
+						Collection<Object> componentsToRegister = spec.getComponentsToRegister();
+						if (!CollectionUtils.isEmpty(componentsToRegister)) {
+							for (Object o : componentsToRegister) {
+								if (!this.beanFactory.getBeansOfType(o.getClass(), false, false)
+										.values()
+										.contains(o)) {
+									registerComponent(o, generateBeanName(o));
+								}
+							}
+						}
 						SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.get().getT1();
 						String id = spec.getId();
 						if (!StringUtils.hasText(id)) {

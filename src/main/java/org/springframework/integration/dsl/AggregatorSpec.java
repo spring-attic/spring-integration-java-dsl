@@ -85,8 +85,8 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * @return the aggregator spec.
 	 */
 	public AggregatorSpec outputProcessor(MessageGroupProcessor outputProcessor) {
-		Assert.notNull(outputProcessor);
-		((InternalAggregatingMessageHandler) this.target.getT2()).getOutputProcessor().setDelegate(outputProcessor);
+		Assert.notNull(outputProcessor, "'outputProcessor' must not be null.");
+		((InternalAggregatingMessageHandler) this.handler).getOutputProcessor().setDelegate(outputProcessor);
 		return _this();
 	}
 
@@ -96,7 +96,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * @see AggregatingMessageHandler#setExpireGroupsUponCompletion(boolean)
 	 */
 	public AggregatorSpec expireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
-		this.target.getT2().setExpireGroupsUponCompletion(expireGroupsUponCompletion);
+		this.handler.setExpireGroupsUponCompletion(expireGroupsUponCompletion);
 		return _this();
 	}
 

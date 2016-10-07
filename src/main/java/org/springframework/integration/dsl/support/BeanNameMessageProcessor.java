@@ -16,12 +16,9 @@
 
 package org.springframework.integration.dsl.support;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.messaging.Message;
@@ -35,13 +32,11 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  */
-public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware, Lifecycle {
+public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware {
 
 	private final String beanName;
 
 	private final String methodName;
-
-	private final AtomicBoolean running = new AtomicBoolean();
 
 	private MessageProcessor<T> delegate;
 
@@ -59,25 +54,11 @@ public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFac
 	}
 
 	@Override
-	public void start() {
-		if (!this.running.getAndSet(true)) {
+	public T processMessage(Message<?> message) {
+		if (this.delegate == null) {
 			Object target = this.beanFactory.getBean(this.beanName);
 			this.delegate = new MethodInvokingMessageProcessor<T>(target, this.methodName);
 		}
-	}
-
-	@Override
-	public void stop() {
-		this.running.set(false);
-	}
-
-	@Override
-	public boolean isRunning() {
-		return this.running.get();
-	}
-
-	@Override
-	public T processMessage(Message<?> message) {
 		return this.delegate.processMessage(message);
 	}
 

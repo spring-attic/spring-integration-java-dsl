@@ -72,7 +72,7 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 	 * @see AmqpChannelFactoryBean#setQueueName(String)
 	 */
 	public S queueName(String queueName) {
-		if (this.id == null) {
+		if (getId() == null) {
 			id(queueName + ".channel");
 		}
 		this.amqpChannelFactoryBean.setQueueName(queueName);
@@ -198,7 +198,7 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 
 	@Override
 	protected AbstractAmqpChannel doGet() {
-		Assert.notNull(this.id, "The 'id' or 'queueName' must be specified");
+		Assert.notNull(getId(), "The 'id' or 'queueName' must be specified");
 		try {
 			this.channel = this.amqpChannelFactoryBean.getObject();
 		}

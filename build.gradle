@@ -12,7 +12,7 @@ plugins {
 	id 'eclipse'
 	id 'idea'
 	id 'jacoco'
-	id 'org.sonarqube' version '1.2'
+	id 'org.sonarqube' version '2.1'
 	id 'checkstyle'
 }
 
@@ -69,7 +69,7 @@ ext {
 	reactiveStreamsVersion = '1.0.0'
 	reactorVersion = '2.0.8.RELEASE'
 	slf4jVersion = '1.7.21'
-	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.2.RELEASE'
+	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.4.RELEASE'
 	springIntegrationKafkaVersion = '2.1.0.RELEASE'
 	springKafkaVersion = '1.1.1.RELEASE'
 	springBootVersion = '1.4.1.RELEASE'
@@ -186,16 +186,12 @@ test {
 tasks.withType(Test).all {
 	// suppress all console output during testing unless running `gradle -i`
 	logging.captureStandardOutput(LogLevel.INFO)
-	maxHeapSize = "1024m"
-	if (name == 'springIoJdk8Test') {
-		exclude '**/*KafkaTests*'
-	}
-
+	maxHeapSize = '1024m'
 }
 
 checkstyle {
 	configFile = file("${rootDir}/src/checkstyle/checkstyle.xml")
-	toolVersion = "6.16.1"
+	toolVersion = '6.16.1'
 }
 
 jacocoTestReport {

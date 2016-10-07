@@ -45,7 +45,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	 * @see MessageFilter#setThrowExceptionOnRejection(boolean)
 	 */
 	public FilterEndpointSpec throwExceptionOnRejection(boolean throwExceptionOnRejection) {
-		this.target.getT2().setThrowExceptionOnRejection(throwExceptionOnRejection);
+		this.handler.setThrowExceptionOnRejection(throwExceptionOnRejection);
 		return _this();
 	}
 
@@ -60,7 +60,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	 * @see MessageFilter#setDiscardChannel(MessageChannel)
 	 */
 	public FilterEndpointSpec discardChannel(MessageChannel discardChannel) {
-		this.target.getT2().setDiscardChannel(discardChannel);
+		this.handler.setDiscardChannel(discardChannel);
 		return _this();
 	}
 
@@ -75,7 +75,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	 * @see MessageFilter#setDiscardChannelName(String)
 	 */
 	public FilterEndpointSpec discardChannel(String discardChannelName) {
-		this.target.getT2().setDiscardChannelName(discardChannelName);
+		this.handler.setDiscardChannelName(discardChannelName);
 		return _this();
 	}
 
@@ -103,7 +103,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	 * @see MessageFilter#setDiscardWithinAdvice(boolean)
 	 */
 	public FilterEndpointSpec discardWithinAdvice(boolean discardWithinAdvice) {
-		this.target.getT2().setDiscardWithinAdvice(discardWithinAdvice);
+		this.handler.setDiscardWithinAdvice(discardWithinAdvice);
 		return _this();
 	}
 

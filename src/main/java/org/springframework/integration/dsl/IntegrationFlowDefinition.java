@@ -68,6 +68,7 @@ import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
@@ -2920,6 +2921,54 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 		return handle(barrierSpec, endpointConfigurer);
 	}
+
+	/**
+	 * Populate a {@link ServiceActivatingHandler} instance to perform {@link MessageTriggerAction}.
+	 * @param triggerActionId the {@link MessageTriggerAction} bean id.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B trigger(String triggerActionId) {
+		return trigger(triggerActionId, null);
+	}
+
+	/**
+	 * Populate a {@link ServiceActivatingHandler} instance to perform {@link MessageTriggerAction}
+	 * and endpoint options from {@link GenericEndpointSpec}.
+	 * @param triggerActionId the {@link MessageTriggerAction} bean id.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B trigger(String triggerActionId,
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+		MessageProcessor<Void> trigger = new BeanNameMessageProcessor<Void>(triggerActionId, "trigger");
+		return handle(new ServiceActivatingHandler(trigger), endpointConfigurer);
+	}
+
+	/**
+	 * Populate a {@link ServiceActivatingHandler} instance to perform {@link MessageTriggerAction}.
+	 * @param triggerAction the {@link MessageTriggerAction}.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B trigger(MessageTriggerAction triggerAction) {
+		return trigger(triggerAction, null);
+	}
+
+	/**
+	 * Populate a {@link ServiceActivatingHandler} instance to perform {@link MessageTriggerAction}
+	 * and endpoint options from {@link GenericEndpointSpec}.
+	 * @param triggerAction the {@link MessageTriggerAction}.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 1.2
+	 */
+	public B trigger(MessageTriggerAction triggerAction,
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+		return handle(new ServiceActivatingHandler(triggerAction, "trigger"), endpointConfigurer);
+	}
+
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.

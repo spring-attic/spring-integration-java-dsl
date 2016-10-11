@@ -32,7 +32,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
-import org.springframework.util.Assert;
 
 /**
  * A {@link EndpointSpec} for consumer endpoints.
@@ -158,7 +157,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractReplyProducingMessageHandler#setRequiresReply(boolean)
 	 */
 	public S requiresReply(boolean requiresReply) {
-		Assert.notNull(this.handler);
+		assertHandler();
 		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
 			((AbstractReplyProducingMessageHandler) this.handler).setRequiresReply(requiresReply);
 		}
@@ -174,7 +173,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractReplyProducingMessageHandler#setSendTimeout(long)
 	 */
 	public S sendTimeout(long sendTimeout) {
-		Assert.notNull(this.handler);
+		assertHandler();
 		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
 			((AbstractReplyProducingMessageHandler) this.handler).setSendTimeout(sendTimeout);
 		}
@@ -190,7 +189,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractMessageHandler#setOrder(int)
 	 */
 	public S order(int order) {
-		Assert.notNull(this.handler);
+		assertHandler();
 		if (this.handler instanceof AbstractMessageHandler) {
 			((AbstractMessageHandler) this.handler).setOrder(order);
 		}
@@ -210,7 +209,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * @see AbstractReplyProducingMessageHandler#setAsync(boolean)
 	 */
 	public S async(boolean async) {
-		Assert.notNull(this.handler);
+		assertHandler();
 		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
 			((AbstractReplyProducingMessageHandler) this.handler).setAsync(async);
 		}

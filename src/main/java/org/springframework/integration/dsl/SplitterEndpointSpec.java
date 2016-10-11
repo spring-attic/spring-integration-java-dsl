@@ -59,6 +59,9 @@ public final class SplitterEndpointSpec<S extends AbstractMessageSplitter>
 		if (this.handler instanceof DefaultMessageSplitter) {
 			((DefaultMessageSplitter) this.handler).setDelimiters(delimiters);
 		}
+		else {
+			logger.warn("'delimiters' can be applied only for the DefaultMessageSplitter");
+		}
 		return this;
 	}
 

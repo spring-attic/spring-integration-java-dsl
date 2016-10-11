@@ -28,6 +28,7 @@ import org.springframework.integration.dsl.support.tuple.Tuples;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.util.Assert;
 
 /**
  * An {@link IntegrationComponentSpec} for endpoints.
@@ -121,6 +122,10 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	@Override
 	protected Tuple2<F, H> doGet() {
 		return Tuples.of(this.endpointFactoryBean, this.handler);
+	}
+
+	protected void assertHandler() {
+		Assert.state(this.handler != null, "'this.handler' must not be null.");
 	}
 
 }

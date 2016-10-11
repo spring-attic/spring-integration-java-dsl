@@ -85,7 +85,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * @return the aggregator spec.
 	 */
 	public AggregatorSpec outputProcessor(MessageGroupProcessor outputProcessor) {
-		Assert.notNull(outputProcessor);
+		Assert.notNull(outputProcessor, "'outputProcessor' must not be null.");
 		((InternalAggregatingMessageHandler) this.handler).getOutputProcessor().setDelegate(outputProcessor);
 		return _this();
 	}

@@ -25,6 +25,7 @@ import org.aopalliance.aop.Advice;
 import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.util.Assert;
 
 /**
  * A {@link ConsumerEndpointSpec} for a {@link DelayHandler}.
@@ -37,6 +38,7 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 
 	DelayerEndpointSpec(DelayHandler delayHandler) {
 		super(delayHandler);
+		Assert.notNull(delayHandler, "'delayHandler' must not be null.");
 		this.handler.setDelayedAdviceChain(this.delayedAdvice);
 	}
 

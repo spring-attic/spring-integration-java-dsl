@@ -66,7 +66,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setMessageStore(MessageGroupStore)
 	 */
 	public S messageStore(MessageGroupStore messageStore) {
-		Assert.notNull(messageStore);
+		Assert.notNull(messageStore, "'messageStore' must not be null.");
 		this.handler.setMessageStore(messageStore);
 		return _this();
 	}
@@ -110,7 +110,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
 	 */
 	public S groupTimeoutExpression(String groupTimeoutExpression) {
-		Assert.hasText(groupTimeoutExpression);
+		Assert.hasText(groupTimeoutExpression, "'groupTimeoutExpression' must not be empty string.");
 		this.handler.setGroupTimeoutExpression(PARSER.parseExpression(groupTimeoutExpression));
 		return _this();
 	}
@@ -135,7 +135,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setTaskScheduler(TaskScheduler)
 	 */
 	public S taskScheduler(TaskScheduler taskScheduler) {
-		Assert.notNull(taskScheduler);
+		Assert.notNull(taskScheduler, "'taskScheduler' must not be null.");
 		this.handler.setTaskScheduler(taskScheduler);
 		return _this();
 	}
@@ -146,7 +146,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setDiscardChannel(MessageChannel)
 	 */
 	public S discardChannel(MessageChannel discardChannel) {
-		Assert.notNull(discardChannel);
+		Assert.notNull(discardChannel, "'discardChannel' must not be null.");
 		this.handler.setDiscardChannel(discardChannel);
 		return _this();
 	}
@@ -157,7 +157,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setDiscardChannelName(String)
 	 */
 	public S discardChannel(String discardChannelName) {
-		Assert.hasText(discardChannelName);
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty.");
 		this.handler.setDiscardChannelName(discardChannelName);
 		return _this();
 	}
@@ -309,7 +309,7 @@ public abstract class
 	 * @since 1.1
 	 */
 	public S lockRegistry(LockRegistry lockRegistry) {
-		Assert.notNull(lockRegistry);
+		Assert.notNull(lockRegistry, "'lockRegistry' must not be null.");
 		this.handler.setLockRegistry(lockRegistry);
 		return _this();
 	}

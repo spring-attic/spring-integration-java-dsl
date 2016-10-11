@@ -59,13 +59,13 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 	}
 
 	public BarrierSpec outputProcessor(MessageGroupProcessor outputProcessor) {
-		Assert.notNull(outputProcessor);
+		Assert.notNull(outputProcessor, "'outputProcessor' must not be null.");
 		this.outputProcessor = outputProcessor;
 		return this;
 	}
 
 	public BarrierSpec correlationStrategy(CorrelationStrategy correlationStrategy) {
-		Assert.notNull(correlationStrategy);
+		Assert.notNull(correlationStrategy, "'correlationStrategy' must not be null.");
 		this.correlationStrategy = correlationStrategy;
 		return this;
 	}

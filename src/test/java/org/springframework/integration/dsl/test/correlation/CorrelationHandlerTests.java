@@ -37,7 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.Channels;
@@ -60,6 +62,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class CorrelationHandlerTests {
+
+	private static final String BARRIER = "barrier";
 
 	@Autowired
 	@Qualifier("splitResequenceFlow.input")
@@ -137,9 +141,9 @@ public class CorrelationHandlerTests {
 
 	@Test
 	public void testBarrier() {
-		Message<?> releasing = MessageBuilder.withPayload("bar").setCorrelationId("foo").build();
+		Message<?> releasing = MessageBuilder.withPayload("bar").setHeader(BARRIER, "foo").build();
 		this.releaseChannel.send(releasing);
-		Message<?> suspending = MessageBuilder.withPayload("foo").setCorrelationId("foo").build();
+		Message<?> suspending = MessageBuilder.withPayload("foo").setHeader(BARRIER, "foo").build();
 		this.barrierFlowInput.send(suspending);
 		Message<?> out = this.barrierResults.receive(10000);
 		assertNotNull(out);
@@ -175,7 +179,9 @@ public class CorrelationHandlerTests {
 					.channel(c -> c.executor(taskExecutor()))
 					.split(Message.class, m -> m.getPayload(), c -> c.applySequence(false))
 					.channel(MessageChannels.executor(taskExecutor()))
-					.split(s -> s.applySequence(false).get().getT2().setDelimiters(","))
+					.split(s -> s
+							.applySequence(false)
+							.delimiters(","))
 					.channel(c -> c.executor(taskExecutor()))
 					.<String, Integer>transform(Integer::parseInt)
 					.enrichHeaders(h ->
@@ -223,9 +229,7 @@ public class CorrelationHandlerTests {
 		public IntegrationFlow barrierFlow() {
 			return f -> f
 					.barrier(10000, b -> b
-							.correlationStrategy(m ->
-									m.getHeaders()
-											.get(IntegrationMessageHeaderAccessor.CORRELATION_ID))
+							.correlationStrategy(new HeaderAttributeCorrelationStrategy(BARRIER))
 							.outputProcessor(g ->
 									g.getMessages()
 											.stream()
@@ -242,7 +246,6 @@ public class CorrelationHandlerTests {
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.get();
 		}
-
 
 	}
 
@@ -273,6 +276,5 @@ public class CorrelationHandlerTests {
 		}
 
 	}
-
 
 }

@@ -2891,35 +2891,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate a {@link BarrierMessageHandler} instance for provided timeout
-	 * and options from {@link BarrierSpec}.
+	 * and options from {@link BarrierSpec} and endpoint options from {@link GenericEndpointSpec}.
 	 * @param timeout the timeout in milliseconds.
 	 * @param barrierConfigurer the {@link Consumer} to provide {@link BarrierMessageHandler} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @since 1.2
 	 */
 	public B barrier(long timeout, Consumer<BarrierSpec> barrierConfigurer) {
-		return barrier(timeout, barrierConfigurer, null);
-	}
-
-	/**
-	 * Populate a {@link BarrierMessageHandler} instance for provided timeout
-	 * and options from {@link BarrierSpec} and endpoint options from {@link GenericEndpointSpec}.
-	 * @param timeout the timeout in milliseconds.
-	 * @param barrierConfigurer the {@link Consumer} to provide {@link BarrierMessageHandler} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @since 1.2
-	 */
-	public B barrier(long timeout, Consumer<BarrierSpec> barrierConfigurer,
-			Consumer<GenericEndpointSpec<BarrierMessageHandler>> endpointConfigurer) {
-
-		BarrierSpec barrierSpec = new BarrierSpec(timeout);
-
-		if (barrierConfigurer != null) {
-			barrierConfigurer.accept(barrierSpec);
-		}
-
-		return handle(barrierSpec, endpointConfigurer);
+		return register(new BarrierSpec(timeout), barrierConfigurer);
 	}
 
 	/**

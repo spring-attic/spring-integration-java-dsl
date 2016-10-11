@@ -30,16 +30,16 @@ public final class SourcePollingChannelAdapterSpec extends
 
 	SourcePollingChannelAdapterSpec(MessageSource<?> messageSource) {
 		super(messageSource);
-		this.target.getT1().setSource(messageSource);
+		this.endpointFactoryBean.setSource(messageSource);
 	}
 
 	public SourcePollingChannelAdapterSpec phase(int phase) {
-		this.target.getT1().setPhase(phase);
+		this.endpointFactoryBean.setPhase(phase);
 		return _this();
 	}
 
 	public SourcePollingChannelAdapterSpec autoStartup(boolean autoStartup) {
-		this.target.getT1().setAutoStartup(autoStartup);
+		this.endpointFactoryBean.setAutoStartup(autoStartup);
 		return _this();
 	}
 
@@ -48,7 +48,7 @@ public final class SourcePollingChannelAdapterSpec extends
 			if (PollerMetadata.MAX_MESSAGES_UNBOUNDED == pollerMetadata.getMaxMessagesPerPoll()) {
 				pollerMetadata.setMaxMessagesPerPoll(1);
 			}
-			this.target.getT1().setPollerMetadata(pollerMetadata);
+			this.endpointFactoryBean.setPollerMetadata(pollerMetadata);
 		}
 		return _this();
 	}

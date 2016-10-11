@@ -34,7 +34,7 @@ public class ResequencerSpec extends CorrelationHandlerSpec<ResequencerSpec, Res
 	 * @see ResequencingMessageHandler#setReleasePartialSequences(boolean)
 	 */
 	public ResequencerSpec releasePartialSequences(boolean releasePartialSequences) {
-		this.target.getT2().setReleasePartialSequences(releasePartialSequences);
+		this.handler.setReleasePartialSequences(releasePartialSequences);
 		return _this();
 	}
 

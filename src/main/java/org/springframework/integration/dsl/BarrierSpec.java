@@ -16,13 +16,18 @@
 
 package org.springframework.integration.dsl;
 
+import org.springframework.core.Ordered;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.BarrierMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.dsl.core.ConsumerEndpointSpec;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
+import org.springframework.integration.dsl.support.tuple.Tuple2;
+import org.springframework.integration.dsl.support.tuple.Tuples;
 import org.springframework.util.Assert;
 
 /**
@@ -31,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 1.2
  */
-public class BarrierSpec extends MessageHandlerSpec<BarrierSpec, BarrierMessageHandler> {
+public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessageHandler> {
 
 	private final long timeout;
 
@@ -40,7 +45,16 @@ public class BarrierSpec extends MessageHandlerSpec<BarrierSpec, BarrierMessageH
 	private CorrelationStrategy correlationStrategy =
 			new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID);
 
+	private boolean requiresReply;
+
+	private long sendTimeout = -1;
+
+	private int order = Ordered.LOWEST_PRECEDENCE;
+
+	private boolean async;
+
 	BarrierSpec(long timeout) {
+		super(null);
 		this.timeout = timeout;
 	}
 
@@ -57,8 +71,40 @@ public class BarrierSpec extends MessageHandlerSpec<BarrierSpec, BarrierMessageH
 	}
 
 	@Override
-	protected BarrierMessageHandler doGet() {
-		return new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
+	public BarrierSpec requiresReply(boolean requiresReply) {
+		this.requiresReply = requiresReply;
+		return this;
+	}
+
+	@Override
+	public BarrierSpec sendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+		return this;
+	}
+
+	@Override
+	public BarrierSpec order(int order) {
+		this.order = order;
+		return this;
+	}
+
+	@Override
+	public BarrierSpec async(boolean async) {
+		this.async = async;
+		return this;
+	}
+
+	@Override
+	public Tuple2<ConsumerEndpointFactoryBean, BarrierMessageHandler> doGet() {
+		BarrierMessageHandler barrierMessageHandler =
+				new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
+		barrierMessageHandler.setAdviceChain(this.adviceChain);
+		barrierMessageHandler.setRequiresReply(this.requiresReply);
+		barrierMessageHandler.setSendTimeout(this.sendTimeout);
+		barrierMessageHandler.setAsync(this.async);
+		barrierMessageHandler.setOrder(this.order);
+		this.endpointFactoryBean.setHandler(barrierMessageHandler);
+		return Tuples.of(this.endpointFactoryBean, barrierMessageHandler);
 	}
 
 }

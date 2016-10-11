@@ -28,41 +28,41 @@ public final class GatewayEndpointSpec extends ConsumerEndpointSpec<GatewayEndpo
 
 	GatewayEndpointSpec(MessageChannel requestChannel) {
 		super(new GatewayMessageHandler());
-		this.target.getT2().setRequestChannel(requestChannel);
+		this.handler.setRequestChannel(requestChannel);
 	}
 
 	GatewayEndpointSpec(String requestChannel) {
 		super(new GatewayMessageHandler());
-		this.target.getT2().setRequestChannelName(requestChannel);
+		this.handler.setRequestChannelName(requestChannel);
 	}
 
 	public GatewayEndpointSpec replyChannel(MessageChannel replyChannel) {
-		this.target.getT2().setReplyChannel(replyChannel);
+		this.handler.setReplyChannel(replyChannel);
 		return this;
 	}
 
 	public GatewayEndpointSpec replyChannel(String replyChannel) {
-		this.target.getT2().setReplyChannelName(replyChannel);
+		this.handler.setReplyChannelName(replyChannel);
 		return this;
 	}
 
 	public GatewayEndpointSpec errorChannel(MessageChannel errorChannel) {
-		this.target.getT2().setErrorChannel(errorChannel);
+		this.handler.setErrorChannel(errorChannel);
 		return this;
 	}
 
 	public GatewayEndpointSpec errorChannel(String errorChannel) {
-		this.target.getT2().setErrorChannelName(errorChannel);
+		this.handler.setErrorChannelName(errorChannel);
 		return this;
 	}
 
 	public GatewayEndpointSpec requestTimeout(Long requestTimeout) {
-		this.target.getT2().setRequestTimeout(requestTimeout);
+		this.handler.setRequestTimeout(requestTimeout);
 		return this;
 	}
 
 	public GatewayEndpointSpec replyTimeout(Long replyTimeout) {
-		this.target.getT2().setReplyTimeout(replyTimeout);
+		this.handler.setReplyTimeout(replyTimeout);
 		return this;
 	}
 

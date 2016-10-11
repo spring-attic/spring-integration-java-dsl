@@ -67,7 +67,7 @@ public abstract class
 	 */
 	public S messageStore(MessageGroupStore messageStore) {
 		Assert.notNull(messageStore);
-		this.target.getT2().setMessageStore(messageStore);
+		this.handler.setMessageStore(messageStore);
 		return _this();
 	}
 
@@ -77,7 +77,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setSendPartialResultOnExpiry(boolean)
 	 */
 	public S sendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
-		this.target.getT2().setSendPartialResultOnExpiry(sendPartialResultOnExpiry);
+		this.handler.setSendPartialResultOnExpiry(sendPartialResultOnExpiry);
 		return _this();
 	}
 
@@ -87,7 +87,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setMinimumTimeoutForEmptyGroups(long)
 	 */
 	public S minimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
-		this.target.getT2().setMinimumTimeoutForEmptyGroups(minimumTimeoutForEmptyGroups);
+		this.handler.setMinimumTimeoutForEmptyGroups(minimumTimeoutForEmptyGroups);
 		return _this();
 	}
 
@@ -100,7 +100,7 @@ public abstract class
 	 * @see ValueExpression
 	 */
 	public S groupTimeout(long groupTimeout) {
-		this.target.getT2().setGroupTimeoutExpression(new ValueExpression<Long>(groupTimeout));
+		this.handler.setGroupTimeoutExpression(new ValueExpression<Long>(groupTimeout));
 		return _this();
 	}
 
@@ -111,7 +111,7 @@ public abstract class
 	 */
 	public S groupTimeoutExpression(String groupTimeoutExpression) {
 		Assert.hasText(groupTimeoutExpression);
-		this.target.getT2().setGroupTimeoutExpression(PARSER.parseExpression(groupTimeoutExpression));
+		this.handler.setGroupTimeoutExpression(PARSER.parseExpression(groupTimeoutExpression));
 		return _this();
 	}
 
@@ -125,7 +125,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setGroupTimeoutExpression
 	 */
 	public S groupTimeout(Function<MessageGroup, Long> groupTimeoutFunction) {
-		this.target.getT2().setGroupTimeoutExpression(new FunctionExpression<MessageGroup>(groupTimeoutFunction));
+		this.handler.setGroupTimeoutExpression(new FunctionExpression<MessageGroup>(groupTimeoutFunction));
 		return _this();
 	}
 
@@ -136,7 +136,7 @@ public abstract class
 	 */
 	public S taskScheduler(TaskScheduler taskScheduler) {
 		Assert.notNull(taskScheduler);
-		this.target.getT2().setTaskScheduler(taskScheduler);
+		this.handler.setTaskScheduler(taskScheduler);
 		return _this();
 	}
 
@@ -147,7 +147,7 @@ public abstract class
 	 */
 	public S discardChannel(MessageChannel discardChannel) {
 		Assert.notNull(discardChannel);
-		this.target.getT2().setDiscardChannel(discardChannel);
+		this.handler.setDiscardChannel(discardChannel);
 		return _this();
 	}
 
@@ -158,7 +158,7 @@ public abstract class
 	 */
 	public S discardChannel(String discardChannelName) {
 		Assert.hasText(discardChannelName);
-		this.target.getT2().setDiscardChannelName(discardChannelName);
+		this.handler.setDiscardChannelName(discardChannelName);
 		return _this();
 	}
 
@@ -226,7 +226,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
 	 */
 	public S correlationStrategy(CorrelationStrategy correlationStrategy) {
-		this.target.getT2().setCorrelationStrategy(correlationStrategy);
+		this.handler.setCorrelationStrategy(correlationStrategy);
 		return _this();
 	}
 
@@ -269,7 +269,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
 	 */
 	public S releaseStrategy(ReleaseStrategy releaseStrategy) {
-		this.target.getT2().setReleaseStrategy(releaseStrategy);
+		this.handler.setReleaseStrategy(releaseStrategy);
 		return _this();
 	}
 
@@ -282,7 +282,7 @@ public abstract class
 	 * @see AbstractCorrelatingMessageHandler#setExpireGroupsUponTimeout
 	 */
 	public S expireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
-		this.target.getT2().setExpireGroupsUponTimeout(expireGroupsUponTimeout);
+		this.handler.setExpireGroupsUponTimeout(expireGroupsUponTimeout);
 		return _this();
 	}
 
@@ -310,7 +310,7 @@ public abstract class
 	 */
 	public S lockRegistry(LockRegistry lockRegistry) {
 		Assert.notNull(lockRegistry);
-		this.target.getT2().setLockRegistry(lockRegistry);
+		this.handler.setLockRegistry(lockRegistry);
 		return _this();
 	}
 

@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.channel.QueueChannel;
@@ -239,6 +240,7 @@ public class CorrelationHandlerTests {
 		}
 
 		@Bean
+		@DependsOn("barrierFlow")
 		public IntegrationFlow releaseBarrierFlow(MessageTriggerAction barrierTriggerAction) {
 			return IntegrationFlows.from((Channels c) -> c.queue("releaseChannel"))
 					.trigger(barrierTriggerAction,

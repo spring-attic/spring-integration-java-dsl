@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
@@ -286,8 +285,7 @@ public final class IntegrationFlows {
 
 	private static IntegrationFlowBuilder from(MessageProducerSupport messageProducer,
 			IntegrationFlowBuilder integrationFlowBuilder) {
-		DirectFieldAccessor dfa = new DirectFieldAccessor(messageProducer);
-		MessageChannel outputChannel = (MessageChannel) dfa.getPropertyValue("outputChannel");
+		MessageChannel outputChannel = messageProducer.getOutputChannel();
 		if (outputChannel == null) {
 			outputChannel = new DirectChannel();
 			messageProducer.setOutputChannel(outputChannel);
@@ -336,8 +334,7 @@ public final class IntegrationFlows {
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
 			IntegrationFlowBuilder integrationFlowBuilder) {
-		DirectFieldAccessor dfa = new DirectFieldAccessor(inboundGateway);
-		MessageChannel outputChannel = (MessageChannel) dfa.getPropertyValue("requestChannel");
+		MessageChannel outputChannel = inboundGateway.getRequestChannel();
 		if (outputChannel == null) {
 			outputChannel = new DirectChannel();
 			inboundGateway.setRequestChannel(outputChannel);

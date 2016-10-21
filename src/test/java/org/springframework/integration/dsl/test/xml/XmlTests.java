@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.test.xml;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -195,6 +196,7 @@ public class XmlTests {
 		assertEquals("1", headers.get("one"));
 		assertEquals("2", headers.get("two"));
 		assertThat(headers.getReplyChannel(), instanceOf(String.class));
+		assertFalse(headers.containsKey("foo"));
 	}
 
 	@Configuration
@@ -272,7 +274,8 @@ public class XmlTests {
 									new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne"))
 									.header("two",
 											new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"))
-									.headerChannelsToString(),
+									.headerChannelsToString("12345")
+									.messageProcessor(m -> s.header("foo", "bar")),
 							c -> c.autoStartup(false).id("xpathHeaderEnricher")
 					)
 					.get();

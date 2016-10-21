@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl.test.kafka;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -37,12 +38,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.kafka.Kafka;
 import org.springframework.integration.dsl.kafka.KafkaProducerMessageHandlerSpec;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -58,7 +62,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -95,6 +101,8 @@ public class KafkaTests {
 	@Qualifier("kafkaProducer3.handler")
 	private KafkaProducerMessageHandler<?, ?> kafkaProducer3;
 
+	@Autowired
+	private PollableChannel errorChannel;
 
 	@Test
 	public void testKafkaAdapters() {
@@ -129,6 +137,11 @@ public class KafkaTests {
 		this.sendToKafkaFlowInput.send(message);
 
 		assertNull(this.listeningFromKafkaResults.receive(10));
+
+		Message<?> error = this.errorChannel.receive(10000);
+		assertNotNull(error);
+		assertThat(error, instanceOf(ErrorMessage.class));
+		assertThat(error.getPayload(), instanceOf(MessageRejectedException.class));
 	}
 
 	@Configuration
@@ -143,13 +156,24 @@ public class KafkaTests {
 			return new DefaultKafkaConsumerFactory<>(props);
 		}
 
+		@Bean
+		public PollableChannel errorChannel() {
+			return new QueueChannel();
+		}
 
 		@Bean
 		public IntegrationFlow listeningFromKafkaFlow() {
 			return IntegrationFlows
-					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(), TEST_TOPIC)
+					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
+							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC)
 							.configureListenerContainer(c ->
-									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL)))
+									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL))
+							.errorChannel("errorChannel")
+							.retryTemplate(new RetryTemplate())
+							.filterInRetry(true))
+					.filter(Message.class, m ->
+									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
+							f -> f.throwExceptionOnRejection(true))
 					.<String, String>transform(String::toUpperCase)
 					.channel(c -> c.queue("listeningFromKafkaResults"))
 					.get();
@@ -162,7 +186,7 @@ public class KafkaTests {
 
 		@Bean
 		public IntegrationFlow sendToKafkaFlow() {
-			return f -> f.<String>split(p -> Stream.generate(() -> p).limit(100).iterator(), null)
+			return f -> f.<String>split(p -> Stream.generate(() -> p).limit(101).iterator(), null)
 					.publishSubscribeChannel(c -> c
 							.subscribe(sf -> sf.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC),
 									e -> e.id("kafkaProducer")))

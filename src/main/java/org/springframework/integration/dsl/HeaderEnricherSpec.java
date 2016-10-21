@@ -38,6 +38,7 @@ import org.springframework.integration.transformer.support.HeaderValueMessagePro
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * An {@link IntegrationComponentSpec} for a {@link HeaderEnricher}.
@@ -49,8 +50,13 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 
 	private final Map<String, HeaderValueMessageProcessor<?>> headerToAdd = new HashMap<String, HeaderValueMessageProcessor<?>>();
 
+	private boolean defaultOverwrite = false;
+
+	private boolean shouldSkipNulls = true;
+
+	private MessageProcessor<?> messageProcessor;
+
 	HeaderEnricherSpec() {
-		this.target = new HeaderEnricher(this.headerToAdd);
 	}
 
 	/**
@@ -61,7 +67,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see HeaderEnricher#setDefaultOverwrite(boolean)
 	 */
 	public HeaderEnricherSpec defaultOverwrite(boolean defaultOverwrite) {
-		this.target.setDefaultOverwrite(defaultOverwrite);
+		this.defaultOverwrite = defaultOverwrite;
 		return _this();
 	}
 
@@ -71,7 +77,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see HeaderEnricher#setShouldSkipNulls(boolean)
 	 */
 	public HeaderEnricherSpec shouldSkipNulls(boolean shouldSkipNulls) {
-		this.target.setShouldSkipNulls(shouldSkipNulls);
+		this.shouldSkipNulls = shouldSkipNulls;
 		return _this();
 	}
 
@@ -85,7 +91,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see HeaderEnricher#setMessageProcessor(MessageProcessor)
 	 */
 	public HeaderEnricherSpec messageProcessor(MessageProcessor<?> messageProcessor) {
-		this.target.setMessageProcessor(messageProcessor);
+		this.messageProcessor = messageProcessor;
 		return _this();
 	}
 
@@ -389,16 +395,43 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * persistence and serialization of messages without losing these important framework
 	 * headers.
 	 * @return the header enricher spec.
+	 * @see org.springframework.integration.support.channel.HeaderChannelRegistry
 	 */
 	public HeaderEnricherSpec headerChannelsToString() {
+		return headerChannelsToString(null);
+	}
+
+	/**
+	 * Add header specifications to automatically convert header channels (reply, error
+	 * channels) to Strings and store them in a header channel registry. Allows
+	 * persistence and serialization of messages without losing these important framework
+	 * headers.
+	 * @param timeToLiveExpression the minimum time that the mapping will remain in the registry.
+	 * @return the header enricher spec.
+	 * @since 1.2.1
+	 * @see org.springframework.integration.support.channel.HeaderChannelRegistry
+	 */
+	public HeaderEnricherSpec headerChannelsToString(String timeToLiveExpression) {
 		return headerExpression("replyChannel",
 				"@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.replyChannel)",
+						+ ".channelToChannelName(headers.replyChannel" +
+						(StringUtils.hasText(timeToLiveExpression) ? ", " + timeToLiveExpression : "") + ")",
 				true)
 				.headerExpression("errorChannel",
 						"@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-								+ ".channelToChannelName(headers.errorChannel)",
+								+ ".channelToChannelName(headers.errorChannel" +
+								(StringUtils.hasText(timeToLiveExpression) ? ", " + timeToLiveExpression : "") + ")",
 						true);
+	}
+
+	@Override
+	protected HeaderEnricher doGet() {
+		HeaderEnricher headerEnricher =
+				new HeaderEnricher(new HashMap<String, HeaderValueMessageProcessor<?>>(this.headerToAdd));
+		headerEnricher.setDefaultOverwrite(this.defaultOverwrite);
+		headerEnricher.setShouldSkipNulls(this.shouldSkipNulls);
+		headerEnricher.setMessageProcessor(this.messageProcessor);
+		return headerEnricher;
 	}
 
 }

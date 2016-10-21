@@ -33,8 +33,16 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ErrorHandler;
+import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
+import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.TopicPartitionInitialOffset;
+import org.springframework.kafka.support.converter.BatchMessageConverter;
+import org.springframework.kafka.support.converter.MessageConverter;
+import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -51,29 +59,126 @@ import org.springframework.util.Assert;
 public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDrivenChannelAdapterSpec<K, V, S>>
 		extends MessageProducerSpec<S, KafkaMessageDrivenChannelAdapter<K, V>> {
 
-	private AbstractMessageListenerContainer<K, V> messageListenerContainer;
-
-	private boolean batchMode;
-
-	KafkaMessageDrivenChannelAdapterSpec(AbstractMessageListenerContainer<K, V> messageListenerContainer) {
-		super(null);
-		this.messageListenerContainer = messageListenerContainer;
+	KafkaMessageDrivenChannelAdapterSpec(AbstractMessageListenerContainer<K, V> messageListenerContainer,
+			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
+		super(new KafkaMessageDrivenChannelAdapter<K, V>(messageListenerContainer, listenerMode));
 	}
 
-	public KafkaMessageDrivenChannelAdapterSpec<K, V, S> batchMode(boolean batchMode) {
-		this.batchMode = batchMode;
-		return this;
+	/**
+	 * Specify a {@code boolean} flag to indicate a listener mode.
+	 * @param batchMode enable batch mode for listener.
+	 * @return the spec
+	 * @deprecated since 1.2.1 in favor of an appropriate
+	 * {@link KafkaMessageDrivenChannelAdapter.ListenerMode} constructor argument.
+	 * @see KafkaMessageDrivenChannelAdapter
+	 */
+	@Deprecated
+	public S batchMode(boolean batchMode) {
+		return _this();
 	}
 
-	@Override
-	protected KafkaMessageDrivenChannelAdapter<K, V> doGet() {
-		if (this.batchMode) {
-			return new KafkaMessageDrivenChannelAdapter<K, V>(this.messageListenerContainer,
-					KafkaMessageDrivenChannelAdapter.ListenerMode.batch);
-		}
-		else {
-			return new KafkaMessageDrivenChannelAdapter<K, V>(this.messageListenerContainer);
-		}
+	/**
+	 * Set the message converter; must be a {@link RecordMessageConverter} or
+	 * {@link BatchMessageConverter} depending on mode.
+	 * @param messageConverter the converter.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S messageConverter(MessageConverter messageConverter) {
+		this.target.setMessageConverter(messageConverter);
+		return _this();
+	}
+
+	/**
+	 * Set the message converter to use with a record-based consumer.
+	 * @param messageConverter the converter.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S recordMessageConverter(RecordMessageConverter messageConverter) {
+		this.target.setRecordMessageConverter(messageConverter);
+		return _this();
+	}
+
+	/**
+	 * Set the message converter to use with a batch-based consumer.
+	 * @param messageConverter the converter.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S batchMessageConverter(BatchMessageConverter messageConverter) {
+		this.target.setBatchMessageConverter(messageConverter);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link RecordFilterStrategy} to wrap
+	 * {@code KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
+	 * {@link FilteringAcknowledgingMessageListenerAdapter}.
+	 * @param recordFilterStrategy the {@link RecordFilterStrategy} to use.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S recordFilterStrategy(RecordFilterStrategy<K, V> recordFilterStrategy) {
+		this.target.setRecordFilterStrategy(recordFilterStrategy);
+		return _this();
+	}
+
+	/**
+	 * A {@code boolean} flag to indicate if {@link FilteringAcknowledgingMessageListenerAdapter}
+	 * should acknowledge discarded records or not.
+	 * Does not make sense if {@link #recordFilterStrategy(RecordFilterStrategy)} isn't specified.
+	 * @param ackDiscarded true to ack (commit offset for) discarded messages.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S ackDiscarded(boolean ackDiscarded) {
+		this.target.setAckDiscarded(ackDiscarded);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link RetryTemplate} instance to wrap
+	 * {@code KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
+	 * {@link RetryingAcknowledgingMessageListenerAdapter}.
+	 * @param retryTemplate the {@link RetryTemplate} to use.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S retryTemplate(RetryTemplate retryTemplate) {
+		this.target.setRetryTemplate(retryTemplate);
+		return _this();
+	}
+
+	/**
+	 * A {@link RecoveryCallback} instance for retry operation;
+	 * if null, the exception will be thrown to the container after retries are exhausted.
+	 * Does not make sense if {@link #retryTemplate(RetryTemplate)} isn't specified.
+	 * @param recoveryCallback the recovery callback.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S recoveryCallback(RecoveryCallback<Void> recoveryCallback) {
+		this.target.setRecoveryCallback(recoveryCallback);
+		return _this();
+	}
+
+	/**
+	 /**
+	 * The {@code boolean} flag to specify the order how
+	 * {@link RetryingAcknowledgingMessageListenerAdapter} and
+	 * {@link FilteringAcknowledgingMessageListenerAdapter} are wrapped to each other,
+	 * if both of them are present.
+	 * Does not make sense if only one of {@link RetryTemplate} or
+	 * {@link RecordFilterStrategy} is present, or any.
+	 * @param filterInRetry the order for {@link RetryingAcknowledgingMessageListenerAdapter} and
+	 * {@link FilteringAcknowledgingMessageListenerAdapter} wrapping. Defaults to {@code false}.
+	 * @return the spec
+	 * @since 1.2.1
+	 */
+	public S filterInRetry(boolean filterInRetry) {
+		this.target.setFilterInRetry(filterInRetry);
+		return _this();
 	}
 
 	/**
@@ -88,8 +193,9 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 
 		private KafkaMessageListenerContainerSpec<K, V> spec;
 
-		KafkaMessageDrivenChannelAdapterListenerContainerSpec(KafkaMessageListenerContainerSpec<K, V> spec) {
-			super(spec.container);
+		KafkaMessageDrivenChannelAdapterListenerContainerSpec(KafkaMessageListenerContainerSpec<K, V> spec,
+				KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
+			super(spec.container, listenerMode);
 			this.spec = spec;
 		}
 

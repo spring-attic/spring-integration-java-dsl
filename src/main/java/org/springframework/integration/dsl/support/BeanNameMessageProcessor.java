@@ -34,26 +34,31 @@ import org.springframework.util.Assert;
  */
 public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware {
 
-	private final String object;
+	private final String beanName;
 
 	private final String methodName;
 
 	private MessageProcessor<T> delegate;
 
+	private BeanFactory beanFactory;
+
 	public BeanNameMessageProcessor(String object, String methodName) {
-		this.object = object;
+		this.beanName = object;
 		this.methodName = methodName;
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.notNull(beanFactory);
-		Object target = beanFactory.getBean(object);
-		this.delegate = new MethodInvokingMessageProcessor<T>(target, this.methodName);
+		this.beanFactory = beanFactory;
 	}
 
 	@Override
 	public T processMessage(Message<?> message) {
+		if (this.delegate == null) {
+			Object target = this.beanFactory.getBean(this.beanName);
+			this.delegate = new MethodInvokingMessageProcessor<T>(target, this.methodName);
+		}
 		return this.delegate.processMessage(message);
 	}
 

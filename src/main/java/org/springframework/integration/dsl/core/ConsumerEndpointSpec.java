@@ -25,7 +25,6 @@ import org.aopalliance.aop.Advice;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.ClassUtils;
@@ -38,8 +37,9 @@ import org.springframework.util.ClassUtils;
 public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>, H extends MessageHandler>
 		extends EndpointSpec<S, ConsumerEndpointFactoryBean, H> {
 
-	private static final boolean isSpringIntegration43 = ClassUtils.isPresent(HandleMessageAdvice.class.getName(),
-			ClassUtils.getDefaultClassLoader());
+	private static final boolean isSpringIntegration43 =
+			ClassUtils.isPresent("org.springframework.integration.handler.advice.HandleMessageAdvice",
+					ClassUtils.getDefaultClassLoader());
 
 	private final List<Advice> adviceChain = new LinkedList<Advice>();
 

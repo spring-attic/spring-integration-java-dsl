@@ -16,8 +16,10 @@
 
 package org.springframework.integration.dsl.test.transaction;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,10 +64,10 @@ public class TransactionInterceptorBuilderTests {
 		assertSame(txm, interceptor.getTransactionManager());
 		TransactionAttribute atts = interceptor.getTransactionAttributeSource()
 				.getTransactionAttribute(null, null);
-		assertThat(atts.getPropagationBehavior()).isEqualTo(Propagation.REQUIRES_NEW.value());
-		assertThat(atts.getIsolationLevel()).isEqualTo(Isolation.SERIALIZABLE.value());
-		assertThat(atts.getTimeout()).isEqualTo(42);
-		assertThat(atts.isReadOnly()).isTrue();
+		assertThat(atts.getPropagationBehavior(), equalTo(Propagation.REQUIRES_NEW.value()));
+		assertThat(atts.getIsolationLevel(), equalTo(Isolation.SERIALIZABLE.value()));
+		assertThat(atts.getTimeout(), equalTo(42));
+		assertTrue(atts.isReadOnly());
 	}
 
 	@Configuration

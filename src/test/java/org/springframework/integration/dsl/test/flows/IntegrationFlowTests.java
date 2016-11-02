@@ -161,8 +161,8 @@ public class IntegrationFlowTests {
 	private MessageChannel claimCheckInput;
 
 	@Autowired
-	@Qualifier("lamdasInput")
-	private MessageChannel lamdasInput;
+	@Qualifier("lambdasInput")
+	private MessageChannel lambdasInput;
 
 	@Autowired
 	@Qualifier("gatewayInput")
@@ -285,7 +285,7 @@ public class IntegrationFlowTests {
 		Message<?> message = MessageBuilder.withPayload("World")
 				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 				.build();
-		this.lamdasInput.send(message);
+		this.lambdasInput.send(message);
 		Message<?> receive = replyChannel.receive(5000);
 		assertNotNull(receive);
 		assertEquals("Hello World", receive.getPayload());
@@ -294,7 +294,7 @@ public class IntegrationFlowTests {
 				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 				.build();
 
-		this.lamdasInput.send(message);
+		this.lambdasInput.send(message);
 		assertNull(replyChannel.receive(10));
 
 	}
@@ -710,8 +710,8 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
-		public IntegrationFlow lamdasFlow() {
-			return IntegrationFlows.from("lamdasInput")
+		public IntegrationFlow lambdasFlow() {
+			return IntegrationFlows.from("lambdasInput")
 					.filter("World"::equals)
 					.transform("Hello "::concat)
 					.get();

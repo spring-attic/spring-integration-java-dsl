@@ -55,11 +55,9 @@ public class HttpMessageHandlerSpec
 		extends MessageHandlerSpec<HttpMessageHandlerSpec, HttpRequestExecutingMessageHandler>
 		implements ComponentsRegistration {
 
-	private final HttpRequestExecutingMessageHandler messageHandler;
-
 	private final RestTemplate restTemplate;
 
-	private Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
 	private HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
@@ -74,22 +72,24 @@ public class HttpMessageHandlerSpec
 	}
 
 	HttpMessageHandlerSpec(Expression uriExpression, RestTemplate restTemplate) {
-		this.messageHandler = new HttpRequestExecutingMessageHandler(uriExpression, restTemplate);
+		this.target = new HttpRequestExecutingMessageHandler(uriExpression, restTemplate);
+		this.target.setUriVariableExpressions(this.uriVariableExpressions);
+		this.target.setHeaderMapper(this.headerMapper);
 		this.restTemplate = restTemplate;
 	}
 
 	HttpMessageHandlerSpec expectReply(boolean expectReply) {
-		this.messageHandler.setExpectReply(expectReply);
+		this.target.setExpectReply(expectReply);
 		return this;
 	}
 
 	public HttpMessageHandlerSpec encodeUri(boolean encodeUri) {
-		this.messageHandler.setEncodeUri(encodeUri);
+		this.target.setEncodeUri(encodeUri);
 		return this;
 	}
 
 	public HttpMessageHandlerSpec httpMethodExpression(Expression httpMethodExpression) {
-		this.messageHandler.setHttpMethodExpression(httpMethodExpression);
+		this.target.setHttpMethodExpression(httpMethodExpression);
 		return this;
 	}
 
@@ -98,22 +98,22 @@ public class HttpMessageHandlerSpec
 	}
 
 	public HttpMessageHandlerSpec httpMethod(HttpMethod httpMethod) {
-		this.messageHandler.setHttpMethod(httpMethod);
+		this.target.setHttpMethod(httpMethod);
 		return this;
 	}
 
 	public HttpMessageHandlerSpec extractPayload(boolean extractPayload) {
-		this.messageHandler.setExtractPayload(extractPayload);
+		this.target.setExtractPayload(extractPayload);
 		return this;
 	}
 
 	public HttpMessageHandlerSpec charset(String charset) {
-		this.messageHandler.setCharset(charset);
+		this.target.setCharset(charset);
 		return this;
 	}
 
 	public HttpMessageHandlerSpec expectedResponseType(Class<?> expectedResponseType) {
-		this.messageHandler.setExpectedResponseType(expectedResponseType);
+		this.target.setExpectedResponseType(expectedResponseType);
 		return this;
 	}
 
@@ -122,7 +122,7 @@ public class HttpMessageHandlerSpec
 	}
 
 	public HttpMessageHandlerSpec expectedResponseTypeExpression(Expression expectedResponseTypeExpression) {
-		this.messageHandler.setExpectedResponseTypeExpression(expectedResponseTypeExpression);
+		this.target.setExpectedResponseTypeExpression(expectedResponseTypeExpression);
 		return this;
 	}
 
@@ -134,26 +134,27 @@ public class HttpMessageHandlerSpec
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
 		Assert.isNull(this.restTemplate,
 				"the 'errorHandler' must be specified on the provided 'restTemplate': " + this.restTemplate);
-		this.messageHandler.setErrorHandler(errorHandler);
+		this.target.setErrorHandler(errorHandler);
 		return this;
 	}
 
 	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
 		Assert.isNull(this.restTemplate,
 				"the 'messageConverters' must be specified on the provided 'restTemplate': " + this.restTemplate);
-		this.messageHandler.setMessageConverters(Arrays.asList(messageConverters));
+		this.target.setMessageConverters(Arrays.asList(messageConverters));
 		return this;
 	}
 
 	public HttpMessageHandlerSpec requestFactory(ClientHttpRequestFactory requestFactory) {
 		Assert.isNull(this.restTemplate,
 				"the 'requestFactory' must be specified on the provided 'restTemplate': " + this.restTemplate);
-		this.messageHandler.setRequestFactory(requestFactory);
+		this.target.setRequestFactory(requestFactory);
 		return this;
 	}
 
 	public HttpMessageHandlerSpec headerMapper(HeaderMapper<HttpHeaders> headerMapper) {
 		this.headerMapper = headerMapper;
+		this.target.setHeaderMapper(this.headerMapper);
 		this.headerMapperExplicitlySet = true;
 		return this;
 	}
@@ -173,7 +174,8 @@ public class HttpMessageHandlerSpec
 	}
 
 	public HttpMessageHandlerSpec uriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
-		this.uriVariableExpressions = new HashMap<String, Expression>(uriVariableExpressions);
+		this.uriVariableExpressions.clear();
+		this.uriVariableExpressions.putAll(uriVariableExpressions);
 		return this;
 	}
 
@@ -206,7 +208,7 @@ public class HttpMessageHandlerSpec
 	}
 
 	public HttpMessageHandlerSpec uriVariablesExpression(Expression uriVariablesExpression) {
-		this.messageHandler.setUriVariablesExpression(uriVariablesExpression);
+		this.target.setUriVariablesExpression(uriVariablesExpression);
 		return this;
 	}
 
@@ -232,20 +234,13 @@ public class HttpMessageHandlerSpec
 	}
 
 	public HttpMessageHandlerSpec transferCookies(boolean transferCookies) {
-		this.messageHandler.setTransferCookies(transferCookies);
+		this.target.setTransferCookies(transferCookies);
 		return this;
 	}
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
 		return Collections.<Object>singletonList(this.headerMapper);
-	}
-
-	@Override
-	protected HttpRequestExecutingMessageHandler doGet() {
-		this.messageHandler.setUriVariableExpressions(this.uriVariableExpressions);
-		this.messageHandler.setHeaderMapper(this.headerMapper);
-		return this.messageHandler;
 	}
 
 }

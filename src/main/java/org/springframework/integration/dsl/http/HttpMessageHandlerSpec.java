@@ -243,4 +243,9 @@ public class HttpMessageHandlerSpec
 		return Collections.<Object>singletonList(this.headerMapper);
 	}
 
+	@Override
+	protected HttpRequestExecutingMessageHandler doGet() {
+		throw new UnsupportedOperationException();
+	}
+
 }

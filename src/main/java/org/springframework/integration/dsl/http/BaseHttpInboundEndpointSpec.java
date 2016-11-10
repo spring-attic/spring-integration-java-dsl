@@ -170,7 +170,7 @@ public abstract class
 	}
 
 	public S statusCodeFunction(Function<Void, ?> statusCodeFunction) {
-		return payloadExpression(new FunctionExpression<Void>(statusCodeFunction));
+		return statusCodeExpression(new FunctionExpression<Void>(statusCodeFunction));
 	}
 
 	@Override

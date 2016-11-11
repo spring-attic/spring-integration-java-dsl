@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.test.mail;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -49,17 +50,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.MessageProducers;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.mail.Mail;
-import org.springframework.integration.dsl.test.mail.TestMailServer.ImapServer;
-import org.springframework.integration.dsl.test.mail.TestMailServer.Pop3Server;
-import org.springframework.integration.dsl.test.mail.TestMailServer.SmtpServer;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.mail.TestMailServer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -79,13 +77,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class MailTests {
 
-	private final static SmtpServer smtpServer = TestMailServer.smtp(0);
+	private final static TestMailServer.SmtpServer smtpServer = TestMailServer.smtp(0);
 
-	private final static Pop3Server pop3Server = TestMailServer.pop3(0);
+	private final static TestMailServer.Pop3Server pop3Server = TestMailServer.pop3(0);
 
-	private final static ImapServer imapServer = TestMailServer.imap(0);
+	private final static TestMailServer.ImapServer imapServer = TestMailServer.imap(0);
 
-	private final static ImapServer imapIdleServer = TestMailServer.imap(0);
+	private final static TestMailServer.ImapServer imapIdleServer = TestMailServer.imap(0);
 
 
 	@BeforeClass
@@ -158,7 +156,7 @@ public class MailTests {
 		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
 		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
 		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
-		assertEquals("foo\r\n", message.getPayload());
+		assertEquals("foo\r\n\r\n", message.getPayload());
 	}
 
 	@Test
@@ -169,7 +167,7 @@ public class MailTests {
 		assertEquals("Foo <foo@bar>", mm.getRecipients(RecipientType.TO)[0].toString());
 		assertEquals("Bar <bar@baz>", mm.getFrom()[0].toString());
 		assertEquals("Test Email", mm.getSubject());
-		assertEquals("foo\r\n", mm.getContent());
+		assertThat(mm.getContent(), equalTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n"));
 	}
 
 	@Test
@@ -180,11 +178,7 @@ public class MailTests {
 		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
 		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
 		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
-		assertEquals("To: Foo <foo@bar>\r\n" +
-				"From: Bar <bar@baz>\r\n" +
-				"Subject: Test Email\r\n" +
-				"\r\n" +
-				"foo\r\n", message.getPayload());
+		assertThat(message.getPayload(), equalTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n"));
 		this.imapIdleAdapter.stop();
 		assertFalse(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class));
 	}
@@ -200,7 +194,7 @@ public class MailTests {
 							.subjectFunction(m -> "foo")
 							.from("foo@bar")
 							.toFunction(m -> new String[] { "bar@baz" }))
-					.handleWithAdapter(h -> h.mail("localhost")
+					.handle(Mail.outboundAdapter("localhost")
 									.port(smtpServer.getPort())
 									.credentials("user", "pw")
 									.protocol("smtp")
@@ -212,7 +206,7 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow pop3MailFlow() {
 			return IntegrationFlows
-					.from(s -> s.pop3("localhost", pop3Server.getPort(), "user", "pw")
+					.from(Mail.pop3InboundAdapter("localhost", pop3Server.getPort(), "user", "pw")
 									.javaMailProperties(p -> p.put("mail.debug", "false"))
 									.headerMapper(mailHeaderMapper()),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
@@ -225,8 +219,9 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow imapMailFlow() {
 			return IntegrationFlows
-					.from(s -> s.imap("imap://user:pw@localhost:" + imapServer.getPort() + "/INBOX")
+					.from(Mail.imapInboundAdapter("imap://user:pw@localhost:" + imapServer.getPort() + "/INBOX")
 									.searchTermStrategy(this::fromAndNotSeenTerm)
+									.userFlag("testSIUserFlag")
 									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.autoStartup(true)
 									.poller(p -> p.fixedDelay(1000)))
@@ -237,13 +232,14 @@ public class MailTests {
 		@Bean
 		public IntegrationFlow imapIdleFlow() {
 			return IntegrationFlows
-					.from((MessageProducers mp) ->
-							mp.imap("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX")
-									.searchTermStrategy(this::fromAndNotSeenTerm)
-									.javaMailProperties(p -> p.put("mail.debug", "false")
-											.put("mail.imap.connectionpoolsize", "5"))
-									.shouldReconnectAutomatically(false)
-									.headerMapper(mailHeaderMapper()))
+					.from(Mail.imapIdleAdapter("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX")
+							.autoStartup(true)
+							.searchTermStrategy(this::fromAndNotSeenTerm)
+							.userFlag("testSIUserFlag")
+							.javaMailProperties(p -> p.put("mail.debug", "false")
+									.put("mail.imap.connectionpoolsize", "5"))
+							.shouldReconnectAutomatically(false)
+							.headerMapper(mailHeaderMapper()))
 					.channel(MessageChannels.queue("imapIdleChannel"))
 					.get();
 		}

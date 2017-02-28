@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -36,7 +37,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.channel.DirectChannel;
@@ -79,7 +79,7 @@ public class HttpTests {
 
 
 	@Configuration
-	@Import({PropertyPlaceholderAutoConfiguration.class, ServerPropertiesAutoConfiguration.class,
+	@ImportAutoConfiguration({PropertyPlaceholderAutoConfiguration.class, ServerPropertiesAutoConfiguration.class,
 			EmbeddedServletContainerAutoConfiguration.class, DispatcherServletAutoConfiguration.class,
 			SecurityAutoConfiguration.class })
 	@EnableIntegration

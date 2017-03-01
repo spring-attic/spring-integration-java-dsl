@@ -69,10 +69,10 @@ ext {
 	reactiveStreamsVersion = '1.0.0'
 	reactorVersion = '2.0.8.RELEASE'
 	slf4jVersion = '1.7.21'
-	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.6.BUILD-SNAPSHOT'
+	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.8.RELEASE'
 	springIntegrationKafkaVersion = '2.1.0.RELEASE'
 	springKafkaVersion = '1.1.1.RELEASE'
-	springBootVersion = '1.4.1.RELEASE'
+	springBootVersion = '1.4.4.RELEASE'
 	testNgVersion = '6.8.21'
 	tomcatVersion = '8.5.2'
 

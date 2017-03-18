@@ -1328,7 +1328,18 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		Assert.notNull(enricherConfigurer);
 		EnricherSpec enricherSpec = new EnricherSpec();
 		enricherConfigurer.accept(enricherSpec);
-		return this.handle(enricherSpec.get(), endpointConfigurer);
+		this.handle(enricherSpec.get(), endpointConfigurer);
+
+		IntegrationFlowDefinition<IntegrationFlowBuilder> subFlowDefinition = enricherSpec.getSubFlowDefinition();
+		if (subFlowDefinition != null) {
+			if (subFlowDefinition.isOutputChannelRequired()) {
+				addComponent(subFlowDefinition.get());
+			} else {
+				throw new BeanCreationException("Enricher subFlow must require an output channel");
+			}
+		}
+
+		return _this();
 	}
 
 	/**

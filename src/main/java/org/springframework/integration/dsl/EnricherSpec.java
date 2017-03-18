@@ -137,7 +137,7 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 	}
 
 	IntegrationFlowDefinition<IntegrationFlowBuilder> getSubFlowDefinition() {
-		return subFlowDefinition;
+		return this.subFlowDefinition;
 	}
 
 	/**

@@ -1333,8 +1333,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		IntegrationFlowDefinition<IntegrationFlowBuilder> subFlowDefinition = enricherSpec.getSubFlowDefinition();
 		if (subFlowDefinition != null) {
 			if (subFlowDefinition.isOutputChannelRequired()) {
-				addComponent(subFlowDefinition.get());
-			} else {
+				this.addComponent(subFlowDefinition.get());
+			}
+			else {
 				throw new BeanCreationException("Enricher subFlow must require an output channel");
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@ public class HttpMessageHandlerSpec
 
 	HttpMessageHandlerSpec(Expression uriExpression, RestTemplate restTemplate) {
 		this.target = new HttpRequestExecutingMessageHandler(uriExpression, restTemplate);
-		this.target.setUriVariableExpressions(this.uriVariableExpressions);
 		this.target.setHeaderMapper(this.headerMapper);
 		this.restTemplate = restTemplate;
 	}
@@ -179,20 +178,30 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
-	public HttpMessageHandlerSpec uriVariable(String variable, Expression value) {
-		this.uriVariableExpressions.put(variable, value);
+	/**
+	 * Specify an {@link Expression} for the URI variable.
+	 * @param variable the uri template variable.
+	 * @param expression the expression to evaluate value for te uri template variable.
+	 * @return the current Spec.
+	 * @since 1.1.1
+	 * @see ValueExpression
+	 * @see FunctionExpression
+	 */
+	public HttpMessageHandlerSpec uriVariable(String variable, Expression expression) {
+		this.uriVariableExpressions.put(variable, expression);
 		return this;
 	}
 
 	/**
+	 * Specify a SpEL expression for the URI variable.
 	 * @param variable the uri template variable.
-	 * @param value the expression to evaluate value for te uri template variable.
+	 * @param expression the expression to evaluate value for te uri template variable.
 	 * @return the current Spec.
 	 * @since 1.1.1
 	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
 	 */
-	public HttpMessageHandlerSpec uriVariable(String variable, String value) {
-		return uriVariable(variable, PARSER.parseExpression(value));
+	public HttpMessageHandlerSpec uriVariable(String variable, String expression) {
+		return uriVariable(variable, PARSER.parseExpression(expression));
 	}
 
 	/**
@@ -240,6 +249,7 @@ public class HttpMessageHandlerSpec
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
+		this.target.setUriVariableExpressions(this.uriVariableExpressions);
 		return Collections.<Object>singletonList(this.headerMapper);
 	}
 

@@ -47,6 +47,7 @@ import org.springframework.integration.dsl.MessagingGateways;
 import org.springframework.integration.dsl.http.Http;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
@@ -137,9 +138,9 @@ public class HttpTests {
 													.getRequest()
 													.getQueryString()))
 					.handleWithAdapter(a ->
-							a.httpGateway(m ->
-									String.format("http://localhost:%s/service/internal?%s",
-											this.environment.getProperty("local.server.port"), m.getPayload()))
+							a.httpGateway("http://localhost:{port}/service/internal?{params}")
+									.uriVariable("port", "@environment.getProperty('local.server.port')")
+									.uriVariable("params", Message<Object>::getPayload)
 									.expectedResponseType(String.class))
 					.get();
 		}

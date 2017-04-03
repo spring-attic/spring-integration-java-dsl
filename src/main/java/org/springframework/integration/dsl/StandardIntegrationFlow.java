@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 
 /**
  * @author Artem Bilan
  */
-public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
+public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle, DisposableBean {
 
 	private final List<Object> integrationComponents;
 
@@ -122,6 +123,15 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public int getPhase() {
 		return 0;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		for (Object component : this.integrationComponents) {
+			if (component instanceof DisposableBean) {
+				((DisposableBean) component).destroy();
+			}
+		}
 	}
 
 	private static final class AggregatingCallback implements Runnable {

@@ -5,11 +5,11 @@ See the
 [Spring Integration Java DSL Reference](https://github.com/spring-projects/spring-integration-java-dsl/wiki/Spring-Integration-Java-DSL-Reference)
 for more information.
 
-#Contributing
+# Contributing
 
 See the [Spring Integration Contributor Guidelines](https://github.com/spring-projects/spring-integration/blob/master/CONTRIBUTING.adoc) for information about how to contribute to this repository.
 
-#Resources
+# Resources
 
 For more information, please visit the Spring Integration website at: [http://projects.spring.io/spring-integration/](http://projects.spring.io/spring-integration/)
 

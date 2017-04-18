@@ -11,3 +11,4 @@ build
 hostkey.ser
 /bin/
 .DS_Store
+.springBeans

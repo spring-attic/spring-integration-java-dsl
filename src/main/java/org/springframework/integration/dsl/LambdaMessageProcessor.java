@@ -127,7 +127,7 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 			return this.method.invoke(this.target, args);
 		}
 		catch (InvocationTargetException e) {
-			throw new MessageHandlingException(message, e.getCause());
+			throw new MessageHandlingException(message, e.getCause()); // NOSONAR (stack trace)
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(message, e);

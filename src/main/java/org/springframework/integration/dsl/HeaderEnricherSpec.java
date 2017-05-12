@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headers(MapBuilder<?, String, Object> headers, Boolean overwrite) {
-		Assert.notNull(headers);
+		Assert.notNull(headers, "'headers' must not be null");
 		return headers(headers.get(), overwrite);
 	}
 
@@ -170,7 +170,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headers(Map<String, Object> headers, Boolean overwrite) {
-		Assert.notNull(headers);
+		Assert.notNull(headers, "'headers' must not be null");
 		for (Entry<String, Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
 			Object value = entry.getValue();
@@ -208,7 +208,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headerExpressions(MapBuilder<?, String, String> headers, Boolean overwrite) {
-		Assert.notNull(headers);
+		Assert.notNull(headers, "'headers' must not be null");
 		return headerExpressions(headers.get(), overwrite);
 	}
 
@@ -250,7 +250,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headerExpressions(Consumer<StringStringMapBuilder> configurer, Boolean overwrite) {
-		Assert.notNull(configurer);
+		Assert.notNull(configurer, "'configurer' must not be null");
 		StringStringMapBuilder builder = new StringStringMapBuilder();
 		configurer.accept(builder);
 		return headerExpressions(builder.get(), overwrite);
@@ -277,7 +277,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headerExpressions(Map<String, String> headers, Boolean overwrite) {
-		Assert.notNull(headers);
+		Assert.notNull(headers, "'configurer' must not be null");
 		for (Entry<String, String> entry : headers.entrySet()) {
 			AbstractHeaderValueMessageProcessor<Object> processor =
 					new ExpressionEvaluatingHeaderValueMessageProcessor<Object>(entry.getValue(), null);
@@ -335,7 +335,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headerExpression(String name, String expression, Boolean overwrite) {
-		Assert.hasText(expression);
+		Assert.hasText(expression, "'expression' must not be empty");
 		return headerExpression(name, PARSER.parseExpression(expression), overwrite);
 	}
 
@@ -384,7 +384,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @return the header enricher spec.
 	 */
 	public <V> HeaderEnricherSpec header(String name, HeaderValueMessageProcessor<V> headerValueMessageProcessor) {
-		Assert.hasText(name);
+		Assert.hasText(name, "'name' must not be empty");
 		this.headerToAdd.put(name, headerValueMessageProcessor);
 		return _this();
 	}

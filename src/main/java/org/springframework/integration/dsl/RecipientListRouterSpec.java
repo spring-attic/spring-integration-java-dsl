@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @since 1.2
 	 */
 	public RecipientListRouterSpec recipient(String channelName, Expression expression) {
-		Assert.hasText(channelName);
+		Assert.hasText(channelName, "'channelName' must not be empty");
 		((DslRecipientListRouter) this.target).add(channelName, expression);
 		return _this();
 	}
@@ -89,7 +89,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @since 1.2
 	 */
 	public <P> RecipientListRouterSpec recipient(String channelName, GenericSelector<P> selector) {
-		Assert.hasText(channelName);
+		Assert.hasText(channelName, "'channelName' must not be empty");
 		((DslRecipientListRouter) this.target).add(channelName, selector);
 		return _this();
 	}
@@ -121,7 +121,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @since 1.2
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel, Expression expression) {
-		Assert.notNull(channel);
+		Assert.notNull(channel, "'channel' must not be null");
 		((DslRecipientListRouter) this.target).add(channel, expression);
 		return _this();
 	}
@@ -145,7 +145,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @since 1.2
 	 */
 	public <P> RecipientListRouterSpec recipient(MessageChannel channel, GenericSelector<P> selector) {
-		Assert.notNull(channel);
+		Assert.notNull(channel, "'channel' must not be null");
 		((DslRecipientListRouter) this.target).add(channel, selector);
 		return _this();
 	}
@@ -169,7 +169,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @since 1.2
 	 */
 	public <P> RecipientListRouterSpec recipientFlow(GenericSelector<P> selector, IntegrationFlow subFlow) {
-		Assert.notNull(subFlow);
+		Assert.notNull(subFlow, "'subFlow' must not be null");
 		DirectChannel channel = populateSubFlow(subFlow);
 		((DslRecipientListRouter) this.target).add(channel, selector);
 		return _this();
@@ -204,7 +204,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @since 1.2
 	 */
 	public RecipientListRouterSpec recipientFlow(Expression expression, IntegrationFlow subFlow) {
-		Assert.notNull(subFlow);
+		Assert.notNull(subFlow, "'subFlow' must not be null");
 		DirectChannel channel = populateSubFlow(subFlow);
 		((DslRecipientListRouter) this.target).add(channel, expression);
 		return _this();

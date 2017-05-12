@@ -211,7 +211,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 
 		public JmsInboundGatewayListenerContainerSpec<S, C> configureListenerContainer(
 				Consumer<JmsListenerContainerSpec<S, C>> configurer) {
-			Assert.notNull(configurer);
+			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
 		}

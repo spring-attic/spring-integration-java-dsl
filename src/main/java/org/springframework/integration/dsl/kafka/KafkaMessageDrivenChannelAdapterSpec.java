@@ -207,7 +207,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 		 */
 		public KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> configureListenerContainer(
 				Consumer<KafkaMessageListenerContainerSpec<K, V>> configurer) {
-			Assert.notNull(configurer);
+			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
 		}

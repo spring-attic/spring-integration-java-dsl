@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 	private ConversionService conversionService;
 
 	LambdaMessageProcessor(Object target, Class<?> payloadType) {
-		Assert.notNull(target);
+		Assert.notNull(target, "'target' must not be null");
 		this.target = target;
 		final AtomicReference<Method> methodValue = new AtomicReference<Method>();
 		ReflectionUtils.doWithMethods(target.getClass(), new ReflectionUtils.MethodCallback() {

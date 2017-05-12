@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public final class IntegrationFlows {
 	 * @see Channels
 	 */
 	public static IntegrationFlowBuilder from(ChannelsFunction channels) {
-		Assert.notNull(channels);
+		Assert.notNull(channels, "'channels' must not be null");
 		return from(channels.apply(new Channels()));
 	}
 
@@ -99,7 +99,7 @@ public final class IntegrationFlows {
 	 * @see org.springframework.integration.dsl.channel.MessageChannels
 	 */
 	public static IntegrationFlowBuilder from(MessageChannelSpec<?, ?> messageChannelSpec) {
-		Assert.notNull(messageChannelSpec);
+		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");
 		return from(messageChannelSpec.get());
 	}
 
@@ -140,7 +140,7 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(MessageSourcesFunction sources,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-		Assert.notNull(sources);
+		Assert.notNull(sources, "'sources' must not be null");
 		return from(sources.apply(new MessageSources()), endpointConfigurer);
 	}
 
@@ -169,7 +169,7 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-		Assert.notNull(messageSourceSpec);
+		Assert.notNull(messageSourceSpec, "'messageSourceSpec' must not be null");
 		return from(messageSourceSpec.get(), endpointConfigurer, registerComponents(messageSourceSpec));
 	}
 
@@ -199,8 +199,8 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-		Assert.notNull(service);
-		Assert.hasText(methodName);
+		Assert.notNull(service, "'service' must not be null");
+		Assert.hasText(methodName, "'methodName' must not be empty");
 		MethodInvokingMessageSource messageSource = new MethodInvokingMessageSource();
 		messageSource.setObject(service);
 		messageSource.setMethodName(methodName);

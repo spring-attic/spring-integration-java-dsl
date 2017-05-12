@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,8 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	public S options(AbstractRemoteFileOutboundGateway.Option... options) {
-		Assert.noNullElements(options);
+		Assert.notNull(options, "'options' must not be null");
+		Assert.noNullElements(options, "'options' must not contain null elements");
 		StringBuilder optionsString = new StringBuilder();
 		for (AbstractRemoteFileOutboundGateway.Option option : options) {
 			optionsString.append(option.getOption()).append(" ");

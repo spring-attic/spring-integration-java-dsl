@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B channel(Function<Channels, MessageChannelSpec<?, ?>> channels) {
-		Assert.notNull(channels);
+		Assert.notNull(channels, "'channels' must not be null");
 		return channel(channels.apply(new Channels()));
 	}
 
@@ -205,7 +205,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see org.springframework.integration.dsl.channel.MessageChannels
 	 */
 	public B channel(MessageChannelSpec<?, ?> messageChannelSpec) {
-		Assert.notNull(messageChannelSpec);
+		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");
 		return channel(messageChannelSpec.get());
 	}
 
@@ -219,7 +219,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B channel(MessageChannel messageChannel) {
-		Assert.notNull(messageChannel);
+		Assert.notNull(messageChannel, "'messageChannel' must not be null");
 		if (this.currentMessageChannel != null) {
 			bridge(null);
 		}
@@ -249,7 +249,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B publishSubscribeChannel(Executor executor,
 			Consumer<PublishSubscribeSpec> publishSubscribeChannelConfigurer) {
-		Assert.notNull(publishSubscribeChannelConfigurer);
+		Assert.notNull(publishSubscribeChannelConfigurer, "'publishSubscribeChannelConfigurer' must not be null");
 		PublishSubscribeSpec spec = new PublishSubscribeSpec(executor);
 		publishSubscribeChannelConfigurer.accept(spec);
 		return addComponents(spec.getComponentsToRegister()).channel(spec);
@@ -466,7 +466,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see ExpressionEvaluatingTransformer
 	 */
 	public B transform(String expression, Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		Assert.hasText(expression);
+		Assert.hasText(expression, "'expression' must not be empty");
 		return transform(new ExpressionEvaluatingTransformer(PARSER.parseExpression(expression)),
 				endpointConfigurer);
 	}
@@ -567,7 +567,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec);
+		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.transform(new MethodInvokingTransformer(processor), endpointConfigurer);
@@ -621,7 +621,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		Assert.notNull(genericTransformer);
+		Assert.notNull(genericTransformer, "'genericTransformer' must not be null");
 		Transformer transformer = genericTransformer instanceof Transformer ? (Transformer) genericTransformer :
 				(isLambda(genericTransformer)
 						? new MethodInvokingTransformer(new LambdaMessageProcessor(genericTransformer, payloadType))
@@ -654,7 +654,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see FilterEndpointSpec
 	 */
 	public B filter(String expression, Consumer<FilterEndpointSpec> endpointConfigurer) {
-		Assert.hasText(expression);
+		Assert.hasText(expression, "'expression' must not be empty");
 		return filter(new ExpressionEvaluatingSelector(expression), endpointConfigurer);
 	}
 
@@ -755,7 +755,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.1
 	 */
 	public B filter(MessageProcessorSpec<?> messageProcessorSpec, Consumer<FilterEndpointSpec> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec);
+		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.filter(new MethodInvokingSelector(processor), endpointConfigurer);
@@ -820,7 +820,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector,
 			Consumer<FilterEndpointSpec> endpointConfigurer) {
-		Assert.notNull(genericSelector);
+		Assert.notNull(genericSelector, "'genericSelector' must not be null");
 		MessageSelector selector = genericSelector instanceof MessageSelector ? (MessageSelector) genericSelector :
 				(isLambda(genericSelector)
 						? new MethodInvokingSelector(new LambdaMessageProcessor(genericSelector, payloadType))
@@ -1115,7 +1115,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B handle(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec);
+		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.handle(new ServiceActivatingHandler(processor), endpointConfigurer);
@@ -1140,7 +1140,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <H extends MessageHandler> B handle(MessageHandlerSpec<?, H> messageHandlerSpec,
 			Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
-		Assert.notNull(messageHandlerSpec);
+		Assert.notNull(messageHandlerSpec, "'messageHandlerSpec' must not be null");
 		if (messageHandlerSpec instanceof ComponentsRegistration) {
 			addComponents(((ComponentsRegistration) messageHandlerSpec).getComponentsToRegister());
 		}
@@ -1325,7 +1325,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B enrich(Consumer<EnricherSpec> enricherConfigurer,
 			Consumer<GenericEndpointSpec<ContentEnricher>> endpointConfigurer) {
-		Assert.notNull(enricherConfigurer);
+		Assert.notNull(enricherConfigurer, "'enricherConfigurer' must not be null");
 		EnricherSpec enricherSpec = new EnricherSpec();
 		enricherConfigurer.accept(enricherSpec);
 		return this.handle(enricherSpec.get(), endpointConfigurer);
@@ -1452,7 +1452,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B enrichHeaders(Consumer<HeaderEnricherSpec> headerEnricherConfigurer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		Assert.notNull(headerEnricherConfigurer);
+		Assert.notNull(headerEnricherConfigurer, "'headerEnricherConfigurer' must not be null");
 		HeaderEnricherSpec headerEnricherSpec = new HeaderEnricherSpec();
 		headerEnricherConfigurer.accept(headerEnricherSpec);
 		return transform(headerEnricherSpec.get(), endpointConfigurer);
@@ -1508,7 +1508,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see SplitterEndpointSpec
 	 */
 	public B split(String expression, Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>> endpointConfigurer) {
-		Assert.hasText(expression);
+		Assert.hasText(expression, "'expression' must not be empty");
 		return split(new ExpressionEvaluatingSplitter(PARSER.parseExpression(expression)), endpointConfigurer);
 	}
 
@@ -1630,7 +1630,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B split(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec);
+		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.split(new MethodInvokingSplitter(processor), endpointConfigurer);
@@ -1745,7 +1745,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
-		Assert.notNull(splitterMessageHandlerSpec);
+		Assert.notNull(splitterMessageHandlerSpec, "'splitterMessageHandlerSpec' must not be null");
 		return split(splitterMessageHandlerSpec.get(), endpointConfigurer);
 	}
 
@@ -1772,7 +1772,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <S extends AbstractMessageSplitter> B split(S splitter,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
-		Assert.notNull(splitter);
+		Assert.notNull(splitter, "'splitter' must not be null");
 		return this.register(new SplitterEndpointSpec<S>(splitter), endpointConfigurer);
 	}
 
@@ -1905,7 +1905,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	@Deprecated
 	public B resequence(Consumer<ResequencerSpec> resequencerConfigurer,
 			Consumer<GenericEndpointSpec<ResequencingMessageHandler>> endpointConfigurer) {
-		Assert.notNull(resequencerConfigurer);
+		Assert.notNull(resequencerConfigurer, "'resequencerConfigurer' must not be null");
 		ResequencerSpec spec = new ResequencerSpec();
 		resequencerConfigurer.accept(spec);
 		return handle(spec.get().getT2(), endpointConfigurer);
@@ -1958,7 +1958,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	@Deprecated
 	public B aggregate(Consumer<AggregatorSpec> aggregatorConfigurer,
 			Consumer<GenericEndpointSpec<AggregatingMessageHandler>> endpointConfigurer) {
-		Assert.notNull(aggregatorConfigurer);
+		Assert.notNull(aggregatorConfigurer, "'aggregatorConfigurer' must not be null");
 		AggregatorSpec spec = new AggregatorSpec();
 		aggregatorConfigurer.accept(spec);
 		return this.handle(spec.get().getT2(), endpointConfigurer);
@@ -2329,7 +2329,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,
 			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec);
+		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.route(new MethodInvokingRouter(processor), routerConfigurer, endpointConfigurer);
@@ -2545,7 +2545,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B gateway(IntegrationFlow flow, Consumer<GatewayEndpointSpec> endpointConfigurer) {
-		Assert.notNull(flow);
+		Assert.notNull(flow, "'flow' must not be null");
 		final DirectChannel requestChannel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(requestChannel);
 		flow.configure(flowBuilder);
@@ -2620,7 +2620,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.2
 	 */
 	public B log(LoggingHandler.Level level, String category, String logExpression) {
-		Assert.hasText(logExpression);
+		Assert.hasText(logExpression, "'logExpression' must not be empty");
 		return log(level, category, PARSER.parseExpression(logExpression));
 	}
 
@@ -2629,15 +2629,15 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with the {@link LoggingHandler} subscriber for the {@code INFO} logging level,
 	 * the {@code org.springframework.integration.handler.LoggingHandler}
 	 * as a default logging category and {@link Function} for the log message.
-	 * @param function the function to evaluate logger message at runtime
+	 * @param logFunction the function to evaluate logger message at runtime
 	 * @param <P> the expected payload type.
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @since 1.2
 	 */
-	public <P> B log(Function<Message<P>, Object> function) {
-		Assert.notNull(function);
-		return log(new FunctionExpression<Message<P>>(function));
+	public <P> B log(Function<Message<P>, Object> logFunction) {
+		Assert.notNull(logFunction, "'logFunction' must not be null");
+		return log(new FunctionExpression<Message<P>>(logFunction));
 	}
 
 	/**
@@ -2736,7 +2736,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @since 1.2
 	 */
 	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
-		Assert.notNull(function);
+		Assert.notNull(function, "'function' must not be null");
 		return log(level, category, new FunctionExpression<Message<P>>(function));
 	}
 
@@ -2862,7 +2862,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer,
 			Consumer<ScatterGatherSpec> scatterGather) {
-		Assert.notNull(scatterer);
+		Assert.notNull(scatterer, "'scatterer' must not be null");
 		RecipientListRouterSpec recipientListRouterSpec = new RecipientListRouterSpec();
 		scatterer.accept(recipientListRouterSpec);
 		AggregatorSpec aggregatorSpec = new AggregatorSpec();
@@ -2967,7 +2967,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the Reactive Streams {@link Publisher}
 	 */
 	public <T> Publisher<Message<T>> toReactivePublisher(Executor executor) {
-		Assert.notNull(executor);
+		Assert.notNull(executor, "'executor' must not be null");
 		MessageChannel channelForPublisher = this.currentMessageChannel;
 		if (channelForPublisher == null) {
 			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();

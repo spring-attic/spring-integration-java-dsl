@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.core.MessageHandlerSpec;
 import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.dsl.support.FunctionExpression;
@@ -50,6 +51,8 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 
 	EnricherSpec() {
 	}
+
+	private IntegrationFlowDefinition<IntegrationFlowBuilder> subFlowDefinition;
 
 	/**
 	 * @param requestChannel the request channel.
@@ -131,6 +134,23 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 	public <P> EnricherSpec requestPayload(Function<Message<P>, ?> requestPayloadFunction) {
 		this.enricher.setRequestPayloadExpression(new FunctionExpression<Message<P>>(requestPayloadFunction));
 		return _this();
+	}
+
+	IntegrationFlowDefinition<IntegrationFlowBuilder> getSubFlowDefinition() {
+		return this.subFlowDefinition;
+	}
+
+	/**
+	 * @param subFlow the subFlowDefinition
+	 * @return the enricher spec
+	 */
+	public EnricherSpec subFlow(IntegrationFlow subFlow) {
+		DirectChannel requestChannel = new DirectChannel();
+		IntegrationFlowBuilder flowBuilder = IntegrationFlows
+				.from(requestChannel);
+		subFlow.configure(flowBuilder);
+		this.subFlowDefinition = flowBuilder;
+		return _this().requestChannel(requestChannel);
 	}
 
 	/**

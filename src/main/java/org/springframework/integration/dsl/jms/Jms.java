@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,7 +256,13 @@ public final class Jms {
 	public static JmsMessageDrivenChannelAdapterSpec
 			.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
-		return messageDrivenChannelAdapter(connectionFactory, DefaultMessageListenerContainer.class);
+		try {
+			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>(
+					new §().connectionFactory(connectionFactory));
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	/**

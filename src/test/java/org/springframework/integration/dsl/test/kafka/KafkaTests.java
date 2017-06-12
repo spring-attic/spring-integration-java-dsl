@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -168,9 +167,7 @@ public class KafkaTests {
 							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC)
 							.configureListenerContainer(c ->
 									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL))
-							.errorChannel("errorChannel")
-							.retryTemplate(new RetryTemplate())
-							.filterInRetry(true))
+							.errorChannel("errorChannel"))
 					.filter(Message.class, m ->
 									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
 							f -> f.throwExceptionOnRejection(true))

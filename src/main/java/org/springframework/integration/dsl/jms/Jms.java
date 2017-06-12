@@ -258,7 +258,7 @@ public final class Jms {
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
 		try {
 			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>(
-					new §().connectionFactory(connectionFactory));
+					new JmsDefaultListenerContainerSpec().connectionFactory(connectionFactory));
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

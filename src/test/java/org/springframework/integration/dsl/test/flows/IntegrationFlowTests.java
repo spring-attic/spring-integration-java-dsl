@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.test.flows;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -36,6 +37,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -89,6 +91,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Artem Bilan
@@ -436,6 +439,30 @@ public class IntegrationFlowTests {
 		assertEquals(6, receive3.getPayload());
 	}
 
+	@Test
+	public void testProperFlowStop() {
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		context.register(VanillaFlowConfiguration.class);
+		context.refresh();
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		context.close();
+		stopWatch.stop();
+		assertThat(stopWatch.getTotalTimeMillis(), lessThan(30000L));
+	}
+
+	@EnableIntegration
+	private static class VanillaFlowConfiguration {
+
+		@Bean
+		public Publisher<Message<String>> vanillaSource() {
+			return IntegrationFlows
+					.from(() -> new GenericMessage<>("foo"),
+							e -> e.poller(p -> p.fixedDelay(1)))
+					.toReactivePublisher();
+		}
+
+	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus")
 	private interface ControlBusGateway {

@@ -179,6 +179,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * Determine the action to take when using GET and MGET operations when the file
 	 * already exists locally, or PUT and MPUT when the file exists on the remote system.
 	 * @param fileExistsMode the fileExistsMode to set.
+	 * @return the Spec.
 	 * @since 1.2.3
 	 */
 	public S fileExistsMode(FileExistsMode fileExistsMode) {

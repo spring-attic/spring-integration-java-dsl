@@ -27,6 +27,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -170,6 +171,18 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 */
 	public S localFilenameExpression(Expression localFilenameExpression) {
 		this.target.setLocalFilenameGeneratorExpression(localFilenameExpression);
+		return _this();
+	}
+
+
+	/**
+	 * Determine the action to take when using GET and MGET operations when the file
+	 * already exists locally, or PUT and MPUT when the file exists on the remote system.
+	 * @param fileExistsMode the fileExistsMode to set.
+	 * @since 1.2.3
+	 */
+	public S fileExistsMode(FileExistsMode fileExistsMode) {
+		this.target.setFileExistsMode(fileExistsMode);
 		return _this();
 	}
 

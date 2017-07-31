@@ -70,10 +70,10 @@ ext {
 	reactiveStreamsVersion = '1.0.0'
 	reactorVersion = '2.0.8.RELEASE'
 	slf4jVersion = '1.7.21'
-	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.10.RELEASE'
+	springIntegrationVersion = project.hasProperty('siVersion') ? project.siVersion : '4.3.11.RELEASE'
 	springIntegrationKafkaVersion = '2.1.1.RELEASE'
 	springKafkaVersion = '1.1.6.RELEASE'
-	springBootVersion = '1.5.4.RELEASE'
+	springBootVersion = '1.5.6.RELEASE'
 	testNgVersion = '6.8.21'
 	tomcatVersion = '8.5.2'
 
@@ -88,7 +88,7 @@ ext {
 eclipse.project.natures += 'org.springframework.ide.eclipse.core.springnature'
 
 jacoco {
-	toolVersion = "0.7.8"
+	toolVersion = "0.7.9"
 }
 
 dependencies {
@@ -192,7 +192,7 @@ tasks.withType(Test).all {
 
 checkstyle {
 	configFile = file("${rootDir}/src/checkstyle/checkstyle.xml")
-	toolVersion = '6.16.1'
+	toolVersion = '8.0'
 }
 
 jacocoTestReport {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+
+import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,10 +105,14 @@ public class AmqpTests {
 	@Qualifier("amqpReplyChannel.channel")
 	private PollableChannel amqpReplyChannel;
 
+	@Autowired
+	@Qualifier("fooQueue")
+	private Queue fooQueue;
+
 	@Test
 	public void testAmqpOutboundFlow() throws Exception {
 		this.amqpOutboundInput.send(MessageBuilder.withPayload("hello through the amqp")
-				.setHeader("routingKey", "foo")
+				.setHeader("routingKey", this.fooQueue.getName())
 				.build());
 		Message<?> receive = null;
 		int i = 0;
@@ -203,7 +209,7 @@ public class AmqpTests {
 
 		@Bean
 		public Queue fooQueue() {
-			return new Queue("foo");
+			return new Queue(UUID.randomUUID().toString());
 		}
 
 		@Bean
@@ -241,7 +247,7 @@ public class AmqpTests {
 		@Bean
 		public AbstractAmqpChannel unitChannel(ConnectionFactory rabbitConnectionFactory) {
 			return Amqp.pollableChannel(rabbitConnectionFactory)
-					.queueName("foo")
+					.queueName(fooQueue().getName())
 					.channelTransacted(true)
 					.extractPayload(true)
 					.inboundHeaderMapper(mapperIn())

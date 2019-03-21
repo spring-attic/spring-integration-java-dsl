@@ -11,7 +11,7 @@ See the [Spring Integration Contributor Guidelines](https://github.com/spring-pr
 
 # Resources
 
-For more information, please visit the Spring Integration website at: [http://projects.spring.io/spring-integration/](http://projects.spring.io/spring-integration/)
+For more information, please visit the Spring Integration website at: [https://projects.spring.io/spring-integration/](https://projects.spring.io/spring-integration/)
 
 Also:
 

@@ -3097,7 +3097,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				}
 				else if (this.currentMessageChannel != null) {
 					throw new BeanCreationException("The 'IntegrationFlow' can't consist of only one 'MessageChannel'. "
-							+ "Add at lest '.bridge()' EIP-method before the end of flow.");
+							+ "Add at least '.bridge()' EIP-method before the end of flow.");
 				}
 			}
 			this.integrationFlow = new StandardIntegrationFlow(this.integrationComponents);

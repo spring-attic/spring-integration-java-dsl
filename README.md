@@ -1,3 +1,5 @@
+# spring-integration-java-dsl is no longer actively maintained by VMware, Inc.
+
 ## **_This project has been absorbed by Spring Integration Core starting with version 5.0. Please consult its [Reference Manual](https://docs.spring.io/spring-integration/docs/current/reference/html) for the actual documentation. This project is only in a maintenance, bug fixing state._**
 
 Spring Integration Java DSL
